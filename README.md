@@ -6,7 +6,7 @@ It implements methods and standards as defined by international standard organiz
 such as the **CIE**, the *International Commission on Illumination*,
 and many experimental color algorithms and data not yet 
 
-Colorado is free and open-source, and is released under the Apache 2.0 license.
+Colorado is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
 
 The base for the color algorithms in this library are spectral power distributions of emissive sources such as lights and displays, 
 and spectral reflectivity and spectral transmissivity of materials.
