@@ -1,7 +1,10 @@
 [package]
 name = "colorado"
-version = "0.1.0"
+version = "0.0.0"
+authors = ["Gerard Harbers <harbik@gmail.com>"]
 edition = "2018"
+description = "Color Sience algorithms and datasets, for research and color management in lighting, graphic arts, and displays"
+license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
