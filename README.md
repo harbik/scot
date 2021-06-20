@@ -1,9 +1,11 @@
   
 # Colorado: Rust Color Science Library
 
+<div align="center">
+
 ![Colorful Colorado](daniel-norris.jpg)
-<div style="font-size: small; font-style: italic; margin-top: 0rem; margni-bottom: 1rem;">
-Photo by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/colorado?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+
+*Photo by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/colorado?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>*
 </div>
 
 
