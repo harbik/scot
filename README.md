@@ -1,10 +1,13 @@
+![Colorful Colorado](daniel-norris.jpg)
+Photo by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/colorado?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+  
 # Colorado: Rust Color Science Library
 
-**Colorado** is an open-source Color Science data and algorithms library written in the Rust programming language developed by Gerard Harbers, for Harbers Bik LLC.
+Colorado is an open-source Color Science data and algorithms library written in the Rust programming language developed by Gerard Harbers, for Harbers Bik LLC.
 It targets applications such as color management and quality control for displays, graphic arts, and architectural lighting.
 It implements methods and standards as defined by international standard organizations,
 such as the **CIE**, the *International Commission on Illumination*,
-and many experimental color algorithms and data not yet 
+and many other experimental color algorithms and datasets.
 
 Colorado is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
 

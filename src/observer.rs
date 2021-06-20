@@ -8,6 +8,10 @@ pub struct Observer {
 	pub domain: SpectralDomain,
 }
 
+pub enum ObserverTag {
+	CIE1931,
+	CIE1960,
+}
 
 impl StandardObserver for Observer {}
 
