@@ -64,7 +64,7 @@ impl Blackbody {
 impl SpectralData for Blackbody {
 
 	fn spectra(&self, dom: SpectralDomain) -> Spectra {
-		DMatrix::from_fn(dom.len(), self.ccts.0.nrows(),
+		DMatrix::from_fn(dom.size, self.ccts.0.nrows(),
 		|r,c| { 
 			let t = self.ccts.0[(c,0)];
 			let p = self.ccts.0[(c,1)];
@@ -73,6 +73,15 @@ impl SpectralData for Blackbody {
 		}
 	 )
 
+	}
+
+	fn description(&self) -> Option<String> {
+		Some("Blackbody Sources".to_string())
+	}
+
+	/// String temperature values for each of the blackbody sources in the collection.
+	fn keys(&self) -> Option<Vec<String>> {
+		self.ccts.keys()
 	}
 
 	fn domain(&self) -> SpectralDomain {
@@ -89,5 +98,9 @@ fn test_blackbody(){
 	let bb3000 = Blackbody::new([2700.0, 3000.0, 4000.0, 5000.0, 6500.0]);
 	//println!("{:?}", bb3000.spectra(SpectralDomain::default()));
 	let c31 = cie1931();
-	println!("{:?}", c31.cmf * bb3000.spectra(c31.domain));
+	let s = bb3000.spectra(c31.domain());
+//	println!("{:?}", c31.cmf.transpose() * s);
+	println!("{:?}", s.nrows());
+	println!("{:?}", c31.cmf.nrows());
+	println!("{:?}", c31.cmf * s);
 }

@@ -5,11 +5,10 @@
 
 ![Colorful Colorado](daniel-norris.jpg)
 
-*Photo by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/colorado?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>*
 </div>
 
 
-Colorado is an open-source Color Science data and algorithms library written in the Rust programming language, and is developed by Gerard Harbers (Harbers Bik LLC).
+Colorado is an open-source Color Science data and algorithms library written in the Rust programming language, and is being developed by Gerard Harbers (Harbers Bik LLC).
 It targets applications such as color management and quality control for displays, graphic arts, and architectural lighting.
 It implements methods and standards as defined by international standard organizations,
 such as the **CIE**, the *International Commission on Illumination*,
@@ -35,7 +34,7 @@ The data, methods, and algorithms in this library,
 referencing Standard Organizations such as the International Commission on Illumination (CIE), or any other Standards Organizations, 
 have not been endorsed, qualified, or approved by these Standard Organizations. 
 Please consult their documentation and standards for authoritative methods, recommendations, and data. 
-If you find any deviations or errors between the official standards and the implementations in this library, please report them as issues on its GitHub page.
+If you find any deviations or errors between the official standards and the implementations in this library, please report them as [issues](https://github.com/harbik/colorado/issues) on its GitHub page.
 Please be also aware that light and color measurements are difficult and depend on a lot of factors, 
 with many of them outside the scope of this library and its applications. 
 If you have a professional lighting, display lighting, or color issue, please consult a specialist.
@@ -57,3 +56,7 @@ at your option.
 Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
+
+## Credits
+
+Colorado Photo (top) made by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/colorado">Unsplash</a>

@@ -1,36 +1,30 @@
 
-use nalgebra::{Matrix3xX};
+use nalgebra::{Matrix3xX, Vector3};
 use crate::spectra::{SpectralData, Illuminant};
 
-pub struct Cie {
+/**	
+	A collection of a standard observer tristimulus values, with optional tristimulus values of a reference white point.
+*/
+pub struct XYZ {
 	xyz : Matrix3xX<f64>,
-	observer: ObserverTag,
+	white: Option<Vector3<f64>>,
 }
 
-impl Cie {
-	pub fn new(xyz: Matrix3xX<f64>, observer: ObserverTag) -> Self {
-		Self{ xyz, observer}
-	}
-
-
-impl<V: SpectralData + Illuminant> From<V> for Cie {
-
-	fn from(s: V) -> Self {
-		todo!()
-
-	}
-
-
-
-}
-
-
-impl std::ops::Deref for Cie {
+impl std::ops::Deref for XYZ {
     type Target = Matrix3xX<f64>;
 
     fn deref(&self) -> &Self::Target {
         &self.xyz
     }
 }
+
+impl XYZ {
+	pub fn new(xyz: Matrix3xX<f64>, white: Option<Vector3<f64>>) -> Self {
+		Self{ xyz, white}
+	}
+}
+
+
+
 
 

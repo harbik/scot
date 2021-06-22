@@ -23,37 +23,48 @@ pub trait StandardObserver {}
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SpectralDomain {
 	pub low: usize, // minimum 'unit' wavelength
-	pub high: usize, // maximum wavelength, in 'unit'
 	pub unit: usize,  // Angstrom
+	pub size: usize, // number of data points in the spectrum
 }
 
 
 impl SpectralDomain {
-    pub fn new(low: usize, high: usize, unit: usize) -> Self { Self { low, high, unit } }
 
-	pub fn len(&self) -> usize {
-		self.high - self.low + 1
+    pub fn new(low: usize, high: usize, unit: usize) -> Self { 
+		let size = (high - low) + 1;
+		Self { low, unit, size } 
 	}
 
+	pub fn high(&self) -> usize {
+		self.low + self.size - 1
+	}
 }
 
 impl Default for SpectralDomain {
 	fn default() -> Self {
 		Self {
-			low: 76, // 76 * 50 = 3800 Angstrom = 380 nm
-			high: 156, // 156 * 50 = 7800 Angstrom = 780 nm
+			low: 76, // 380 (nm) * 10 (Angstrom/nm) / 50 (Angstrom)
 			unit: 50, // 50 Angstrom = 5 nm
+			size: 81, // (780-380)/5 + 1
 		}	
 	}
 }
 
 impl Display for SpectralDomain {
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-		write!(f, "Spectral Range: {:.1} - {:.1} nm with {:.1} nm intervals", (self.low * self.unit) as f64/10.0, (self.high * self.unit) as f64/10.0, self.unit as f64/10.0)
+		write!(f, "Spectral domain ranges from {:.1} to {:.1} nm, and has {:.1} nm intervals", (self.low * self.unit) as f64/10.0, (self.high() * self.unit) as f64/10.0, self.unit as f64/10.0)
 	}
 }
 
+#[test]
+fn test_domain() {
+	let dom = SpectralDomain::default();
+	println!("{}", dom);
+
+}
+
 pub type Spectra = DMatrix<f64>;
+
 /// A collection of spectral distributions, sharing a 
 /// common spectral domain, represented by an nalgebra 
 /// DMatrix.
@@ -64,6 +75,13 @@ pub trait SpectralData {
 	    // in form of an  nalgebra's DMatrix, with and one or more spectral 
 		// data as columns.
 
+	/// spectral's native or default spectral range
 	fn domain(&self) -> SpectralDomain; 
-		// spectral's native or default spectral range
+
+	/// Optional keys for each of the spectral distribution in the collection.
+	fn keys(&self) -> Option<Vec<String>> { None }
+		//  here implemented as a default method, to be overridden if applicable
+
+	/// Optional description of spectral collection.
+	fn description(&self) -> Option<String> { None }
 }

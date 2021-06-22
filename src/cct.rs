@@ -79,6 +79,20 @@ impl CCTs {
 	}
 
 	/**
+	 */
+	 pub fn keys(&self) -> Option<Vec<String>> {
+		 if self.nrows() > 0 {
+			let mut v : Vec<String> = Vec::with_capacity(self.nrows());
+			for r in self.0.row_iter() {
+				v.push(format!("{}", r[0]));
+			}
+			Some(v)
+		 } else {
+			 None
+		 }
+	 }
+
+	/**
 		The minimum value of temperatures in a CCT collection.
 		# Example
 		```
