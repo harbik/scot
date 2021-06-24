@@ -4,21 +4,31 @@
  */
 
 
+pub mod cie1931;
+
 use nalgebra::{Matrix3xX};
 use crate::spectra::{SpectralDomain};
+
+pub use crate::observers::cie1931::{Cie1931, CIE1931}; // allow use as Observers::Cie1931 instead of Observers::cie1931::Cie1931
+
 
 
 
 /**
-	A trait to get a standard observer's average chromatic responses, referred to as color matching functions
-	x&#772;(&lambda;), y&#772;(&lambda;) z&#772;(&lambda;) by the CIE, mapped to a target domain, typically the default
+	Color matching functions mapped to a spectral data domain
+
+	A trait to get a standard observer chromatic responses, referred to as color matching functions
+	x&#772;(&lambda;), y&#772;(&lambda;) z&#772;(&lambda;) by the CIE, as a matrix over target domain, typically the default
 	domain for a spectral distribution. The mapping is typically done using a quadratic interpolation algorithm. Also
 	analytical models of the CIE standard observers exist, which allows to do the mapping by a straightforward
 	function evaluation.
  */
 pub trait StandardObserver {
-	/// The chromatic response 
+	/// Chromatic response mapped to a spectral domain, as a matrix with the x,y, and z color matching fuctions 
+	/// as row vectors.
 	fn cmf(&self, domain: SpectralDomain) -> Matrix3xX<f64>;
+
+	/// Domain associated with the data for the standard observer itself, as defined in standards. 
 	fn domain(&self) -> SpectralDomain;
 }
 

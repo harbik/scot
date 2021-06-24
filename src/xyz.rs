@@ -1,7 +1,7 @@
 
 use nalgebra::{Matrix3xX, Vector3};
 use crate::spectra::{SpectralData, Illuminant};
-use crate::observer::StandardObserver;
+use crate::observers::StandardObserver;
 
 /**	
 	A collection of a standard observer tristimulus values, with optional tristimulus values of a reference white point.
@@ -11,7 +11,8 @@ use crate::observer::StandardObserver;
 	chromaticity coordinates between different observers, using for example transforming back to a set of reference RGB
 	spectra, and calculating the tristimulus values for an other observer.
 
-	This object's lifetime can not extend the standard observers lifetime.
+	This object's lifetime can not extend the standard observers lifetime. Most of the standard observers defined in this
+	library have a static lifetime, so chromaticity values for these will be always valid.
 */
 pub struct XYZ<'a, C: StandardObserver> {
 	pub xyz : Matrix3xX<f64>,

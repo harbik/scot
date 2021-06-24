@@ -7,7 +7,7 @@ use std::fmt::{Display, Formatter};
 
 use na::DMatrix;
 
-use crate::observer::StandardObserver;
+use crate::observers::StandardObserver;
 use crate::xyz::XYZ;
 
 pub trait Illuminant {}

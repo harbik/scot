@@ -67,13 +67,12 @@ pub mod cct; // correlated color temperature
 
 pub mod spectra; // spectral matrix and range 
 
-pub mod blackbody; // blackbody radiator illuminants
+pub mod illuminants;
 
 /**
 CIE Standard Observers
  */
-pub mod observer; 
-pub mod cie1931;
+pub mod observers; 
 
 
 #[cfg(test)]
