@@ -7,6 +7,9 @@ use std::fmt::{Display, Formatter};
 
 use na::DMatrix;
 
+use crate::observer::StandardObserver;
+use crate::xyz::XYZ;
+
 pub trait Illuminant {}
 /// trait marker for illuminant spectra
 
@@ -16,9 +19,6 @@ pub trait Swatch {}
 
 pub trait Pixel {}
 /// trait marker for display pixel spectra
-
-pub trait StandardObserver {}
-/// trait marker for a Standard observer
 
 #[derive(Eq, PartialEq, Clone, Copy, Debug)]
 pub struct SpectralDomain {
@@ -84,4 +84,16 @@ pub trait SpectralData {
 
 	/// Optional description of spectral collection.
 	fn description(&self) -> Option<String> { None }
+
+	/**
+		Calculates tristimulus values for a spectral data source using a standard observer.
+		Depending on the specral source, it will also calculate a reference white color point,
+		as for example with swatch libraries.
+	 */ 
+	fn xyz<'a, C: StandardObserver>(cmf: C) -> XYZ<'a, C> {
+		// default implementation is do a interpolation from the color matching functions to the 
+		// native spectral data for the source
+		todo!()
+
+	}
 }

@@ -1,85 +1,31 @@
+/*!
+	Testing
+
+ */
+
+
 use nalgebra::{Matrix3xX};
-use crate::spectra::{SpectralDomain, StandardObserver};
+use crate::spectra::{SpectralDomain};
 
-
-/**
-	Matrix representation of the tri-chromatic response curves for various standard observers.
-
-	There response curves are called color matching functions. These were derived from color matching experiments, and
-	form the basis of colorimetry. The color matching function vectors are here stored as row vectors, with the matrix 
-	having 3 rows, and a varying number of columns, depending on the number of wavelength samples. This opposed to how
-	spectral data, which is stored as column vectors. This allows to get tristimulus values by performing a straight
-	forward matrix multiplication between the color matching function matrix and the spectral data matrix.
- */
-#[derive(Debug)]
-pub struct Observer {
-	pub cmf : Matrix3xX<f64>,
-
-	/// Low value of wavelength domain, in wavelength units.
-	pub low: usize,  
-
-	/// Size of a unit wavelength value, in Angstrom
-	pub unit: usize,
-
-}
-
-impl Observer {
-    pub fn new(low: usize, unit: usize, data: Vec<f64>) -> Self { 
-		Self { cmf: Matrix3xX::<f64>::from_vec(data), low, unit } 
-	}
-
-	pub fn domain(&self) -> SpectralDomain {
-		SpectralDomain { low: self.low, unit: self.unit, size: self.cmf.ncols()}
-	}
-}
-
-impl StandardObserver for Observer {}
 
 
 /**
-	CIE1931 2º standard observer (from )
+	A trait to get a standard observer's average chromatic responses, referred to as color matching functions
+	x&#772;(&lambda;), y&#772;(&lambda;) z&#772;(&lambda;) by the CIE, mapped to a target domain, typically the default
+	domain for a spectral distribution. The mapping is typically done using a quadratic interpolation algorithm. Also
+	analytical models of the CIE standard observers exist, which allows to do the mapping by a straightforward
+	function evaluation.
  */
-pub fn cie1931() -> Observer {
-	let data = vec![
-		0.0001299, 0.000003917, 0.0006061, 0.0002321, 0.000006965, 0.001086, 0.0004149, 0.00001239, 0.001946,
-		0.0007416, 0.00002202, 0.003486, 0.001368, 0.000039, 0.006450001, 0.002236, 0.000064, 0.01054999,
-		0.004243, 0.00012, 0.02005001, 0.00765, 0.000217, 0.03621, 0.01431, 0.000396, 0.06785001,
-		0.02319, 0.00064, 0.1102, 0.04351, 0.00121, 0.2074, 0.07763, 0.00218, 0.3713,
-		0.13438, 0.004, 0.6456, 0.21477, 0.0073, 1.0390501, 0.2839, 0.0116, 1.3856,
-		0.3285, 0.01684, 1.62296, 0.34828, 0.023, 1.74706, 0.34806, 0.0298, 1.7826,
-		0.3362, 0.038, 1.77211, 0.3187, 0.048, 1.7441, 0.2908, 0.06, 1.6692,
-		0.2511, 0.0739, 1.5281, 0.19536, 0.09098, 1.28764, 0.1421, 0.1126, 1.0419,
-		0.09564, 0.13902, 0.8129501, 0.05795001, 0.1693, 0.6162, 0.03201, 0.20802, 0.46518,
-		0.0147, 0.2586, 0.3533, 0.0049, 0.323, 0.272, 0.0024, 0.4073, 0.2123,
-		0.0093, 0.503, 0.1582, 0.0291, 0.6082, 0.1117, 0.06327, 0.71, 0.07824999,
-		0.1096, 0.7932, 0.05725001, 0.1655, 0.862, 0.04216, 0.2257499, 0.9148501, 0.02984,
-		0.2904, 0.954, 0.0203, 0.3597, 0.9803, 0.0134, 0.4334499, 0.9949501, 0.008749999,
-		0.5120501, 1.0, 0.005749999, 0.5945, 0.995, 0.0039, 0.6784, 0.9786, 0.002749999,
-		0.7621, 0.952, 0.0021, 0.8425, 0.9154, 0.0018, 0.9163, 0.87, 0.001650001,
-		0.9786, 0.8163, 0.0014, 1.0263, 0.757, 0.0011, 1.0567, 0.6949, 0.001,
-		1.0622, 0.631, 0.0008, 1.0456, 0.5668, 0.0006, 1.0026, 0.503, 0.00034,
-		0.9384, 0.4412, 0.00024, 0.8544499, 0.381, 0.00019, 0.7514, 0.321, 0.0001,
-		0.6424, 0.265, 5E-05, 0.5419, 0.217, 0.00003, 0.4479, 0.175, 0.00002,
-		0.3608, 0.1382, 0.00001, 0.2835, 0.107, 0.0, 0.2187, 0.0816, 0.0,
-		0.1649, 0.061, 0.0, 0.1212, 0.04458, 0.0, 0.0874, 0.032, 0.0,
-		0.0636, 0.0232, 0.0, 0.04677, 0.017, 0.0, 0.0329, 0.01192, 0.0,
-		0.0227, 0.00821, 0.0, 0.01584, 0.005723, 0.0, 0.01135916, 0.004102, 0.0,
-		0.008110916, 0.002929, 0.0, 0.005790346, 0.002091, 0.0, 0.004109457, 0.001484, 0.0,
-		0.002899327, 0.001047, 0.0, 0.00204919, 0.00074, 0.0, 0.001439971, 0.00052, 0.0,
-		0.000999949, 0.0003611, 0.0, 0.000690079, 0.0002492, 0.0, 0.000476021, 0.0001719, 0.0,
-		0.000332301, 0.00012, 0.0, 0.000234826, 0.0000848, 0.0, 0.000166151, 0.00006, 0.0,
-		0.000117413, 0.0000424, 0.0, 8.30753E-05, 0.00003, 0.0, 5.87065E-05, 0.0000212, 0.0,
-		4.15099E-05, 0.00001499, 0.0, 2.93533E-05, 0.0000106, 0.0, 2.06738E-05, 7.4657E-06, 0.0,
-		1.45598E-05, 5.2578E-06, 0.0, 1.0254E-05, 3.7029E-06, 0.0, 7.22146E-06, 2.6078E-06, 0.0,
-		5.08587E-06, 1.8366E-06, 0.0, 3.58165E-06, 1.2934E-06, 0.0, 2.52253E-06, 9.1093E-07, 0.0,
-		1.77651E-06, 6.4153E-07, 0.0, 1.25114E-06, 4.5181E-07, 0.0
-	];
-	Observer::new(360/5, 50, data)
+pub trait StandardObserver {
+	/// The chromatic response 
+	fn cmf(&self, domain: SpectralDomain) -> Matrix3xX<f64>;
+	fn domain(&self) -> SpectralDomain;
 }
+
+
 
 /**
 	CIE1964 10º standard observer (data from [Coulour & Vision Research Laboratory UK](http://www.cvrl.org/cmfs.htm])
- */
 pub fn cie1964() -> Observer {
 	let data = vec![
 		1.222E-07, 1.3398E-08, 5.35027E-07, 9.1927E-07, 1.0065E-07, 4.0283E-06, 5.9586E-06, 6.511E-07, 2.61437E-05,
@@ -118,7 +64,10 @@ pub fn cie1964() -> Observer {
 	Observer::new(360/5, 50, data)
 }
 
+ */
+
 #[test]
- fn testcie1931(){
-	 println!("{:?}", cie1964());
+ fn test_cie1931(){
  }
+
+
