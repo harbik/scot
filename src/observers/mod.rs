@@ -1,7 +1,11 @@
 /*!
-	Testing
+Color matching functions from Standard Observers, such as the CIE 1931 standard observer.
 
- */
+These observers, and their color matching functions, play a key role in Colorimetry, and are used througout this
+library.  In particular, references to standard observers are used in many color models and collections of
+chromaticity coordinates, to maintain consistency between all the different models and datasets, and to implement 
+automatic transformations between the different mathematical representations of color.
+*/
 
 
 pub mod cie1931;
@@ -9,26 +13,37 @@ pub mod cie1931;
 use nalgebra::{Matrix3xX};
 use crate::spectra::{SpectralDomain};
 
-pub use crate::observers::cie1931::{Cie1931, CIE1931}; // allow use as Observers::Cie1931 instead of Observers::cie1931::Cie1931
-
+pub use crate::observers::cie1931::{Cie1931}; // allow use as observers::Cie1931 instead of observers::cie1931::Cie1931
 
 
 
 /**
-	Color matching functions mapped to a spectral data domain
+	Color matching functions mapped to a spectral data domain.
 
 	A trait to get a standard observer chromatic responses, referred to as color matching functions
 	x&#772;(&lambda;), y&#772;(&lambda;) z&#772;(&lambda;) by the CIE, as a matrix over target domain, typically the default
 	domain for a spectral distribution. The mapping is typically done using a quadratic interpolation algorithm. Also
 	analytical models of the CIE standard observers exist, which allows to do the mapping by a straightforward
 	function evaluation.
+
+
+	
  */
 pub trait StandardObserver {
-	/// Chromatic response mapped to a spectral domain, as a matrix with the x,y, and z color matching fuctions 
-	/// as row vectors.
+
+	/**
+		Global, static reference to the standard observer, used in color model transformations.
+	 */
+	
+	fn global() -> &'static Self; 
+
+	/**
+		Chromatic response mapped to a spectral domain, as a matrix with the x,y, and z color matching fuctions 
+		as row vectors, with their length being dynamic, and determined by the standard's wavelength domain.
+	*/
 	fn cmf(&self, domain: SpectralDomain) -> Matrix3xX<f64>;
 
-	/// Domain associated with the data for the standard observer itself, as defined in standards. 
+	/// Domain associated with the data for the standard observer itself, as defined in their standard. 
 	fn domain(&self) -> SpectralDomain;
 }
 

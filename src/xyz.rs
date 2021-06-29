@@ -1,53 +1,42 @@
 
 use nalgebra::{Matrix3xX, Vector3};
-use crate::spectra::{SpectralData, Illuminant};
+use crate::spectra::{Illuminant, SpectralDistribution};
 use crate::observers::StandardObserver;
 
 /**	
-	A collection of a standard observer tristimulus values, with optional tristimulus values of a reference white point.
+	A collection of a tristimulus values, an associated reference to a standard observer,
+	and  an optional set of tristimulus values of a reference white point.
 
-	Besides the tristimulus values, it also has an optional values for a white reference, and a reference to the standard observer being used.
-	This to uniquely identify the observer associated with the tristimulus values, but also to be able to convert
-	chromaticity coordinates between different observers, using for example transforming back to a set of reference RGB
-	spectra, and calculating the tristimulus values for an other observer.
+	
+	The reference to a standard observers color matching functions is not only used to uniquely identify the observer
+	associated with the tristimulus values, but also for the conversion of chromaticity coordinates between different
+	observers, using for example transforming back to a set of reference RGB spectra, and calculating the tristimulus
+	values for a different observer. The standard observers have global (static) scope.
 
-	This object's lifetime can not extend the standard observers lifetime. Most of the standard observers defined in this
-	library have a static lifetime, so chromaticity values for these will be always valid.
 */
-pub struct XYZ<'a, C: StandardObserver> {
+pub struct XYZ<C: StandardObserver + 'static> {
 	pub xyz : Matrix3xX<f64>,
 	pub white: Option<Vector3<f64>>,
-	pub cmf: &'a C,
+	pub cmf: &'static C,
 }
 
 
 /**
-	Calculate XYZ tristimilus value using a spectral data implementer.
+	Calculate XYZ tristimilus value from spectral distributions.
+
+	A default xyz method is available in the SpectralDistribution trait, but can be overridden by spectral distributions
+	if more efficient or more appropiate methods are available.
  */
-impl<'a, C:StandardObserver, S: SpectralData> From<S> for XYZ<'a, C> {
+impl<C, S> From<S> for XYZ<C> 
+	where 
+		S: SpectralDistribution,
+		C: StandardObserver + 'static
+{
 	fn from(s: S) -> Self {
-		todo!()
+		s.xyz(C::global())
 	}
 
 }
-
-/*
-impl std::ops::Deref for XYZ {
-    type Target = Matrix3xX<f64>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.xyz
-    }
-}
-
-impl XYZ {
-	pub fn new(xyz: Matrix3xX<f64>, white: Option<Vector3<f64>>) -> Self {
-		Self{ xyz, white}
-	}
-}
-
-
- */
 
 
 

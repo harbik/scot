@@ -63,14 +63,13 @@ fn test_domain() {
 
 }
 
-pub type Spectra = DMatrix<f64>;
 
 /// A collection of spectral distributions, sharing a 
-/// common spectral domain, represented by an nalgebra 
-/// DMatrix.
+/// common spectral domain, and represented by an nalgebra 
+/// DMatrix which can be re
 
-pub trait SpectralData {
-	fn spectra(&self, domain: SpectralDomain) -> Spectra; 
+pub trait SpectralDistribution {
+	fn spectra(&self, domain: SpectralDomain) -> DMatrix<f64>; 
 		// Returns a spectral matrix from a source, or an illuminated surface, 
 	    // in form of an  nalgebra's DMatrix, with and one or more spectral 
 		// data as columns.
@@ -89,11 +88,17 @@ pub trait SpectralData {
 		Calculates tristimulus values for a spectral data source using a standard observer.
 		Depending on the specral source, it will also calculate a reference white color point,
 		as for example with swatch libraries.
+
+		A default implementation is provided, which does not provide a white reference point.
 	 */ 
-	fn xyz<'a, C: StandardObserver>(cmf: C) -> XYZ<'a, C> {
-		// default implementation is do a interpolation from the color matching functions to the 
-		// native spectral data for the source
-		todo!()
+	fn xyz<C:'static + StandardObserver>(&self,obs: &C) -> XYZ<C> {
+		XYZ::<C> {
+			xyz: obs.cmf(self.domain()) *self.spectra(self.domain()),
+			white: None,
+			cmf: C::global()
+
+		}
 
 	}
 }
+

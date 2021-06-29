@@ -1,7 +1,7 @@
 
 use nalgebra::DMatrix;
 
-use crate::spectra::{Illuminant, Spectra, SpectralData, SpectralDomain};
+use crate::spectra::{Illuminant, SpectralDistribution, SpectralDomain};
 use crate::cct::{CCTs};
 
 /// Stefan Boltzmann law, describing a blackbody radiant emittance (W m<sup>-2</sup>), as function of its absolute
@@ -61,9 +61,9 @@ impl Blackbody {
 	}
 }
 
-impl SpectralData for Blackbody {
+impl SpectralDistribution for Blackbody {
 
-	fn spectra(&self, dom: SpectralDomain) -> Spectra {
+	fn spectra(&self, dom: SpectralDomain) -> DMatrix<f64> {
 		DMatrix::from_fn(dom.size, self.ccts.0.nrows(),
 		|r,c| { 
 			let t = self.ccts.0[(c,0)];

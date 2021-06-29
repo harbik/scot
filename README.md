@@ -8,18 +8,21 @@
 </div>
 
 
-Colorado is an open-source Color Science data and algorithms library written in the Rust programming language, and is being developed by Gerard Harbers (Harbers Bik LLC).
-It targets applications such as color management and quality control for displays, graphic arts, and architectural lighting.
+Colorado is an open-source Color Science data and algorithms library written in the Rust programming language,
+targeting applications such as color management and quality control for displays, graphic arts, and architectural lighting.
 It implements methods and standards as defined by international standard organizations,
 such as the **CIE**, the *International Commission on Illumination*,
-and implements many other experimental color algorithms and datasets.
+and also includes many other color algorithms and datasets.
 
 Colorado is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
+It is being developed by Gerard Harbers from *Harbers Bik LLC*.
 
-The base for the color algorithms in this library are spectral power distributions of emissive sources such as lights and displays, 
-and spectral reflectivity and spectral transmissivity of materials.
-Spectral distributions are typically obtained from measurements using spectrometers, or defined by international standards.
-Many of these are contained in this library for use in standard calculations, or for use as examples and testing.
+Mathematical representations of spectral distributions are the base many of color algorithms in this library,
+such spectral power distributions of lamps and displays, 
+and spectral reflectivity and spectral transmissivity distributions of surfaces and transparent materials:
+they are typically measured using spectrometers, or defined by international standards.
+This library has a large collection of these spectral distribution, and makes it easy to process them with various color models,
+or to create your own models.
 
 ## Features:
 - Spectral power distributions library for a lamps and illuminants, such as fluorescent and LED lamps.
