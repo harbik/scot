@@ -78,15 +78,15 @@ All rights reserved.
 
 
 /**
-	CIE Tristimulus Values
+
  */
 pub mod xyz;
-
-pub mod cct; // correlated color temperature 
 
 pub mod spectra; // spectral matrix and range 
 
 pub mod illuminants;
+
+pub mod util;
 
 /**
 CIE Standard Observers

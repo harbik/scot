@@ -14,7 +14,7 @@ use crate::observers::StandardObserver;
 	values for a different observer. The standard observers have global (static) scope.
 
 */
-pub struct XYZ<C: StandardObserver + 'static> {
+pub struct XYZ<C: StandardObserver> {
 	pub xyz : Matrix3xX<f64>,
 	pub white: Option<Vector3<f64>>,
 	pub cmf: &'static C,
@@ -30,7 +30,7 @@ pub struct XYZ<C: StandardObserver + 'static> {
 impl<C, S> From<S> for XYZ<C> 
 	where 
 		S: SpectralDistribution,
-		C: StandardObserver + 'static
+		C: StandardObserver
 {
 	fn from(s: S) -> Self {
 		s.xyz(C::global())

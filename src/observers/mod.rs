@@ -29,7 +29,7 @@ pub use crate::observers::cie1931::{Cie1931}; // allow use as observers::Cie1931
 
 	
  */
-pub trait StandardObserver {
+pub trait StandardObserver : 'static {
 
 	/**
 		Global, static reference to the standard observer, used in color model transformations.
