@@ -42,13 +42,12 @@ impl SpectralDomain {
 	/**
 		Iterator to new interpolation domain values for conversion to a new domain.
 
-		Produces domain values, as (usize, f64) types, for spectral distribution values for a new domain.
+		Produces f64-typed domain values, to use to obtain spectral distribution values for a new domain.
 		These are typically obtained by interpolation of an existing spectral distribution dataset,
 		such as linear interpolation, or Sprague interpolation.
 
-		The first value is the index value for the new domain, the second an index float value in the current domain. If
-		this value is negative, or larger than the size of the domain, it is out of bounds, and needs to be extrapolated
-		instead of interpolated.
+		The value index float value in the current domain. If this value is negative, or larger than the size of the
+		domain, it is out of bounds, and needs to be extrapolated instead of interpolated.
 	*/
 	pub fn iter_interpolate(&self, to_domain: SpectralDomain) -> IterInterpolate {
 		let step = to_domain.unit as f64 / self.unit as f64;
@@ -142,15 +141,14 @@ pub struct IterInterpolate {
 
 impl Iterator for IterInterpolate {
 
-	type Item = (usize, f64);
+	type Item = f64;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		let i = self.next;
-		if i < self.n {
+		if self.next < self.n {
 			let c = self.curr;
 			self.next += 1;
 			self.curr += self.step;
-			Some((i, c))
+			Some(c)
 		} else {
 			None
 		}
@@ -162,9 +160,15 @@ impl Iterator for IterInterpolate {
 #[test]
 fn test_iter_interpolate() {
 	{
-		let from_domain = SpectralDomain::new(1, 2, 2); // 2, 4
-		let to_domain = SpectralDomain::new(0, 5, 1); // 0, 1, 2, 3, 4, 5
-		assert_eq!(from_domain.iter_interpolate(to_domain).collect::<Vec<_>>(), vec![(0, -1.0), (1, -0.5), (2, 0.0), (3, 0.5), (4, 1.0), (5, 1.5)]) ;
+		let from_domain = SpectralDomain::new(3, 10, 100); // 2, 4
+		let din = from_domain.into_iter().collect::<Vec<_>>();
+		assert_eq!(din,vec![300, 400, 500, 600, 700, 800, 900, 1000]);
+		 
+		let to_domain = SpectralDomain::new(5, 21, 50); // 0, 1, 2, 3, 4, 5
+		let dout = to_domain.into_iter().collect::<Vec<_>>();
+		assert_eq!(dout,vec![250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 1050]);
+
+		assert_eq!(from_domain.iter_interpolate(to_domain).collect::<Vec<_>>(), vec![-0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5]) ;
 		// values 2,3 and 4 within range
 	}
 
