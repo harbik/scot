@@ -176,12 +176,15 @@ fn test_iter_interpolate() {
 
 
 
-/// A collection of spectral distributions, sharing a 
-/// common spectral domain, and represented by an nalgebra 
-/// DMatrix which can be re
+/**
+Generic methods and operations for spectral distributions.
+
+A collection of spectral distributions, sharing a common spectral domain, and represented by an nalgebra DMatrix which
+can be re
+*/
 
 pub trait SpectralDistribution {
-	fn spectra(&self, domain: SpectralDomain) -> DMatrix<f64>; 
+	fn values(&self, domain: SpectralDomain) -> DMatrix<f64>; 
 		// Returns a spectral matrix from a source, or an illuminated surface, 
 	    // in form of an  nalgebra's DMatrix, with and one or more spectral 
 		// data as columns.
@@ -198,14 +201,14 @@ pub trait SpectralDistribution {
 
 	/**
 		Calculates tristimulus values for a spectral data source using a standard observer.
-		Depending on the specral source, it will also calculate a reference white color point,
-		as for example with swatch libraries.
 
-		A default implementation is provided, which does not provide a white reference point.
+		Depending on the spectral source, it will also calculate a reference white color point.
+		A default implementation is provided below, which does not provide a reference point -- this has to be added
+		manually, if needed.
 	 */ 
 	fn xyz<C:'static + StandardObserver>(&self,obs: &C) -> XYZ<C> {
 		XYZ::<C> {
-			xyz: obs.cmf(self.domain()) *self.spectra(self.domain()),
+			xyz: obs.cmf(self.domain()) *self.values(self.domain()),
 			white: None,
 			cmf: C::global()
 

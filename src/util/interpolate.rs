@@ -10,20 +10,14 @@
 	performed correctly.
 */
 
+use std::iter::{repeat};
+
 use nalgebra::{DMatrix, Dim, Matrix, Scalar, dmatrix, matrix, storage::Storage};
 
 use crate::spectra::SpectralDomain;
 
 
 
-/**
-	Interpolate matrix values by row, mapping values from one to another spectral domain.
-
-	According to CIE recommendations, four additional points are added for each of the vectors:
-	two points at the short, and two point at the long wavelength side of the data set, and setting
-	these points to the same value as the values of the end points, respectively. 
-	
-*/
 
 pub fn sprague_row_mat<R, C, S> (from_domain: SpectralDomain, to_domain: SpectralDomain, data: &Matrix<f64, R, C, S>) -> DMatrix<f64> 
 	where 
@@ -69,33 +63,6 @@ pub fn sprague_row_mat<R, C, S> (from_domain: SpectralDomain, to_domain: Spectra
 	}
 }
 
-#[test]
-fn test_sprague_mat_row(){
-	let m_in = 
-		DMatrix::from_vec(1, 8, vec![
-			2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0,
-			]);
-	println!{"{:?}", m_in};
-	let from_domain = SpectralDomain::new(2, 9 , 100 );
-	let to_domain = SpectralDomain::new(4, 18, 50);
-//	let m_out = sprague_row_mat::<f64,_,_,_>(from_domain, to_domain, &m_in);
-	let m_out = sprague_row_mat(from_domain, to_domain, &m_in);
-	println!{"{:?}", m_out};
-}
-
-#[test]
-fn test_sprague_mat_row2(){
-	let m_in = 
-		DMatrix::from_vec(1, 8, vec![
-			2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0,
-			]);
-	println!{"{:?}", m_in};
-	let from_domain = SpectralDomain::new(2, 9, 100);
-	let to_domain = SpectralDomain::new(3, 19, 50);
-//	let m_out = sprague_row_mat::<f64,_,_,_>(from_domain, to_domain, &m_in);
-	let m_out = sprague_row_mat(from_domain, to_domain, &m_in);
-	println!{"{:?}", m_out};
-}
 
 /**
 	Sprague interpolation, using a 5th order polynomial fitted through 6 points.
@@ -119,4 +86,153 @@ pub fn sprague(h: f64, v: [f64;6]) -> f64
 		(-5.0 * v[0] + 25.0 * v[1] - 50.0 * v[2] + 50.0 * v[3] - 25.0 * v[4] + 5.0 * v[5]) / 24.0			
 	];
 	cf.iter().rev().fold(0.0, | acc, coeff| acc * h + coeff)
+}
+
+/**
+	Interpolate matrix values by row, mapping values from one to another spectral domain.
+
+	According to CIE recommendations, the data are padded with two repeated end point values at both ends, to get better
+	interpolation results at both ends. This is not extrapolation of the data range, just to take care of the data at
+	the ends within the range. For extrapolation values of 0.0 are used.
+	
+*/
+
+pub fn sprague_rows<R, C, S> (from_domain: SpectralDomain, to_domain: SpectralDomain, data: &Matrix<f64, R, C, S>) -> DMatrix<f64> 
+	where 
+		R: Dim, 
+		C: Dim, 
+		S: Storage<f64,R,C>
+{
+	
+	if from_domain == to_domain { // copy the data directly, no interpolation required
+		DMatrix::from_iterator(data.nrows(), data.ncols(), data.iter().cloned())
+	} 
+	else {
+		let n = data.nrows(); // nr of vectors in the row matrix
+
+		let mut values = Vec::<f64>::with_capacity(to_domain.size * n);
+
+		let i_max = from_domain.size - 1;
+
+		for (c, f) in from_domain.iter_interpolate(to_domain).enumerate() { // counter and interpolation domain value
+			let h = f.fract();
+			for r in 0..n { // number of vectors
+				values.push(
+					if f<0.0 || f>i_max as f64 {
+						0.0
+					} else {
+						match f.floor() as usize {
+							// point with at least three points to its left, and three points to its right
+							i if i>=2 && i<=i_max-3 => 
+								sprague(h,[data[(r,i-2)], data[(r,i-1)], data[(r,i)], data[(r,i+1)], data[(r,i+2)], data[(r, i+3)]]),
+
+							// take care of end points of the array
+							0 =>  sprague(h, [data[(r,0)], data[(r,0)], data[(r,0)], data[(r,1)], data[(r,2)], data[(r,3)]]),
+							1 =>  sprague(h, [data[(r,0)], data[(r,0)], data[(r,1)], data[(r,2)], data[(r,3)], data[(r,4)]]),
+							i if i == i_max-2 => sprague(h, [data[(r,i_max-4)], data[(r,i_max-3)], data[(r,i_max-2)], data[(r,i_max-1)], data[(r,i_max)], data[(r, i_max)]]),
+							i if i == i_max-1 => sprague(h, [data[(r,i_max-3)], data[(r,i_max-2)], data[(r,i_max-1)], data[(r,i_max)],   data[(r,i_max)], data[(r, i_max)]]),
+							i if i == i_max =>   sprague(h, [data[(r,i_max-2)], data[(r,i_max-1)], data[(r,i_max)],   data[(r,i_max)],   data[(r,i_max)], data[(r, i_max)]]),
+							_ => 0.0,
+						}
+					}
+
+				)
+			}
+		}
+		DMatrix::from_vec(n, to_domain.size, values)
+
+	}
+}
+
+#[test]
+fn test_sprague_rows(){
+	let m_in = 
+		matrix!(
+			1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
+			1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0;
+			1.0, 4.0, 9.0, 16.0, 16.0, 9.0, 4.0, 1.0;
+		);
+
+	println!{"{}", m_in};
+	let from_domain = SpectralDomain::new(2, 9, 100);
+	let to_domain = SpectralDomain::new(3, 19, 50);
+
+	println!{"{}", sprague_rows(from_domain, from_domain, &m_in)};
+	println!{"{}", sprague_rows(from_domain, to_domain, &m_in)};
+
+}
+
+/**
+	Interpolate matrix values by column, mapping values from one to another spectral domain.
+	
+*/
+
+pub fn sprague_cols<R, C, S> (from_domain: SpectralDomain, to_domain: SpectralDomain, data: &Matrix<f64, R, C, S>) -> DMatrix<f64> 
+	where 
+		R: Dim, 
+		C: Dim, 
+		S: Storage<f64,R,C>
+{
+	
+	if from_domain == to_domain { // copy the data directly, no interpolation required
+		DMatrix::from_iterator(data.nrows(), data.ncols(), data.iter().cloned())
+	} 
+	else {
+		let n = data.ncols(); // nr of vectors in the column matrix
+
+		let mut values = Vec::<f64>::with_capacity(to_domain.size * n);
+
+		let i_max = from_domain.size - 1;
+
+		for c in 0..n { // number of vectors (columns in this case)
+			for (r, f) in from_domain.iter_interpolate(to_domain).enumerate() { // counter and interpolation domain value
+			let h = f.fract();
+				values.push(
+					if f<0.0 || f>i_max as f64 {
+						0.0
+					} else {
+						match f.floor() as usize {
+							// point with at least three points to its left, and three points to its right
+							i if i>=2 && i<=i_max-3 => 
+								sprague(h,[data[(i-2,c)], data[(i-1,c)], data[(i,c)], data[(i+1,c)], data[(i+2,c)], data[(i+3,c)]]),
+
+							// take care of end points of the array, by padding them on the left, and the right
+							0 =>  sprague(h, [data[(0,c)], data[(0,c)], data[(0,c)], data[(1,c)], data[(2,c)], data[(3,c)]]),
+							1 =>  sprague(h, [data[(0,c)], data[(0,c)], data[(1,c)], data[(2,c)], data[(3,c)], data[(4,c)]]),
+							i if i == i_max-2 => sprague(h, [data[(i_max-4,c)], data[(i_max-3,c)], data[(i_max-2,c)], data[(i_max-1,c)], data[(i_max,c)], data[(i_max,c)]]),
+							i if i == i_max-1 => sprague(h, [data[(i_max-3,c)], data[(i_max-2,c)], data[(i_max-1,c)], data[(i_max,c)],   data[(i_max,c)], data[(i_max,c)]]),
+							i if i == i_max =>   sprague(h, [data[(i_max-2,c)], data[(i_max-1,c)], data[(i_max,c)],   data[(i_max,c)],   data[(i_max,c)], data[(i_max,c)]]),
+							_ => 0.0,
+						}
+					}
+
+				)
+			}
+		}
+		DMatrix::from_vec(to_domain.size, n,  values)
+
+	}
+}
+
+#[test]
+fn test_sprague_cols(){
+	let m_in = 
+		matrix!(
+			1.0, 1.0, 1.0;
+			1.0, 2.0, 4.0;
+			1.0, 3.0, 9.0;
+			1.0, 4.0, 16.0;
+			1.0, 5.0, 16.0;
+			1.0, 6.0, 9.0;
+			1.0, 7.0, 4.0;
+			1.0, 8.0, 1.0;
+		);
+
+	println!{"{}", m_in};
+	let from_domain = SpectralDomain::new(2, 9, 100);
+	let to_domain = SpectralDomain::new(3, 19, 50);
+
+	println!{"{}", sprague_cols(from_domain, from_domain, &m_in)};
+	println!{"{}", sprague_cols(from_domain, to_domain, &m_in)};
+
 }

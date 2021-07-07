@@ -31,7 +31,7 @@ impl Blackbody {
 
 impl SpectralDistribution for Blackbody {
 
-	fn spectra(&self, dom: SpectralDomain) -> DMatrix<f64> {
+	fn values(&self, dom: SpectralDomain) -> DMatrix<f64> {
 		DMatrix::from_fn(dom.size, self.ccts.0.nrows(),
 		|r,c| { 
 			let t = self.ccts.0[(c,0)];
