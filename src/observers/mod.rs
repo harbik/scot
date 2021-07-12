@@ -11,7 +11,7 @@ automatic transformations between the different mathematical representations of 
 pub mod cie1931;
 
 use nalgebra::{Matrix3xX};
-use crate::spectra::{SpectralDomain};
+use crate::util::{domain::{Domain}, units::Meter};
 
 pub use crate::observers::cie1931::{Cie1931}; // allow use as observers::Cie1931 instead of observers::cie1931::Cie1931
 
@@ -41,10 +41,10 @@ pub trait StandardObserver : 'static {
 		Chromatic response mapped to a spectral domain, as a matrix with the x,y, and z color matching fuctions 
 		as row vectors, with their length being dynamic, and determined by the standard's wavelength domain.
 	*/
-	fn cmf(&self, domain: SpectralDomain) -> Matrix3xX<f64>;
+	fn cmf(&self, domain: Domain<Meter>) -> Matrix3xX<f64>;
 
 	/// Domain associated with the data for the standard observer itself, as defined in their standard. 
-	fn domain(&self) -> SpectralDomain;
+	fn domain(&self) -> Domain<Meter>;
 }
 
 

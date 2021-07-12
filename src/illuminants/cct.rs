@@ -144,7 +144,7 @@ impl From<usize> for CCTs {
 
 	/// CCTs array from a single temperature
 	fn from(t: usize) -> Self {
-		Self::new([t as f64, 1.0])
+		Self::new([[t as f64, 1.0]])
 	}
 }
 

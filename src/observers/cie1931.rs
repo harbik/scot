@@ -1,14 +1,18 @@
-use nalgebra::{Matrix3xX, SMatrix, matrix};
-//use once_cell::sync::OnceCell;
-use crate::{observers::StandardObserver, spectra::SpectralDomain};
+use nalgebra::{Matrix3xX, SMatrix, convert, matrix};
+use crate::{observers::StandardObserver};
+use crate::util::interpolate::{sprague_rows};
+use crate::util::domain::{Domain};
+use crate::util::units::{Meter, NM5};
 
 
 const N: usize = 95;
 
+#[derive(Debug)]
 pub struct Cie1931 {
 	data: SMatrix<f64, 3, N>,
-	low: usize,
-	unit: usize,
+	low: i32,
+	size: usize,
+	exp: i32
 }
 
 pub static CIE1931: &Cie1931 = 
@@ -40,7 +44,8 @@ pub static CIE1931: &Cie1931 =
 				0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
 				],
 			low:	72,
-			unit:	50
+			size:	50,
+			exp: -10, // Angstrom
 		};
 
 impl StandardObserver for Cie1931 {
@@ -49,15 +54,22 @@ impl StandardObserver for Cie1931 {
 			CIE1931
 	}
 
-	fn domain(&self) -> SpectralDomain {
-		SpectralDomain { low: self.low, unit: self.unit, size: 95}
+	fn domain (&self) -> Domain<Meter> {
+		Domain::new( 360/5, 830/5,  NM5)
 	}
 
-	fn cmf(&self, domain: SpectralDomain) -> Matrix3xX<f64> {
-//		let c = SMatrix::<f64, 95, 3>::from_array_storage(ArrayStorage(self.data));
-		todo!("interpolate")
-		
+	fn cmf(&self, domain: Domain<Meter>) -> Matrix3xX<f64> {
+//		calculate row interpolated values, and convert to Matrix3xX matrix... 
+		convert(sprague_rows(&self.domain(), &domain, &self.data))
 	}
 
 }
 
+#[test]
+fn test_cmf(){
+	use crate::util::units::Meter;
+	let c = CIE1931.cmf(Domain::new(4,7,Meter { size: 1,  exp: -7}));
+	println!("{}", c);
+	
+	println!("{:?}", c);
+}
