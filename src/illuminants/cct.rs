@@ -9,6 +9,7 @@ As reference for such a thermal source a blackbody radiator is used.
 The correlated color temperature of a source is the physical temperature of a blackbody radiator, which matches the color of the source best.
 */
 
+
 use nalgebra::{MatrixXx2};
 
 /**
@@ -118,6 +119,56 @@ impl CCTs {
 	*/
 	pub fn max(&self) -> f64 {
 		self.column(0).max()
+	}
+
+	pub fn len(&self) -> usize {
+		self.0.nrows()
+	}
+}
+
+
+impl<'a> IntoIterator for &'a CCTs {
+    type Item = (f64, f64);
+
+    type IntoIter = CctIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+		CctIterator {
+			ccts: &self.0,
+			i: 0,
+			end: self.len(),
+		}
+    }
+}
+
+pub struct CctIterator<'a> {
+	ccts: &'a MatrixXx2<f64>,
+	i: usize,
+	end: usize,
+}
+
+impl<'a> Iterator for CctIterator<'a> {
+	type Item = (f64, f64);
+
+	fn next (&mut self) -> Option<Self::Item> {
+		let c = self.i;
+		if c< self.end {
+			self.i += 1;
+			Some((self.ccts[(c,0)], self.ccts[(c,1)]))
+		} else {
+			None
+		}
+	}
+
+}
+
+
+
+#[test]
+fn test_cct_iterator(){
+	let ccts = CCTs::new([[3000.0,1.0],[4000.0,2.0],[5000.0,3.0]]);
+	for (t,p) in &ccts {
+		println!("{:?} {:?}", t, p);
 	}
 }
 

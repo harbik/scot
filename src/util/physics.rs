@@ -34,3 +34,6 @@ const C1: f64 = 2. * std::f64::consts::PI * H * C * C;
 /// Second radiation constant (m K)
 const C2: f64 = H * C / KB;
 
+
+pub const ELECTRONVOLT_AS_JOULE: f64 = 1.602_176_634E-19; // Joule
+pub const ELECTRONVOLT_AS_METER: f64 = 1.973_27E-7; // Meter

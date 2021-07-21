@@ -2,7 +2,7 @@ use nalgebra::{Matrix3xX, SMatrix, convert, matrix};
 use crate::{observers::StandardObserver};
 use crate::util::interpolate::{sprague_rows};
 use crate::util::domain::{Domain};
-use crate::util::units::{Meter, NM5};
+use crate::util::units::{NM5, MeterScale, Meter, Scale};
 
 
 const N: usize = 95;
@@ -54,11 +54,11 @@ impl StandardObserver for Cie1931 {
 			CIE1931
 	}
 
-	fn domain (&self) -> Domain<Meter> {
+	fn domain(&self) -> Domain<MeterScale> {
 		Domain::new( 360/5, 830/5,  NM5)
 	}
 
-	fn cmf(&self, domain: Domain<Meter>) -> Matrix3xX<f64> {
+	fn cmf<L: Scale<ValueType = impl Into<Meter>>>(&self, domain: Domain<L>) -> Matrix3xX<f64> {
 //		calculate row interpolated values, and convert to Matrix3xX matrix... 
 		convert(sprague_rows(&self.domain(), &domain, &self.data))
 	}
@@ -67,8 +67,8 @@ impl StandardObserver for Cie1931 {
 
 #[test]
 fn test_cmf(){
-	use crate::util::units::Meter;
-	let c = CIE1931.cmf(Domain::new(4,7,Meter { size: 1,  exp: -7}));
+	use crate::util::units::MeterScale;
+	let c = CIE1931.cmf(Domain::new(4,7,MeterScale { size: 1,  exp: -7}));
 	println!("{}", c);
 	
 	println!("{:?}", c);

@@ -14,7 +14,7 @@
 use nalgebra::{DMatrix, Dim, Matrix, storage::Storage};
 
 use crate::util::domain::{Domain};
-use crate::util::units::{Unit};
+use crate::util::units::{Scale};
 
 /**
 	Sprague interpolation, using a 5th order polynomial fitted through 6 points.
@@ -51,7 +51,7 @@ pub fn sprague(h: f64, v: [f64;6]) -> f64
 
 pub fn sprague_rows<U, R, C, S> (from_domain: &Domain<U>, to_domain: &Domain<U>, data: &Matrix<f64, R, C, S>) -> DMatrix<f64> 
 	where 
-		U: Unit + Clone + Copy + Eq + PartialEq, 
+		U: Scale + Clone + Copy + Eq + PartialEq, 
 		R: Dim, 
 		C: Dim, 
 		S: Storage<f64,R,C>
@@ -67,7 +67,7 @@ pub fn sprague_rows<U, R, C, S> (from_domain: &Domain<U>, to_domain: &Domain<U>,
 
 		let i_max = from_domain.len() - 1;
 
-		for f in from_domain.iter_interpolate(to_domain) { // counter and interpolation domain value
+		for f in from_domain.interpolate(to_domain) { // counter and interpolation domain value
 			let h = f.fract();
 			for r in 0..n { // number of vectors
 				values.push(
@@ -124,7 +124,7 @@ fn test_sprague_rows(){
 
 pub fn sprague_cols<U, R, C, S> (from_domain: &Domain<U>, to_domain: &Domain<U>, data: &Matrix<f64, R, C, S>) -> DMatrix<f64> 
 	where 
-		U: Unit + Clone + Copy + Eq + PartialEq, 
+		U: Scale + Clone + Copy + Eq + PartialEq, 
 		R: Dim, 
 		C: Dim, 
 		S: Storage<f64,R,C>
@@ -141,7 +141,7 @@ pub fn sprague_cols<U, R, C, S> (from_domain: &Domain<U>, to_domain: &Domain<U>,
 		let i_max = from_domain.len() - 1;
 
 		for c in 0..n { // number of vectors (columns in this case)
-			for f in from_domain.iter_interpolate(&to_domain) { // counter and interpolation domain value
+			for f in from_domain.interpolate(&to_domain) { // counter and interpolation domain value
 			let h = f.fract();
 				values.push(
 					if f<0.0 || f>i_max as f64 {

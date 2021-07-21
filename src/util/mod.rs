@@ -1,5 +1,5 @@
 /*!
-	Math utilities and Physics functions used in the library.
+	Mathematical & physics functions and other utilities used in the library.
 */ 
 
 pub mod domain;

@@ -2,7 +2,6 @@
 use std::fmt::Display;
 
 use nalgebra::{Matrix3xX, Vector3};
-use crate::spectra::{SpectralDistribution};
 use crate::observers::StandardObserver;
 
 /**	
@@ -20,24 +19,6 @@ pub struct XYZ<C: StandardObserver> {
 	pub xyz : Matrix3xX<f64>,
 	pub white: Option<Vector3<f64>>,
 	pub cmf: &'static C,
-}
-
-
-/**
-	Calculate XYZ tristimilus value from spectral distributions.
-
-	A default xyz method is available in the SpectralDistribution trait, but can be overridden by spectral distributions
-	if more efficient or more appropiate methods are available.
- */
-impl<C, S> From<S> for XYZ<C> 
-	where 
-		S: SpectralDistribution,
-		C: StandardObserver
-{
-	fn from(s: S) -> Self {
-		s.xyz(C::global())
-	}
-
 }
 
 
