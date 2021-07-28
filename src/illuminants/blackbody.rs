@@ -1,15 +1,12 @@
 
+
 use nalgebra::DMatrix;
 
-use crate::cie::XYZ;
-use crate::observers::StandardObserver;
-use crate::spectra::{Illuminant, SpectralDistribution};
+use crate::spectra::{Illuminant, SpectralData};
 use crate::illuminants::cct::{CCTs};
-//use crate::util::physics::planck;
 use crate::util::domain::Domain;
-use crate::util::physics::planck;
-use crate::util::units::{Meter, MeterScale, Scale, Unit};
-//use std::iter::ExactSizeIterator;
+use crate::util::physics::planck_cie as planck;
+use crate::util::units::{Meter, WavelengthScale, Scale, Unit};
 
 
 /**
@@ -80,25 +77,9 @@ impl Blackbody {
 	}
 }
 
-struct BlackbodySpectra{
-	blackbody: Blackbody
-}
+impl SpectralData for Blackbody {
 
-impl BlackbodySpectra {
-	pub fn new(parameters: impl Into<CCTs>) -> Self {
-		Self{ 
-			blackbody: Blackbody {
-				ccts: parameters.into()
-			}
-		}
-	}
-
-}
-
-impl SpectralDistribution for BlackbodySpectra {
-
-	type UnitType = MeterScale;
-	type UnitValue = Meter;
+	type ScaleType = WavelengthScale;
 
 	/**
 		Blackbody Spectral values for multiple domain types.
@@ -110,16 +91,16 @@ impl SpectralDistribution for BlackbodySpectra {
 	fn values<L: Scale>(&self, dom: Domain<L>) -> DMatrix<f64>
 	where
 		L: Scale,
-		Self::UnitValue: From<<L>::ValueType>
+		<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType>
 	 {
-		let mut v : Vec<f64> = Vec::with_capacity(self.blackbody.ccts.len() * dom.len());
-		for (t,p) in &self.blackbody.ccts {
+		let mut v : Vec<f64> = Vec::with_capacity(self.ccts.len() * dom.len());
+		for (t,p) in &self.ccts {
 			for i in dom.range.clone() {
 				let meter_value: Meter = dom.scale.unit(i).into();
 				v.push(planck(meter_value.value(), t, p));
 			}
 		}
-		DMatrix::from_vec(dom.len(), self.blackbody.ccts.len(), v)
+		DMatrix::from_vec(dom.len(), self.ccts.len(), v)
 
 	}
 
@@ -129,46 +110,26 @@ impl SpectralDistribution for BlackbodySpectra {
 
 	/// String temperature values for each of the blackbody sources in the collection.
 	fn keys(&self) -> Option<Vec<String>> {
-		self.blackbody.ccts.keys()
+		self.ccts.keys()
 	}
 
-	/// Domain which covers the total emission for all the radiators.
-	fn domain(&self) -> Domain<Self::UnitType> {
-		//SpectralDomain::default()
-		todo!()
+	/// Domain which covering the visible part of the spectrum
+	fn domain(&self) -> Domain<Self::ScaleType> {
+		Domain::default()
 		}
 	
 }
 
 
-/*
-
-	Calculate XYZ values for Blackbody radiators.
-	
-	Uses the observer's domain instead of the default Blackbody
-	domain, which is very broad. This would be the default option,
-	if this is was not overridden here.
-	
-//CONFLICTING WITH GENERIC From<... SpectralDistribution> for XYZ<C>
-	*/
-
-impl<C:StandardObserver> From<Blackbody> for XYZ<C> {
-	fn from(bb: Blackbody) -> Self {
-		XYZ::<C> {
-			xyz: C::global().cmf(C::global().domain()) * bb.values(C::global().domain()),
-			white: None,
-			cmf: C::global()
-		}
-		
-	}
-}
 
 
 #[test]
 fn test_blackbody(){
 	use crate::observers::{Cie1931};
-	use crate::cie::XYZ;
+	use crate::cie::{Yxy};
+	use crate::util::physics::{C2, C2_CIE};
 
-	let bb = XYZ::<Cie1931>::from(Blackbody::new(3000));
-	println!("{}",bb);
+	let bb_yxy = Yxy::<Cie1931>::from(Blackbody::new([2855.0, 3000.0]));
+	println!("{}", bb_yxy);
+	println!("{:?} {:?}", C2, C2_CIE);
 }

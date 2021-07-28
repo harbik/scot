@@ -3,9 +3,12 @@
  */
 
 use crate::util::units::{Scale, Unit};
+use std::fmt::Debug;
 use std::ops::Range;
 use std::iter::IntoIterator;
 use std::iter::ExactSizeIterator;
+
+use super::units::WavelengthScale;
 
 /**
 
@@ -17,10 +20,10 @@ use std::iter::ExactSizeIterator;
 	consisting of a set of wavelength values. It is represented by a `Range`, with a start and end value,
 	and a unit. The range values have an `i32` type.
 
-	A new domain is defined by supplying a start and end value, and a unit in which the start and end values are expressed.
+	A new domain is defined by supplying a start and end value, and a scale in which the start and end values are expressed.
 	The range for the domain includes the start and end value, so it is equivalent to the rust range (start..=end). 
-	Examples of units in the library are NM5, for a unit of 5.0 nanometer, A, for a unit of 1.0 Angstrom, or PCT,
-	with a unit value of 1.0%.
+	Examples of scales in the library are `NM5`, for a scale with 5.0 nanometer ticks, or `A`, for a 1.0 Angstrom ticks, or PCT,
+	with a tick values 1.0%.
 	Start and end values are signed integer values.
 	
 
@@ -76,16 +79,23 @@ use std::iter::ExactSizeIterator;
 	
  */
 #[derive(Eq, PartialEq, Clone, Debug)]
-pub struct Domain<S: Scale> {
+pub struct Domain<S> {
 	pub range: Range<i32>,
 	pub scale: S, 
 }
 
-impl<S: Scale> Domain<S> {
+impl<S> Domain<S> 
+where
+	S: Scale,
+	S::UnitType: Unit
+{
 
+	/**
+		Creates a new domain ranging from start to end, including end, and with a scale.
+	 */
 	pub fn new(start:i32, end:i32, scale: S) -> Self {
 		Self {
-			range: Range {start, end: end+1},
+			range: Range {start, end: end+1},  // this it the non-inclusive end range, so we're adding a 1. The InclusiveRange range has no support for i32!
 			scale
 		}
 	}
@@ -97,28 +107,15 @@ impl<S: Scale> Domain<S> {
 	pub fn iter(&self) -> IterDomain<S> {
 		self.into_iter()
 	}
+}
 
-
-	/**
-		Iterator to produce domain values for a new domain mapped to a current domain.
-
-		These are typically obtained by interpolation of an existing spectral distribution dataset,
-		such as linear interpolation, or Sprague interpolation.
-		The produced value is an index float value in the current domain. 
-		If this value is negative, or larger than the size of the domain, it is out of bounds, and needs to be extrapolated instead of interpolated.
-
-	*/
-	pub fn interpolate(&self, to_domain: &Domain<S>) -> InterpolationIterator {
-		let step = to_domain.scale.unit(1).value() / self.scale.unit(1).value();
-		InterpolationIterator {
-			step,
-			curr: to_domain.range.start as f64 * step - self.range.start as f64,
-			n: to_domain.len(),
-			next: 0,
-
-		}
-	}
-
+/**
+	380 to 780 nm wavelength scale, with 5 nm steps
+ */
+impl Default for Domain<WavelengthScale> {
+    fn default() -> Self {
+        Domain::new(76, 156, WavelengthScale { size: 5, exp: -9 })
+    }
 }
 
 /**
@@ -131,41 +128,46 @@ impl<S: Scale> Domain<S> {
 	1.0E-10m.
 	```	
 	use colorado::util::domain::Domain;
-	use colorado::util::units::A;
+	use colorado::util::units::{A, Unit};
 	use approx::assert_abs_diff_eq;
 
 	let mut it = Domain::new(4530, 4550, A).into_iter();
-	assert_abs_diff_eq!(it.next().unwrap(), 4530E-10);
-	assert_abs_diff_eq!(it.next().unwrap(), 4531E-10);
+	assert_abs_diff_eq!(it.next().unwrap().value(), 4530E-10);
+	assert_abs_diff_eq!(it.next().unwrap().value(), 4531E-10);
 	```
 	And here is an example for use in a for loop. 
 	This produces two values, 3000 and 4000K, and thier sum is supposed to be 7000.0 K.
 	```	
 	use colorado::util::domain::Domain;
-	use colorado::util::units::KK;
+	use colorado::util::units::{KK, Unit};
 	use approx::assert_abs_diff_eq;
 
 	let mut sum = 0.0;
 	for t in Domain::new(3, 4, KK){
-		sum += t;
+		sum += t.value();
 	}
 	assert_abs_diff_eq!(sum, 7000.0);
 	```
  */
-pub struct IterDomain<U: Scale> {
+pub struct IterDomain<S> {
 	i: i32,
 	end: i32,
-	unit: U,
+	scale: S,
 }
 
-impl<U: Scale> Iterator for IterDomain<U> {
-    type Item = f64;
+
+impl<S> Iterator for IterDomain<S> 
+where 
+	S: Scale,
+	S::UnitType: Unit
+{
+    type Item = S::UnitType;
 
     fn next(&mut self) -> Option<Self::Item> {
 		let c = self.i;	
 		if self.i<self.end {
 			self.i += 1;
-			Some(self.unit.unit(c).value())
+			Some(self.scale.unit(c))
 		} else {
 			None
 		}
@@ -174,18 +176,22 @@ impl<U: Scale> Iterator for IterDomain<U> {
 
 
 /**
-	Iterate through all the values of a spectral domain, as `f64` values.
+	Iterate through all the values of a spectral domain, as `Unit` values.
 */
-impl<U: Scale> IntoIterator for Domain<U> {
-    type Item = f64;
+impl<S> IntoIterator for Domain<S>
+where 
+	S: Scale,
+	S::UnitType: Unit
+ {
+    type Item = S::UnitType;
 
-    type IntoIter = IterDomain<U>;
+    type IntoIter = IterDomain<S>;
 
     fn into_iter(self) -> Self::IntoIter {
 		Self::IntoIter {
 			i: self.range.start,
 			end: self.range.end,
-			unit: self.scale,
+			scale: self.scale,
 		}
     }
 }
@@ -194,16 +200,16 @@ impl<U: Scale> IntoIterator for Domain<U> {
 /**
 	Iterate through all the values for a reference to a spectral domain.
 */
-impl<U: Scale> IntoIterator for &Domain<U> {
-    type Item = f64;
+impl<S: Scale> IntoIterator for &Domain<S> {
+    type Item = S::UnitType;
 
-    type IntoIter = IterDomain<U>;
+    type IntoIter = IterDomain<S>;
 
     fn into_iter(self) -> Self::IntoIter {
 		Self::IntoIter {
 			i: self.range.start,
 			end: self.range.end,
-			unit: self.scale,
+			scale: self.scale,
 		}
     }
 }
@@ -211,42 +217,7 @@ impl<U: Scale> IntoIterator for &Domain<U> {
 #[test]
 fn test_into_iterator_spectraldomain() {
 	use crate::util::units::KK;
-	assert_eq!(Domain::new(4, 6, KK).into_iter().collect::<Vec<_>>(), vec![4000.0, 5000.0, 6000.0]);
-}
-
-
-/**
-	Interpolation iterator. 
-	Maps a new domain onto an existing domain.
-
-	This iterator produces the locations of a new value domain, as floating values mapped on the old domain.
-
-
-
-
- */
-pub struct InterpolationIterator {
-	step: f64,
-	curr: f64,
-	n: usize,
-	next: usize,
-}
-
-impl Iterator for InterpolationIterator {
-
-	type Item = f64;
-
-	fn next(&mut self) -> Option<Self::Item> {
-		if self.next < self.n {
-			let c = self.curr;
-			self.next += 1;
-			self.curr += self.step;
-			Some(c)
-		} else {
-			None
-		}
-
-	}
+	assert_eq!(Domain::new(4, 6, KK).into_iter().map(|u|u.value()).collect::<Vec<_>>(), vec![4000.0, 5000.0, 6000.0]);
 }
 
 
@@ -256,15 +227,13 @@ fn test_iter_interpolate() {
 		use crate::util::units::{NONE100, NONE50};
 
 		let from_domain = Domain::new(3, 10, NONE100); // 2, 4
-		let din = from_domain.iter().collect::<Vec<_>>();
+		let din = from_domain.iter().map(|u|u.value()).collect::<Vec<_>>();
 		assert_eq!(din,vec![300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0]);
 		 
 		let to_domain = Domain::new(5, 21, NONE50); // 0, 1, 2, 3, 4, 5
-		let dout = to_domain.clone().into_iter().collect::<Vec<_>>();
+		let dout = to_domain.clone().into_iter().map(|u|u.value()).collect::<Vec<_>>();
 		assert_eq!(dout,vec![250.0, 300.0, 350.0, 400.0, 450.0, 500.0, 550.0, 600.0, 650.0, 700.0, 750.0, 800.0, 850.0, 900.0, 950.0, 1000.0, 1050.0]);
 
-		assert_eq!(from_domain.interpolate(&to_domain).collect::<Vec<_>>(), vec![-0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5]) ;
-		// values 2,3 and 4 within range
 	}
 
 }

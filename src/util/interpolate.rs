@@ -14,7 +14,7 @@
 use nalgebra::{DMatrix, Dim, Matrix, storage::Storage};
 
 use crate::util::domain::{Domain};
-use crate::util::units::{Scale};
+use crate::util::units::{Scale, Unit};
 
 /**
 	Sprague interpolation, using a 5th order polynomial fitted through 6 points.
@@ -40,67 +40,65 @@ pub fn sprague(h: f64, v: [f64;6]) -> f64
 	cf.iter().rev().fold(0.0, | acc, coeff| acc * h + coeff)
 }
 
+const FRAC_EPS: f64 = 0.0001;
+
 /**
-	Interpolate matrix values by row, mapping values from one to another spectral domain.
+	Interpolate matrix values by row, mapping values from one to another  domain.
 
 	According to CIE recommendations, the data are padded with two repeated end point values at both ends, to get better
 	interpolation results at both ends. This is not extrapolation of the data range, just to take care of the data at
-	the ends within the range. for extrapolation values of 0.0 are used.
+	the ends within the range. For extrapolation values of 0.0 are used.
+
+	This interpolation function allows for interpoation for values defined on different domains, with even different units.
+
 	
 */
 
-pub fn sprague_rows<U, R, C, S> (from_domain: &Domain<U>, to_domain: &Domain<U>, data: &Matrix<f64, R, C, S>) -> DMatrix<f64> 
+pub fn sprague_rows<S1, S2, R, C, S> (from_domain: &Domain<S1>, to_domain: &Domain<S2>, data: &Matrix<f64, R, C, S>) -> DMatrix<f64> 
 	where 
-		U: Scale + Clone + Copy + Eq + PartialEq, 
+		S1: Scale + Clone + Copy + Eq + PartialEq, 
+		S2: Scale + Clone + Copy + Eq + PartialEq, 
+		S1::UnitType: From<<S2>::UnitType>, // need to be able to express a value in domain S2, as a value in domain S1
 		R: Dim, 
 		C: Dim, 
 		S: Storage<f64,R,C>
 {
-	
-	if from_domain == to_domain { // copy the data directly, no interpolation required
-		DMatrix::from_iterator(data.nrows(), data.ncols(), data.iter().cloned())
-	} 
-	else {
-		let n = data.nrows(); // nr of vectors in the row matrix
+	let n = data.nrows(); // nr of vectors in the row matrix
 
-		let mut values = Vec::<f64>::with_capacity(to_domain.len() * n);
+	let mut values = Vec::<f64>::with_capacity(to_domain.len() * n);
 
-		let i_max = from_domain.len() - 1;
+	let start = from_domain.scale.unit(from_domain.range.start).value();
+	let div = from_domain.scale.unit(1).value();
+	let m = from_domain.len() - 1;
 
-		for f in from_domain.interpolate(to_domain) { // counter and interpolation domain value
-			let h = f.fract();
-			for r in 0..n { // number of vectors
-				values.push(
-					if f<0.0 || f>i_max as f64 {
-						0.0
-					} else {
-						match f.floor() as usize {
-							// point with at least three points to its left, and three points to its right
-							i if i>=2 && i<=i_max-3 => 
-								sprague(h,[data[(r,i-2)], data[(r,i-1)], data[(r,i)], data[(r,i+1)], data[(r,i+2)], data[(r, i+3)]]),
+	for ut in to_domain {
+		let from_domain_interval = (Into::<S1::UnitType>::into(ut).value() - start)/div;
+		let index = from_domain_interval.floor() as isize;
+		let undex = index as usize; // saturating cast since rust 1.45
+		let frac = from_domain_interval.fract();
+		for r in 0..n { // number of vectors
+			values.push(
+				match (index, undex, frac) {
+					(_, u, h) if u>=2 && u<=m-3 => sprague(h,[data[(r,u-2)], data[(r,u-1)], data[(r,u)], data[(r,u+1)], data[(r,u+2)], data[(r, u+3)]]), // most frequent condition
+					(i, _, _ ) if i<0 => 0.0,
+					(_, 0, h) =>  sprague(h, [data[(r,0)], data[(r,0)], data[(r,0)], data[(r,1)], data[(r,2)], data[(r,3)]]),
+					(_, 1, h) =>  sprague(h, [data[(r,0)], data[(r,0)], data[(r,1)], data[(r,2)], data[(r,3)], data[(r,4)]]),
+					(_, u, h) if u == m-2 => sprague(h, [data[(r,m-4)], data[(r,m-3)], data[(r,m-2)], data[(r,m-1)], data[(r,m)], data[(r, m)]]),
+					(_, u, h) if u == m-1 => sprague(h, [data[(r,m-3)], data[(r,m-2)], data[(r,m-1)], data[(r,m)],   data[(r,m)], data[(r, m)]]),
+					(_, u, h) if u == m && h.abs()<FRAC_EPS =>   data[(r, m)],
+					_ => 0.0,
+				}
 
-							// take care of end points of the array
-							0 =>  sprague(h, [data[(r,0)], data[(r,0)], data[(r,0)], data[(r,1)], data[(r,2)], data[(r,3)]]),
-							1 =>  sprague(h, [data[(r,0)], data[(r,0)], data[(r,1)], data[(r,2)], data[(r,3)], data[(r,4)]]),
-							i if i == i_max-2 => sprague(h, [data[(r,i_max-4)], data[(r,i_max-3)], data[(r,i_max-2)], data[(r,i_max-1)], data[(r,i_max)], data[(r, i_max)]]),
-							i if i == i_max-1 => sprague(h, [data[(r,i_max-3)], data[(r,i_max-2)], data[(r,i_max-1)], data[(r,i_max)],   data[(r,i_max)], data[(r, i_max)]]),
-							i if i == i_max =>   sprague(h, [data[(r,i_max-2)], data[(r,i_max-1)], data[(r,i_max)],   data[(r,i_max)],   data[(r,i_max)], data[(r, i_max)]]),
-							_ => 0.0,
-						}
-					}
-
-				)
-			}
+			)
 		}
-		DMatrix::from_vec(n, to_domain.len(), values)
-
 	}
+	DMatrix::from_vec(n, to_domain.len(), values)
 }
 
 #[test]
 fn test_sprague_rows(){
 	use nalgebra::matrix;
-	use crate::util::units::{NM10, NM5};
+	use crate::util::units::{NONE2, NONE};
 	let m_in = 
 		matrix!(
 			1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
@@ -109,11 +107,11 @@ fn test_sprague_rows(){
 		);
 
 	println!{"{}", m_in};
-	let from_domain = Domain::new(2, 9, NM10);
-	let to_domain = Domain::new(3, 19, NM5);
+	let from_domain = Domain::new(2, 9, NONE2);
+	let to_domain2 = Domain::new(3, 19, NONE);
 
 	println!{"{}", sprague_rows(&from_domain, &from_domain, &m_in)};
-	println!{"{}", sprague_rows(&from_domain, &to_domain, &m_in)};
+	println!{"{:.2}", sprague_rows(&from_domain, &to_domain2, &m_in)};
 
 }
 
@@ -122,52 +120,46 @@ fn test_sprague_rows(){
 	
 */
 
-pub fn sprague_cols<U, R, C, S> (from_domain: &Domain<U>, to_domain: &Domain<U>, data: &Matrix<f64, R, C, S>) -> DMatrix<f64> 
+pub fn sprague_cols<S1, S2, R, C, S> (from_domain: &Domain<S1>, to_domain: &Domain<S2>, data: &Matrix<f64, R, C, S>) -> DMatrix<f64> 
 	where 
-		U: Scale + Clone + Copy + Eq + PartialEq, 
+		S1: Scale + Clone + Copy + Eq + PartialEq, 
+		S2: Scale + Clone + Copy + Eq + PartialEq, 
+		S1::UnitType: From<<S2>::UnitType>, // need to be able to express a value in domain S2, as a value in domain S1
 		R: Dim, 
 		C: Dim, 
 		S: Storage<f64,R,C>
 {
-	
-	if from_domain == to_domain { // copy the data directly, no interpolation required
-		DMatrix::from_iterator(data.nrows(), data.ncols(), data.iter().cloned())
-	} 
-	else {
-		let n = data.ncols(); // nr of vectors in the column matrix
+		let n = data.ncols(); // nr of vectors in the row matrix
 
 		let mut values = Vec::<f64>::with_capacity(to_domain.len() * n);
 
-		let i_max = from_domain.len() - 1;
+		let start = from_domain.scale.unit(from_domain.range.start).value();
+		let div = from_domain.scale.unit(1).value();
+		let m = from_domain.len() - 1;
 
-		for c in 0..n { // number of vectors (columns in this case)
-			for f in from_domain.interpolate(&to_domain) { // counter and interpolation domain value
-			let h = f.fract();
+		for ut in to_domain {
+			let from_domain_interval = (Into::<S1::UnitType>::into(ut).value() - start)/div;
+			let index = from_domain_interval.floor() as isize;
+			let undex = index as usize; // saturating cast since rust 1.45
+			let frac = from_domain_interval.fract();
+			for c in 0..n { // number of vectors
 				values.push(
-					if f<0.0 || f>i_max as f64 {
-						0.0
-					} else {
-						match f.floor() as usize {
-							// point with at least three points to its left, and three points to its right
-							i if i>=2 && i<=i_max-3 => 
-								sprague(h,[data[(i-2,c)], data[(i-1,c)], data[(i,c)], data[(i+1,c)], data[(i+2,c)], data[(i+3,c)]]),
-
-							// take care of end points of the array, by padding them on the left, and the right
-							0 =>  sprague(h, [data[(0,c)], data[(0,c)], data[(0,c)], data[(1,c)], data[(2,c)], data[(3,c)]]),
-							1 =>  sprague(h, [data[(0,c)], data[(0,c)], data[(1,c)], data[(2,c)], data[(3,c)], data[(4,c)]]),
-							i if i == i_max-2 => sprague(h, [data[(i_max-4,c)], data[(i_max-3,c)], data[(i_max-2,c)], data[(i_max-1,c)], data[(i_max,c)], data[(i_max,c)]]),
-							i if i == i_max-1 => sprague(h, [data[(i_max-3,c)], data[(i_max-2,c)], data[(i_max-1,c)], data[(i_max,c)],   data[(i_max,c)], data[(i_max,c)]]),
-							i if i == i_max =>   sprague(h, [data[(i_max-2,c)], data[(i_max-1,c)], data[(i_max,c)],   data[(i_max,c)],   data[(i_max,c)], data[(i_max,c)]]),
-							_ => 0.0,
-						}
+					match (index, undex, frac) {
+						(_, u, h) if u>=2 && u<=m-3 => sprague(h,[data[(u-2,c)], data[(u-1,c)], data[(u,c)], data[(u+1,c)], data[(u+2,c)], data[(u+3,c)]]), // most frequent condition
+						(i, _, _ ) if i<0 => 0.0,
+						(_, 0, h) =>  sprague(h, [data[(0,c)], data[(0,c)], data[(0,c)], data[(1,c)], data[(2,c)], data[(3,c)]]),
+						(_, 1, h) =>  sprague(h, [data[(0,c)], data[(0,c)], data[(1,c)], data[(2,c)], data[(3,c)], data[(4,c)]]),
+						(_, u, h) if u == m-2 => sprague(h, [data[(m-4,c)], data[(m-3,c)], data[(m-2,c)], data[(m-1,c)], data[(m,c)], data[(m,c)]]),
+						(_, u, h) if u == m-1 => sprague(h, [data[(m-3,c)], data[(m-2,c)], data[(m-1,c)], data[(m,c)],   data[(m,c)], data[(m,c)]]),
+						(_, u, h) if u == m && h.abs()<FRAC_EPS =>   data[(m,c)],
+						_ => 0.0,
 					}
 
 				)
 			}
 		}
-		DMatrix::from_vec(to_domain.len(), n,  values)
+		DMatrix::from_vec(n, to_domain.len(), values)
 
-	}
 }
 
 #[test]

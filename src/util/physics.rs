@@ -19,6 +19,10 @@ pub fn planck(wl: f64, temp: f64, pow: f64) -> f64 {
 	pow / stefan_boltzmann(temp) * C1 / wl.powi(5) / ((C2 / (wl * temp)).exp() - 1.0)
 }
 
+pub fn planck_cie(wl: f64, temp: f64, pow: f64) -> f64 {
+	pow / stefan_boltzmann(temp) * C1 / wl.powi(5) / ((C2_CIE / (wl * temp)).exp() - 1.0)
+}
+
 /// The speed of light (m/s)
 const C: f64 = 299792458.0; 
 
@@ -32,7 +36,9 @@ const H: f64 = 6.6260700408181E-34;
 const C1: f64 = 2. * std::f64::consts::PI * H * C * C; 
 
 /// Second radiation constant (m K)
-const C2: f64 = H * C / KB;
+pub const C2: f64 = H * C / KB;
+
+pub const C2_CIE: f64 = 1.4388E-2;
 
 
 pub const ELECTRONVOLT_AS_JOULE: f64 = 1.602_176_634E-19; // Joule

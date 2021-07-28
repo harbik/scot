@@ -2,7 +2,7 @@ use nalgebra::{Matrix3xX, SMatrix, convert, matrix};
 use crate::{observers::StandardObserver};
 use crate::util::interpolate::{sprague_rows};
 use crate::util::domain::{Domain};
-use crate::util::units::{NM5, MeterScale, Meter, Scale};
+use crate::util::units::{NM5, WavelengthScale, Meter, Scale};
 
 
 const N: usize = 95;
@@ -49,26 +49,35 @@ pub static CIE1931: &Cie1931 =
 		};
 
 impl StandardObserver for Cie1931 {
+	const K: f64 = 683.0;
+	const NAME: &'static str = "CIE1931";
 
-	fn global() -> &'static Cie1931 {
-			CIE1931
-	}
-
-	fn domain(&self) -> Domain<MeterScale> {
+	fn domain(&self) -> Domain<WavelengthScale> {
 		Domain::new( 360/5, 830/5,  NM5)
 	}
 
-	fn cmf<L: Scale<ValueType = impl Into<Meter>>>(&self, domain: Domain<L>) -> Matrix3xX<f64> {
+	fn cmf<L>(&self, target: Domain<L>) -> Matrix3xX<f64>
+	where
+		L: Scale,
+		Meter: From<<L>::UnitType>
+	 {
 //		calculate row interpolated values, and convert to Matrix3xX matrix... 
-		convert(sprague_rows(&self.domain(), &domain, &self.data))
+		convert(sprague_rows(&self.domain(), &target, &self.data))
 	}
 
 }
 
+impl Default for &Cie1931 {
+	fn default() -> Self {
+			CIE1931
+		
+	}
+}
+
 #[test]
 fn test_cmf(){
-	use crate::util::units::MeterScale;
-	let c = CIE1931.cmf(Domain::new(4,7,MeterScale { size: 1,  exp: -7}));
+	use crate::util::units::WavelengthScale;
+	let c = CIE1931.cmf(Domain::new(4,7,WavelengthScale { size: 1,  exp: -7}));
 	println!("{}", c);
 	
 	println!("{:?}", c);

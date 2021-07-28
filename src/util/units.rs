@@ -1,116 +1,95 @@
-//use super::physics::{ELECTRONVOLT_AS_JOULE, ELECTRONVOLT_AS_METER};
+/**
+	A collection of units for physics quantities used in this library.
+
+	# Examples
+
+	Example of a domain quantity is `Meter`, and its value can be obtained
+	using its value method.
+	```
+	use colorado::util::units::{Meter, Unit};
+	use approx::assert_abs_diff_eq;
+
+	let m = Meter(1.2345);
+	assert_abs_diff_eq!(m.value(), 1.2345);
+ */
 
 pub trait Unit {
+	const SYMBOL : &'static str;
+	const NAME : &'static str;
 	fn value(&self) -> f64;
-	fn symbol() -> &'static str;
-	fn name() -> &'static str;
 }
 
-pub struct Unitless(f64);
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct Unitless(pub f64);
 
 impl Unit for Unitless {
+	const SYMBOL: &'static str = "-";
+	const NAME: &'static str = "Unitless";
 	fn value(&self) ->f64 {
 		self.0
 	}
-
-	fn symbol() -> &'static str {
-		"-"
-	}
-
-	fn name() -> &'static str {
-		"Unitless"
-	}
 }
-pub struct Kelvin (f64);
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct Kelvin (pub f64);
 
 impl Unit for Kelvin {
+	const SYMBOL: &'static str = "K";
+	const NAME: &'static str = "Kelvin";
 	fn value(&self) ->f64 {
 		self.0
 	}
-
-	fn symbol() -> &'static str {
-		"K"
-	}
-
-	fn name() -> &'static str {
-		"Temperature"
-	}
 }
 
-pub struct Meter (f64);
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct Meter (pub f64);
+
 
 impl Unit for Meter {
+	const SYMBOL: &'static str = "m";
+	const NAME: &'static str = "Meter";
 	fn value(&self) ->f64 {
 		self.0
 	}
-
-	fn symbol() -> &'static str {
-		"m"
-	}
-
-	fn name() -> &'static str {
-		"Length"
-	}
 }
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Inch (pub f64);
 
 impl Unit for Inch {
+	const SYMBOL: &'static str = "in";
+	const NAME: &'static str = "Inch";
 	fn value(&self) ->f64 {
 		self.0
 	}
-
-	fn symbol() -> &'static str {
-		"in"
-	}
-
-	fn name() -> &'static str {
-		"Length"
-	}
 }
 
-pub struct Lumen(f64);
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct Lumen(pub f64);
 
 impl Unit for Lumen {
+	const SYMBOL: &'static str = "lm";
+	const NAME: &'static str = "Lumen";
 	fn value(&self) ->f64 {
 		self.0
 	}
-
-	fn symbol() -> &'static str {
-		"lm"
-	}
-
-	fn name() -> &'static str {
-		"Luminous Flux"
-	}
 }
+#[derive(Clone, Copy, PartialEq, Debug)]
 pub struct Joule(f64);
 
 impl Unit for Joule {
+	const SYMBOL: &'static str = "J";
+	const NAME: &'static str = "Joule";
 	fn value(&self) ->f64 {
 		self.0
-	}
-
-	fn symbol() -> &'static str {
-		"J"
-	}
-
-	fn name() -> &'static str {
-		"Energy"
 	}
 }
-pub struct Electronvolt(f64);
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct Electronvolt(pub f64);
 
 impl Unit for Electronvolt {
+	const SYMBOL: &'static str = "eV";
+	const NAME: &'static str = "electronvolt";
 	fn value(&self) ->f64 {
 		self.0
-	}
-
-	fn symbol() -> &'static str {
-		"eV"
-	}
-
-	fn name() -> &'static str {
-		"Energy"
 	}
 }
 
@@ -131,39 +110,45 @@ impl From<Meter> for Inch {
 }
 
 
-pub const A: MeterScale = MeterScale { size: 1, exp: -10}; // Angstrom
-pub const A2: MeterScale = MeterScale { size: 2, exp: -10};
-pub const A5: MeterScale = MeterScale { size: 5, exp: -10};
+pub const A: WavelengthScale = WavelengthScale { size: 1, exp: -10}; // Angstrom
+pub const A2: WavelengthScale = WavelengthScale { size: 2, exp: -10};
+pub const A5: WavelengthScale = WavelengthScale { size: 5, exp: -10};
 
-pub const NM: MeterScale = MeterScale { size: 1, exp: -9 }; // nanometer
-pub const NM2: MeterScale = MeterScale { size: 2, exp: -9 };
-pub const NM5: MeterScale = MeterScale { size: 5, exp: -9 };
-pub const NM10: MeterScale = MeterScale { size: 1, exp: -8 };
-pub const UM: MeterScale = MeterScale { size: 1, exp: -6 }; // nanometer
+pub const NM: WavelengthScale = WavelengthScale { size: 1, exp: -9 }; // nanometer
+pub const NM2: WavelengthScale = WavelengthScale { size: 2, exp: -9 };
+pub const NM5: WavelengthScale = WavelengthScale { size: 5, exp: -9 };
+pub const NM10: WavelengthScale = WavelengthScale { size: 1, exp: -8 };
+pub const UM: WavelengthScale = WavelengthScale { size: 1, exp: -6 }; // micrometer
 
 pub const NONE100: UnitlessScale = UnitlessScale { size: 1, exp: 2};
 pub const NONE50: UnitlessScale = UnitlessScale { size: 5, exp: 1};
+pub const NONE2: UnitlessScale = UnitlessScale { size: 2, exp: 0};
+pub const NONE: UnitlessScale = UnitlessScale { size: 1, exp: 0};
 pub const PCT: UnitlessScale = UnitlessScale { size: 1, exp: -2};
 
-pub const LM: LumenScale = LumenScale { size: 1, exp: 0};
-pub const KLM: LumenScale = LumenScale { size: 1, exp: 3};
+pub const LM: LuminousFluxScale = LuminousFluxScale { size: 1, exp: 0};
+pub const KLM: LuminousFluxScale = LuminousFluxScale { size: 1, exp: 3};
 
-pub const K1: KelvinScale = KelvinScale { size: 1, exp: 0};
-pub const K10: KelvinScale = KelvinScale { size: 1, exp: 1};
-pub const K50: KelvinScale = KelvinScale { size: 5, exp: 1};
-pub const K100: KelvinScale = KelvinScale { size: 1, exp: 2};
-pub const KK: KelvinScale = KelvinScale { size: 1, exp: 3}; // kilo Kelvin, or kK
+pub const K1: CCTScale = CCTScale { size: 1, exp: 0};
+pub const K10: CCTScale = CCTScale { size: 1, exp: 1};
+pub const K50: CCTScale = CCTScale { size: 5, exp: 1};
+pub const K100: CCTScale = CCTScale { size: 1, exp: 2};
+pub const KK: CCTScale = CCTScale { size: 1, exp: 3}; // kilo Kelvin, or kK
 
-pub const DEV: ElectronvoltScale = ElectronvoltScale { size: 1, exp: -1}; // deci electronvolt, or 0.1
+pub const DEV: PhotonEnergyScale = PhotonEnergyScale { size: 1, exp: -1}; // deci electronvolt, or 0.1
 
 #[inline]
 fn val(i: i32, size: u32, exp: i32 ) -> f64 {
 	i as f64 * size as f64 * 10f64.powi(exp)
 }
 
+/**
+	
+ */
 pub trait Scale : Clone + Copy + PartialEq + Eq  {
-	type ValueType: Unit; // Implements Unit trait
-	fn unit(&self, v: i32) -> Self::ValueType;
+	const TITLE: &'static str;
+	type UnitType: Unit; // Implements Unit trait
+	fn unit(&self, v: i32) -> Self::UnitType;
 }
 
 
@@ -175,26 +160,27 @@ pub struct UnitlessScale{
 
 
 impl Scale for UnitlessScale {
-	type ValueType = Unitless;
+	const TITLE: &'static str = "-";
+	type UnitType = Unitless;
 
 
-	fn unit(&self, i: i32) -> Self::ValueType {
+	fn unit(&self, i: i32) -> Self::UnitType {
 		Unitless(val(i, self.size, self.exp))
 	}
 
 }
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 
-pub struct KelvinScale {
+pub struct CCTScale {
 	pub size: u32,
 	pub exp: i32,
 }
 
-impl Scale for KelvinScale {
+impl Scale for CCTScale {
+	const TITLE: &'static str = "Correlated Color TemperatureA";
+	type UnitType = Kelvin;
 
-	type ValueType = Kelvin;
-
-	fn unit(&self, i: i32) -> Self::ValueType {
+	fn unit(&self, i: i32) -> Self::UnitType {
 		Kelvin( val(i, self.size, self.exp))
 	}
 
@@ -203,32 +189,33 @@ impl Scale for KelvinScale {
 
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct MeterScale{
+pub struct WavelengthScale{
 	pub size: u32,
 	pub exp: i32,
 }
 
-impl Scale for MeterScale {
+impl Scale for WavelengthScale {
+	const TITLE: &'static str = "Wavelength";
+	type UnitType = Meter;
 
-	type ValueType = Meter;
-
-	fn unit(&self, i: i32) -> Self::ValueType {
+	fn unit(&self, i: i32) -> Self::UnitType {
 		Meter(val(i, self.size, self.exp))
 	}
 }
 
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct LumenScale {
+pub struct LuminousFluxScale {
 	pub size: u32,
 	pub exp: i32,
 }
 
 
-impl Scale for LumenScale {
-	type ValueType = Lumen;
+impl Scale for LuminousFluxScale {
+	const TITLE: &'static str = "Luminous Flux";
+	type UnitType = Lumen;
 
-	fn unit(&self, i: i32) -> Self::ValueType {
+	fn unit(&self, i: i32) -> Self::UnitType {
 		Lumen(val(i, self.size, self.exp))
 	}
 }
@@ -242,24 +229,26 @@ pub struct JouleScale {
 
 
 impl Scale for JouleScale {
-	type ValueType = Joule;
+	const TITLE: &'static str = "Energy";
+	type UnitType = Joule;
 
-	fn unit(&self, i: i32) -> Self::ValueType {
+	fn unit(&self, i: i32) -> Self::UnitType {
 		Joule (val(i, self.size, self.exp))
 	}
 
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct ElectronvoltScale {
+pub struct PhotonEnergyScale {
 	pub size: u32,
 	pub exp: i32,
 }
 
-impl Scale for ElectronvoltScale {
-	type ValueType = Electronvolt;
+impl Scale for PhotonEnergyScale {
+	const TITLE: &'static str = "Photon Energy";
+	type UnitType = Electronvolt;
 
-	fn unit(&self, i: i32) -> Self::ValueType {
+	fn unit(&self, i: i32) -> Self::UnitType {
 		Electronvolt(val(i, self.size, self.exp))
 	}
 }
