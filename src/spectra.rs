@@ -8,8 +8,6 @@ use crate::cie::xyz::XYZ;
 use crate::util::domain::{Domain};
 use crate::util::units::{Meter, Scale, Unit};
 
-pub trait Illuminant {}
-/// trait marker for illuminant spectra
 
 pub trait Swatch {}
 /// trait marker for swatch reflection spectra, 

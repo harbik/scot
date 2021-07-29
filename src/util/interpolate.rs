@@ -158,7 +158,7 @@ pub fn sprague_cols<S1, S2, R, C, S> (from_domain: &Domain<S1>, to_domain: &Doma
 				)
 			}
 		}
-		DMatrix::from_vec(n, to_domain.len(), values)
+		DMatrix::from_vec(to_domain.len(), n, values)
 
 }
 

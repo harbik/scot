@@ -2,7 +2,8 @@
 
 use nalgebra::DMatrix;
 
-use crate::spectra::{Illuminant, SpectralData};
+use crate::spectra::{SpectralData};
+use crate::illuminants::{Illuminant};
 use crate::illuminants::cct::{CCTs};
 use crate::util::domain::Domain;
 use crate::util::physics::planck_cie as planck;
@@ -30,13 +31,13 @@ use crate::util::units::{Meter, WavelengthScale, Scale, Unit};
 	Here a single integer valued argument is used to specify a blackbody's temperature.
 
 	```
-	use colorado::illuminants::Blackbody;
+	use colorado::illuminants::Planckian;
 	use colorado::observers::Cie1931;
 	use colorado::cie::XYZ;
 	use approx::assert_abs_diff_eq;
 
-	let bb = Blackbody::new(3000);
-	let xyz = XYZ::<Cie1931>::from(bb);
+	let pl = Planckian::new(3000);
+	let xyz = XYZ::<Cie1931>::from(pl);
 	```
 
 	# Examples
@@ -45,7 +46,7 @@ use crate::util::units::{Meter, WavelengthScale, Scale, Unit};
 	Here a single integer valued argument is used to specify a blackbody's temperature.
 
 	```
-	use colorado::illuminants::Blackbody;
+	use colorado::illuminants::Planckian;
 	use colorado::observers::Cie1931;
 	use colorado::util::domain::Domain;
 	use colorado::spectra::SpectralDistribution;
@@ -53,38 +54,38 @@ use crate::util::units::{Meter, WavelengthScale, Scale, Unit};
 	use colorado::util::units::DEV; // dEv 
 	use approx::assert_abs_diff_eq;
 
-	let sdbb = Blackbody::new([[6500.0,0.1]]);
-	let v = sdbb.values(Domain::new(15, 33, DEV)); // values for blackbody radiator from 1.5 (826.56nm) to 3.3 eV (375.709)
+	let sd = Planckian::new([[6500.0,0.1]]);
+	let v = sd.values(Domain::new(15, 33, DEV)); // values for Planckian radiator from 1.5 (826.56nm) to 3.3 eV (375.709)
 	let val : Vec<f64> = v.into_iter().cloned().collect();
 	assert_eq!(val, vec![]);
 	```
  */
 
 #[derive(Debug)]
-pub struct Blackbody {
+pub struct Planckian {
 	pub ccts: CCTs,
 }
 
-impl Illuminant for Blackbody {}
+impl Illuminant for Planckian {}
 
-impl Blackbody {
+impl Planckian {
 
-	pub fn new(parameters: impl Into<CCTs>) -> Blackbody
+	pub fn new(parameters: impl Into<CCTs>) -> Planckian
 	{
-		Blackbody {
+		Planckian {
 			ccts: parameters.into(),
 		}
 	}
 }
 
-impl SpectralData for Blackbody {
+impl SpectralData for Planckian {
 
 	type ScaleType = WavelengthScale;
 
 	/**
-		Blackbody Spectral values for multiple domain types.
+		Planckian Spectral values for multiple domain types.
 
-		Calculates Blackbody spectral values for a target domain.
+		Calculates planckian spectral values for a target domain.
 		This `UnitValue` item type of target domain's Unit doesn't have to be a `Meter` value, but needs to be
 		able to be converted into a `Meter` value, typically done by implementing a `From<X> for Meter` trait.
 	 */
@@ -105,7 +106,7 @@ impl SpectralData for Blackbody {
 	}
 
 	fn description(&self) -> Option<String> {
-		Some("Blackbody Sources".to_string())
+		Some("Planckian Sources".to_string())
 	}
 
 	/// String temperature values for each of the blackbody sources in the collection.
@@ -124,12 +125,12 @@ impl SpectralData for Blackbody {
 
 
 #[test]
-fn test_blackbody(){
+fn test_planckian(){
 	use crate::observers::{Cie1931};
 	use crate::cie::{Yxy};
 	use crate::util::physics::{C2, C2_CIE};
 
-	let bb_yxy = Yxy::<Cie1931>::from(Blackbody::new([2855.0, 3000.0]));
-	println!("{}", bb_yxy);
+	let pl_yxy = Yxy::<Cie1931>::from(Planckian::new([2855.0, 3000.0]));
+	println!("{}", pl_yxy);
 	println!("{:?} {:?}", C2, C2_CIE);
 }
