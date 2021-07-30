@@ -6,7 +6,7 @@ use crate::spectra::{SpectralData};
 use crate::illuminants::{Illuminant};
 use crate::illuminants::cct::{CCTs};
 use crate::util::domain::Domain;
-use crate::util::physics::planck_cie as planck;
+use crate::util::physics::planck;
 use crate::util::units::{Meter, WavelengthScale, Scale, Unit};
 
 
@@ -117,20 +117,98 @@ impl SpectralData for Planckian {
 	/// Domain which covering the visible part of the spectrum
 	fn domain(&self) -> Domain<Self::ScaleType> {
 		Domain::default()
-		}
+	}
 	
 }
 
+/**
+	Generic Blackbody Rust type, with a single constant usize typed temperature.
+
+	This type is used as a'tag' to represent the illuminant used for chromaticity calculations of color swatches,
+	and use as reference white illuminant of various colorspaces, such as the CIELAB color spaces.
+	
+	# Examples
+
+	Calculate the CIELAB coordinates of the 'Color checker', under a blackbody illuminant with a correlated color temperature of 2700K:
+	```
+		let checker_lab_bb2700: cie::<Lab<Cie1931,BB<2700>> = swatches::ColorChecker.into();
+	```
+	the same can also be calculated as:
+	```
+		let checker_lab_bb2700  = cie::<Lab<Cie1931,BB<2700>>.from(swatches::ColorChecker());
+	```
+	And similar, to get the Colorchecker's CIELAB coordinates for a D65 illuminant
+	```
+		let checker_lab: cie::<Lab<Cie1931,D65> = swatches::ColorChecker.into();
+	```
+	Both of these use the illuminant spectra to calculate the actual colors.
 
 
+	Conversions between CIELAB coordinates with different illuminants, without using the Colorchecker reflectance spectra,
+	is possible too, by using a chromatic adaptation transformation. By default the library uses the CIECAM02's 
+	CIECAT02 chromatic adaptation model.
+
+	```
+		let checker_lab = cie::<Lab<Cie1931,D65>>.from(checker_lab_bb2700);
+	```
+	although we could have calculated directly too:
+	And here is a check to confirm we get the same results:
+	```
+		let checker_lab_bb2700  = cie::<Lab<Cie1931,BB<2700>>::from(swatches::ColorChecker());
+
+		// Use chromatic adaptation to change the from a BB<2700> to a D65 illuminant:
+		let checker_lab1 = cie::<Lab<Cie1931,D65>::from(checker_lab_bb2700);
+		let checker_lab1 = cie::<Lab<Cie1931,D65>::from((checker_lab_bb2700, CAT::VonKries));
+
+		let checker_lab2: cie::<Lab<Cie1931,D65> = swatches::ColorChecker.into();
+
+		
+	```
+	You chan see that the chromatic adaptation transformation model is not perfect, and introduces significant errors,
+	but it is the only option
+
+
+
+
+
+
+	
+	calculate chromaticity coordinatesin color spaces using a reference white, such as in the CIELAB color space,
+	or to calculate color coordinates .
+	Typically `D65` or `D50` in this color space, but using this type, also any blackbody illuminant can also be used. 
+
+
+ */
+struct BB <const T: usize>;
+
+impl<const N: usize> Default for BB<N> {
+	fn default() -> Self {
+		Self	
+	}
+}
+
+impl<const N: usize> SpectralData for BB<N> {
+	type ScaleType = WavelengthScale;
+
+	fn values<L: Scale>(&self, dom: Domain<L>) -> DMatrix<f64>
+	where
+		L: Scale,
+		<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType>
+	 {
+		 Planckian::new(N * 100).values(dom)
+	 }
+	
+	/// Domain which covering the visible part of the spectrum
+	fn domain(&self) -> Domain<Self::ScaleType> {
+		Domain::default()
+	}
+}
 
 #[test]
 fn test_planckian(){
 	use crate::observers::{Cie1931};
 	use crate::cie::{Yxy};
-	use crate::util::physics::{C2, C2_CIE};
 
 	let pl_yxy = Yxy::<Cie1931>::from(Planckian::new([2855.0, 3000.0]));
 	println!("{}", pl_yxy);
-	println!("{:?} {:?}", C2, C2_CIE);
 }
