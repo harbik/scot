@@ -9,9 +9,6 @@ use crate::util::domain::{Domain};
 use crate::util::units::{Meter, Scale, Unit};
 
 
-pub trait Swatch {}
-/// trait marker for swatch reflection spectra, 
-/// such as the Munsell color swatches.
 
 pub trait Pixel {}
 /// trait marker for display pixel spectra

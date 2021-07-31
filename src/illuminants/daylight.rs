@@ -63,8 +63,6 @@ pub struct Daylight {
 	pub ccts: CCTs,
 }
 
-impl Illuminant for Daylight {}
-
 impl Daylight {
 
 	pub fn new(parameters: impl Into<CCTs>) -> Daylight
@@ -166,6 +164,8 @@ impl Default for D50 {
     }
 }
 
+impl Illuminant for D50 {}
+
 #[test]
 fn test_d50(){
 	use crate::observers::Cie1931;
@@ -208,6 +208,8 @@ impl Default for D55 {
 		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D55_DATA)))
     }
 }
+
+impl Illuminant for D55 {}
 
 #[test]
 fn test_d55(){
@@ -254,6 +256,8 @@ impl Default for D65 {
 		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D65_DATA)))
     }
 }
+
+impl Illuminant for D65 {}
 
 #[test]
 fn test_d65(){
@@ -303,6 +307,7 @@ impl Default for D75 {
 		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D75_DATA)))
     }
 }
+impl Illuminant for D75 {}
 
 #[test]
 fn test_d75(){

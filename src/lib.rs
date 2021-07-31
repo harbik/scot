@@ -86,6 +86,11 @@ pub mod spectra; // spectral matrix and range
 
 pub mod illuminants;
 
+/**
+	Swatch libraries
+*/
+pub mod swatches;
+
 pub mod util;
 
 /**

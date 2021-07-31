@@ -10,5 +10,13 @@ pub mod cct;
 pub use crate::illuminants::cct::CCTs; // use illuminants::CCTs
 pub use crate::illuminants::incandescent::Planckian; 
 pub use crate::illuminants::daylight::Daylight;
+use crate::spectra::SpectralData;
 //use crate::observers::{StandardObserver};
-pub trait Illuminant {}
+
+
+/**
+Represents a type with a single spectral distrution, which values can be accessed 
+by using its default constructor, and getting its first, and single row vector.
+*/
+
+pub trait Illuminant : SpectralData + Default {}

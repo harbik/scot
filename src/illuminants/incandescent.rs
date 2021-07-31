@@ -66,8 +66,6 @@ pub struct Planckian {
 	pub ccts: CCTs,
 }
 
-impl Illuminant for Planckian {}
-
 impl Planckian {
 
 	pub fn new(parameters: impl Into<CCTs>) -> Planckian
@@ -131,15 +129,20 @@ impl SpectralData for Planckian {
 
 	Calculate the CIELAB coordinates of the 'Color checker', under a blackbody illuminant with a correlated color temperature of 2700K:
 	```
-		let checker_lab_bb2700: cie::<Lab<Cie1931,BB<2700>> = swatches::ColorChecker.into();
+		use colorado::cie::{self, Lab};
+		use colorado::xyz::Lab;
+		use colorado::incandescent::BB;
+		use colorado::observers::Cie1931;
+		use colorado::swatches::ColorChecker;
+		let checker_lab_bb2700: cie::<Lab<Cie1931,BB<2700>> = swatches::ColorChecker::new().into();
 	```
 	the same can also be calculated as:
 	```
-		let checker_lab_bb2700  = cie::<Lab<Cie1931,BB<2700>>.from(swatches::ColorChecker());
+		let checker_lab_bb2700  = cie::<Lab<Cie1931,BB<2700>>.from(swatches::ColorChecker::new());
 	```
 	And similar, to get the Colorchecker's CIELAB coordinates for a D65 illuminant
 	```
-		let checker_lab: cie::<Lab<Cie1931,D65> = swatches::ColorChecker.into();
+		let checker_lab: cie::<Lab<Cie1931,D65> = swatches::ColorChecker::default().into();
 	```
 	Both of these use the illuminant spectra to calculate the actual colors.
 
@@ -149,18 +152,21 @@ impl SpectralData for Planckian {
 	CIECAT02 chromatic adaptation model.
 
 	```
+		use colorado::cie;
+		use colorado::observers::Cie1931;
+		use colorado::illuminants::D65;
 		let checker_lab = cie::<Lab<Cie1931,D65>>.from(checker_lab_bb2700);
 	```
 	although we could have calculated directly too:
 	And here is a check to confirm we get the same results:
 	```
-		let checker_lab_bb2700  = cie::<Lab<Cie1931,BB<2700>>::from(swatches::ColorChecker());
+		let checker_lab_bb2700  = cie::<Lab<Cie1931,BB<2700>>::from(swatches::ColorChecker::default());
 
 		// Use chromatic adaptation to change the from a BB<2700> to a D65 illuminant:
 		let checker_lab1 = cie::<Lab<Cie1931,D65>::from(checker_lab_bb2700);
-		let checker_lab1 = cie::<Lab<Cie1931,D65>::from((checker_lab_bb2700, CAT::VonKries));
+	//	let checker_lab1 = cie::<Lab<Cie1931,D65>::from((checker_lab_bb2700, CAT::VonKries));
 
-		let checker_lab2: cie::<Lab<Cie1931,D65> = swatches::ColorChecker.into();
+		let checker_lab2: cie::<Lab<Cie1931,D65> = swatches::ColorChecker::default().into();
 
 		
 	```
@@ -186,6 +192,8 @@ impl<const N: usize> Default for BB<N> {
 		Self	
 	}
 }
+
+impl<const N: usize> Illuminant for BB<N> {}
 
 impl<const N: usize> SpectralData for BB<N> {
 	type ScaleType = WavelengthScale;
