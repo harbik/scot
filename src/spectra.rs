@@ -1,6 +1,7 @@
 
 extern crate nalgebra as na;
 
+
 use na::DMatrix;
 
 use crate::observers::StandardObserver;
@@ -34,7 +35,7 @@ pub trait SpectralData {
 		mapped to a specified domain, typically by interpolation, or by evaluation of functions for functional
 		representations.
 	*/
-	fn values<L>(&self, domain: Domain<L>) -> DMatrix<f64>
+	fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 		where
 			L: Scale,
 			<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
@@ -82,7 +83,8 @@ where
 
  {
 	fn from(sd: S) -> Self {
-		let xyz = <&C>::default().cmf(sd.domain()) * sd.values(sd.domain()) * C::K * sd.domain().scale.unit(1).value();
+		let xyz = <&C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().scale.unit(1).value();
 		XYZ::<C>::new(xyz)
 	}
 }
+

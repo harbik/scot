@@ -84,7 +84,7 @@ impl SpectralData for Daylight {
 		This `UnitValue` item type of target domain's Unit doesn't have to be a `Meter` value, but needs to be
 		able to be converted into a `Meter` value, typically done by implementing a `From<X> for Meter` trait.
 	 */
-	fn values<L: Scale>(&self, dom: Domain<L>) -> DMatrix<f64>
+	fn values<L: Scale>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Scale,
 		<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType>
@@ -132,12 +132,12 @@ impl SpectralData for Daylight {
 	
 }
 
-struct D50(SVector<f64, 97>);
+pub struct D50(SVector<f64, 97>);
 
 impl SpectralData for D50 {
     type ScaleType = WavelengthScale;
 
-    fn values<L>(&self, domain: Domain<L>) -> DMatrix<f64>
+    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Scale,
 		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
@@ -177,12 +177,12 @@ fn test_d50(){
 	assert_abs_diff_eq!(d50xyz.data.column(0).y, 0.34567 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 x value
 	assert_abs_diff_eq!(d50xyz.data.column(0).z, 0.35851 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 y value - there is a slight deviation here... 50 vs 51
 } 
-struct D55(SVector<f64, 97>);
+pub struct D55(SVector<f64, 97>);
 
 impl SpectralData for D55 {
     type ScaleType = WavelengthScale;
 
-    fn values<L>(&self, domain: Domain<L>) -> DMatrix<f64>
+    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Scale,
 		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
@@ -225,12 +225,12 @@ fn test_d55(){
 	assert_abs_diff_eq!(d.data.column(0).z, 0.34744 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 y value - there is a slight deviation here... 50 vs 51
 } 
 
-struct D65(SVector<f64, 97>);
+pub struct D65(SVector<f64, 97>);
 
 impl SpectralData for D65 {
     type ScaleType = WavelengthScale;
 
-    fn values<L>(&self, domain: Domain<L>) -> DMatrix<f64>
+    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Scale,
 		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
@@ -276,12 +276,12 @@ fn test_d65(){
 	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 y value
 } 
 
-struct D75(SVector<f64, 97>);
+pub struct D75(SVector<f64, 97>);
 
 impl SpectralData for D75 {
     type ScaleType = WavelengthScale;
 
-    fn values<L>(&self, domain: Domain<L>) -> DMatrix<f64>
+    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Scale,
 		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 

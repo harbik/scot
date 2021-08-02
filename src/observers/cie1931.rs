@@ -56,7 +56,7 @@ impl StandardObserver for Cie1931 {
 		Domain::new( 360/5, 830/5,  NM5)
 	}
 
-	fn cmf<L>(&self, target: Domain<L>) -> Matrix3xX<f64>
+	fn cmf<L>(&self, target: &Domain<L>) -> Matrix3xX<f64>
 	where
 		L: Scale,
 		Meter: From<<L>::UnitType>
@@ -74,10 +74,11 @@ impl Default for &Cie1931 {
 	}
 }
 
+
 #[test]
 fn test_cmf(){
 	use crate::util::units::WavelengthScale;
-	let c = CIE1931.cmf(Domain::new(4,7,WavelengthScale { size: 1,  exp: -7}));
+	let c = CIE1931.cmf(&Domain::new(4,7,WavelengthScale { size: 1,  exp: -7}));
 	println!("{}", c);
 	
 	println!("{:?}", c);

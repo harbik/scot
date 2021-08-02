@@ -87,7 +87,7 @@ impl SpectralData for Planckian {
 		This `UnitValue` item type of target domain's Unit doesn't have to be a `Meter` value, but needs to be
 		able to be converted into a `Meter` value, typically done by implementing a `From<X> for Meter` trait.
 	 */
-	fn values<L: Scale>(&self, dom: Domain<L>) -> DMatrix<f64>
+	fn values<L: Scale>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Scale,
 		<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType>
@@ -130,19 +130,19 @@ impl SpectralData for Planckian {
 	Calculate the CIELAB coordinates of the 'Color checker', under a blackbody illuminant with a correlated color temperature of 2700K:
 	```
 		use colorado::cie::{self, Lab};
-		use colorado::xyz::Lab;
 		use colorado::incandescent::BB;
 		use colorado::observers::Cie1931;
 		use colorado::swatches::ColorChecker;
-		let checker_lab_bb2700: cie::<Lab<Cie1931,BB<2700>> = swatches::ColorChecker::new().into();
+		let checker_lab_bb2700: cie::<Lab<Cie1931,BB<2700>>> = swatches::ColorChecker::default().into();
+		println!("{}", checker_lab-bb2700);
 	```
 	the same can also be calculated as:
 	```
-		let checker_lab_bb2700  = cie::<Lab<Cie1931,BB<2700>>.from(swatches::ColorChecker::new());
+//		let checker_lab_bb2700  = cie::<Lab<Cie1931,BB<2700>>::from(swatches::ColorChecker::default());
 	```
 	And similar, to get the Colorchecker's CIELAB coordinates for a D65 illuminant
 	```
-		let checker_lab: cie::<Lab<Cie1931,D65> = swatches::ColorChecker::default().into();
+//		let checker_lab: cie::<Lab<Cie1931,D65> = swatches::ColorChecker::default().into();
 	```
 	Both of these use the illuminant spectra to calculate the actual colors.
 
@@ -152,10 +152,10 @@ impl SpectralData for Planckian {
 	CIECAT02 chromatic adaptation model.
 
 	```
-		use colorado::cie;
-		use colorado::observers::Cie1931;
-		use colorado::illuminants::D65;
-		let checker_lab = cie::<Lab<Cie1931,D65>>.from(checker_lab_bb2700);
+//		use colorado::cie;
+//		use colorado::observers::Cie1931;
+//		use colorado::illuminants::D65;
+//		let checker_lab = cie::<Lab<Cie1931,D65>>.from(checker_lab_bb2700);
 	```
 	although we could have calculated directly too:
 	And here is a check to confirm we get the same results:
@@ -198,7 +198,7 @@ impl<const N: usize> Illuminant for BB<N> {}
 impl<const N: usize> SpectralData for BB<N> {
 	type ScaleType = WavelengthScale;
 
-	fn values<L: Scale>(&self, dom: Domain<L>) -> DMatrix<f64>
+	fn values<L: Scale>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Scale,
 		<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType>

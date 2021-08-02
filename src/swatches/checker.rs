@@ -21,19 +21,12 @@ use super::Swatches;
 
 
 
-struct ColorChecker(SMatrix<f64,36,24>);
-
-
-impl ColorChecker {
-	fn new() -> Self {
-		Self(SMatrix::<f64, 36, 24>::from_data(ArrayStorage::<f64, 36, 24>(COLORCHECKER)))
-	}
-}
+pub struct ColorChecker(SMatrix<f64,36,24>);
 
 impl SpectralData for ColorChecker {
     type ScaleType = WavelengthScale;
 
-    fn values<L>(&self, domain: Domain<L>) -> nalgebra::DMatrix<f64>
+    fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
 		L: Scale,
 		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
@@ -118,6 +111,6 @@ const COLORCHECKER: [[f64;36];24] = [
 fn test_colorchecker(){
 	use crate::cie::Yxy;
 	use crate::observers::Cie1931;
-	let yxy: Yxy::<Cie1931> = ColorChecker::new().into();
+	let yxy: Yxy::<Cie1931> = ColorChecker::default().into();
 	println!("{}", yxy);
 }
