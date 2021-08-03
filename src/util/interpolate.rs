@@ -129,7 +129,7 @@ pub fn sprague_cols<S1, S2, R, C, S> (from_domain: &Domain<S1>, to_domain: &Doma
 		C: Dim, 
 		S: Storage<f64,R,C>
 {
-		let n = data.ncols(); // nr of vectors in the row matrix
+		let n = data.ncols(); // nr of vectors in the column matrix
 
 		let mut values = Vec::<f64>::with_capacity(to_domain.len() * n);
 
@@ -158,14 +158,14 @@ pub fn sprague_cols<S1, S2, R, C, S> (from_domain: &Domain<S1>, to_domain: &Doma
 				)
 			}
 		}
-		DMatrix::from_vec(to_domain.len(), n, values)
+		DMatrix::from_vec(n, to_domain.len(), values).transpose()
 
 }
 
 #[test]
 fn test_sprague_cols(){
 	use nalgebra::matrix;
-	use crate::util::units::{NONE50, NONE100};
+	use crate::util::units::{NONE2, NONE};
 	let m_in = 
 		matrix!(
 			1.0, 1.0, 1.0;
@@ -179,8 +179,8 @@ fn test_sprague_cols(){
 		);
 
 	println!{"{}", m_in};
-	let from_domain = Domain::new(2, 9, NONE100);
-	let to_domain = Domain::new(3, 19, NONE50);
+	let from_domain = Domain::new(2, 9, NONE2);   // 4 to 18 in steps of 2
+	let to_domain = Domain::new(3, 19, NONE);
 
 	println!{"{}", sprague_cols(&from_domain, &from_domain, &m_in)};
 	println!{"{}", sprague_cols(&from_domain, &to_domain, &m_in)};

@@ -111,6 +111,7 @@ const COLORCHECKER: [[f64;36];24] = [
 fn test_colorchecker(){
 	use crate::cie::Yxy;
 	use crate::observers::Cie1931;
+	println!("{}", ColorChecker::default().0);
 	let yxy: Yxy::<Cie1931> = ColorChecker::default().into();
 	println!("{}", yxy);
 }

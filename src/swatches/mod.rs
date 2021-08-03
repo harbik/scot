@@ -54,7 +54,7 @@ impl Default for White {
 
 impl Swatches for White {}
 
-pub struct Gray (f64);
+pub struct Gray (pub f64);
 
 pub const SW_WHITE: Gray = Gray(1.0);
 pub const SW_GRAY90: Gray = Gray(0.9);
