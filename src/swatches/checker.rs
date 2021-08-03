@@ -107,11 +107,4 @@ const COLORCHECKER: [[f64;36];24] = [
 [0.03102, 0.03199, 0.03228, 0.03256, 0.03275, 0.03282, 0.03282, 0.03262, 0.03248, 0.03240, 0.03233, 0.03231, 0.03228, 0.03215, 0.03209, 0.03198, 0.03196, 0.03198, 0.03192, 0.03195, 0.03182, 0.03179, 0.03173, 0.03185, 0.03193, 0.03190, 0.03191, 0.03194, 0.03202, 0.03212, 0.03222, 0.03223, 0.03224, 0.03233, 0.03237, 0.03250]
 ];
 
-#[test]
-fn test_colorchecker(){
-	use crate::cie::Yxy;
-	use crate::observers::Cie1931;
-	println!("{}", ColorChecker::default().0);
-	let yxy: Yxy::<Cie1931> = ColorChecker::default().into();
-	println!("{}", yxy);
-}
+// for test see lab.rs, where the colorchecker's cielab coordinates are calculated, and checked against BabelColor's data.

@@ -21,7 +21,11 @@ use nalgebra::{DMatrix};
 
 use crate::{spectra::SpectralData, util::{domain::Domain, units::{Scale, WavelengthScale}}};
 
+pub mod checker;
 pub use crate::swatches::checker::ColorChecker;
+
+pub mod tcs;
+pub use crate::swatches::tcs::Tcs;
 
 pub trait Swatches: SpectralData {}
 /// trait marker for swatch reflection spectra, 
@@ -99,7 +103,6 @@ impl Swatches for Gray {}
 
 pub type Grey = Gray;
 
-pub mod checker;
 
 /*
 	Represents the spectral distributions of a swatch collection, 
