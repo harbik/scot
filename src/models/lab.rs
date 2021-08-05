@@ -91,7 +91,7 @@ fn cielab(xyz_n: Matrix3x1<f64>, xyz: Matrix3xX<f64>) -> Matrix3xX<f64> {
 */ 
 fn test_cielab_colorchecker(){
 
-		use crate::cie::Lab;
+		use crate::models::Lab;
 		use crate::observers::Cie1931;
 		use crate::illuminants::D50;
 		use crate::swatches::checker::ColorChecker;

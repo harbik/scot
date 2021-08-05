@@ -5,6 +5,8 @@
 */
 pub mod incandescent;
 pub mod daylight;
+
+pub mod fluorescent;
 pub mod cct;
 
 pub use crate::illuminants::cct::CCTs; // use illuminants::CCTs

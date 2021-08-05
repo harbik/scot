@@ -42,6 +42,11 @@ impl<C: StandardObserver> Yxy<C> {
 	pub fn new(yxy: Matrix3xX<f64>) -> Self {
 		Self { data: yxy, cmf: PhantomData}
 	}
+
+	pub fn yxy(&self, i: usize) -> [f64;3] {
+		let v = self.data.column(i);
+		[v.x, v.y, v.z]
+	}
 }
 
 impl<C, X> From<X> for Yxy<C>

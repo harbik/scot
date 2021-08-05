@@ -80,7 +80,7 @@ All rights reserved.
 /**
 
  */
-pub mod cie;
+pub mod models;
 
 pub mod spectra; // spectral matrix and range 
 

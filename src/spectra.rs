@@ -5,7 +5,7 @@ extern crate nalgebra as na;
 use na::DMatrix;
 
 use crate::observers::StandardObserver;
-use crate::cie::xyz::XYZ;
+use crate::models::xyz::XYZ;
 use crate::util::domain::{Domain};
 use crate::util::units::{Meter, Scale, Unit};
 
