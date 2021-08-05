@@ -27,6 +27,9 @@ pub use crate::swatches::checker::ColorChecker;
 pub mod tcs;
 pub use crate::swatches::tcs::Tcs;
 
+pub mod ces;
+pub use crate::swatches::ces::Ces;
+
 pub trait Swatches: SpectralData {}
 /// trait marker for swatch reflection spectra, 
 /// such as the Munsell color swatches.

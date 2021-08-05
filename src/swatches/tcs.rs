@@ -26,7 +26,9 @@ use super::Swatches;
 
 const N: usize = 95; // number of points in a spectral distributions, and the number of rows in the column major spectral matrix
 const M: usize = 15; // number of spectra in the set, or the number of columns in the spectral matrix
-pub struct Tcs(SMatrix<f64,N,M>);
+
+#[derive(Default)]
+pub struct Tcs;
 
 impl SpectralData for Tcs {
     type ScaleType = WavelengthScale;
@@ -36,7 +38,7 @@ impl SpectralData for Tcs {
 		L: Scale,
 		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
 	{
-		sprague_cols(&self.domain(), &domain, &self.0)
+		sprague_cols(&self.domain(), &domain, &SMatrix::from_data(ArrayStorage(TCS)))
     }
 
     fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
@@ -65,12 +67,6 @@ impl SpectralData for Tcs {
 
 	fn description(&self) -> Option<String> {
 		Some("CRI Test Color Samples (TCS)".to_string())
-	}
-}
-
-impl Default for Tcs {
-	fn default() -> Self {
-		Self(SMatrix::from_data(ArrayStorage(TCS)))
 	}
 }
 

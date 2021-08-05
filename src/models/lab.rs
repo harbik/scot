@@ -7,7 +7,11 @@
 use std::{fmt::Display, marker::PhantomData};
 
 use nalgebra::{Matrix3x1, Matrix3xX};
-use crate::{illuminants::Illuminant, observers::StandardObserver, spectra::SpectralData, swatches::{Swatches}, util::units::{Meter, Scale}};
+use crate::illuminants::Illuminant;
+use crate::observers::StandardObserver;
+use crate::spectra::SpectralData;
+use crate::swatches::Swatches;
+use crate::util::units::{Meter, Scale};
 
 #[derive(Debug)]
 pub struct Lab<C: StandardObserver, I: Illuminant> {

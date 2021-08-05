@@ -7,6 +7,7 @@ pub mod incandescent;
 pub mod daylight;
 
 pub mod fluorescent;
+pub mod fluorescent_data;
 pub mod cct;
 
 pub use crate::illuminants::cct::CCTs; // use illuminants::CCTs
