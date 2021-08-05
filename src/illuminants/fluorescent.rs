@@ -8,9 +8,8 @@ use crate::util::domain::Domain;
 use crate::util::units::{WavelengthScale, Scale, NM5};
 use crate::util::interpolate::sprague_cols;
 
+use super::ALL;
 
-pub type CieFluorescent = FL::<0>;
-pub type CieFluorescent3 = FL3::<0>;
 
 const N: usize = 81;
 const M: usize = 12;
@@ -27,7 +26,7 @@ impl<const I:usize> SpectralData for FL<I> {
 		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
 	{
 		match I {
-			0 => {
+			ALL => {
 				let data = SMatrix::from_data(ArrayStorage(FDATA));
 				sprague_cols(&self.domain(), &domain, &data)
 			}
@@ -70,7 +69,7 @@ impl<const I:usize> SpectralData for FL3<I> {
 		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
 	{
 		match I {
-			0 => {
+			ALL => {
 				let data = SMatrix::from_data(ArrayStorage(FL3DATA));
 				sprague_cols(&self.domain(), &domain, &data)
 			}
@@ -235,6 +234,21 @@ pub static FL3DATA: [[f64;81];15] = [
 	]
 ];
 
+pub static FLTEST : [[f64;4];12] = [
+		[0.3131, 0.3371, 6430.0, 76.0], // x, y, CCT, CRI
+		[0.3721, 0.3751, 4230.0, 64.0],
+		[0.4091, 0.3941, 3450.0, 57.0],
+		[0.4402, 0.4031, 2940.0, 51.0],
+		[0.3138, 0.3452, 6350.0, 72.0],
+		[0.3779, 0.3882, 4150.0, 59.0],
+		[0.3129, 0.3292, 6500.0, 90.0],
+		[0.3458, 0.3586, 5000.0, 95.0],
+		[0.3741, 0.3727, 4150.0, 90.0],
+		[0.3458, 0.3588, 5000.0, 81.0],
+		[0.3805, 0.3769, 4000.0, 83.0],
+		[0.4370, 0.4042, 3000.0, 83.0]
+];
+
 pub static FL3TEST : [[f64;18];15] = [
 	// x, y, CCT, Ra, R1 ..= R14
 	[0.4407, 0.4033, 2932.0, 51.0, 42.0, 69.0, 89.0, 39.0, 41.0, 52.0, 66.0, 13.0, -109.0, 29.0, 19.0, 21.0, 47.0, 93.0],
@@ -259,47 +273,32 @@ pub static FL3TEST : [[f64;18];15] = [
 fn test_f(){
 	use crate::observers::Cie1931;
 	use approx::assert_abs_diff_eq;
-	use nalgebra::{dmatrix};
 	let f = crate::models::Yxy::<Cie1931>::from(FL::<1>);
-	println!("{}", f);
+	// println!("{}", f);
 	let [_, x, y] = f.yxy(0);
 	assert_abs_diff_eq!(x, 0.3131, epsilon=0.0005); // CIE.15.2004 table 8
 	assert_abs_diff_eq!(y, 0.3371, epsilon=0.0005);
 
-	let fall = crate::models::Yxy::<Cie1931>::from(FL::<0>);
+	let fall = crate::models::Yxy::<Cie1931>::from(FL::<ALL>);
 
-	let cie_fl_test = 
-		dmatrix![
-			0.3131, 0.3371, 6430.0, 76.0; // x, y, CCT, CRI
-			0.3721, 0.3751, 4230.0, 64.0;
-			0.4091, 0.3941, 3450.0, 57.0;
-			0.4402, 0.4031, 2940.0, 51.0;
-			0.3138, 0.3452, 6350.0, 72.0;
-			0.3779, 0.3882, 4150.0, 59.0;
-			0.3129, 0.3292, 6500.0, 90.0;
-			0.3458, 0.3586, 5000.0, 95.0;
-			0.3741, 0.3727, 4150.0, 90.0;
-			0.3458, 0.3588, 5000.0, 81.0;
-			0.3805, 0.3769, 4000.0, 83.0;
-			0.4370, 0.4042, 3000.0, 83.0;
-		];
-
-	let fall_data = fall.data.slice_range(1.., ..).transpose();
-	let cie_fl_data = cie_fl_test.slice_range(.., ..2);
+	let cie_fl_test = SMatrix::from_data(ArrayStorage(FLTEST));
+	let cie_fl_data = cie_fl_test.slice_range(..2, ..);
 	
-//	println!("{:.5}", fall_data);
-//	println!("{:.5}", cie_fl_data);
+	let fall_data = fall.data.slice_range(1.., ..);
+	
+	//println!("{:.5}", fall_data);
+	//println!("{:.5}", cie_fl_data);
 
 	assert_abs_diff_eq!(
-		SMatrix::<f64, 12, 2>::from_iterator(fall_data.iter().cloned()), 
-		SMatrix::<f64, 12, 2>::from_iterator(cie_fl_data.iter().cloned()),
+		SMatrix::<f64, 2, 12>::from_iterator(fall_data.iter().cloned()), 
+		SMatrix::<f64, 2, 12>::from_iterator(cie_fl_data.iter().cloned()),
 		epsilon = 5E-5 // reference data's precision
 	);
 
 	let cie_fl3_test = SMatrix::from_data(ArrayStorage(FL3TEST));
-	let f3all = crate::models::Yxy::<Cie1931>::from(FL3::<0>);
-	println!("{:.5}", f3all.data.slice_range(1..3,..));
-	println!("{:.5}", cie_fl3_test.slice_range(0..2,..));
+	let f3all = crate::models::Yxy::<Cie1931>::from(FL3::<ALL>);
+	// println!("{:.5}", f3all.data.slice_range(1..3,..));
+	// println!("{:.5}", cie_fl3_test.slice_range(0..2,..));
 	//	SMatrix::<f64, 12, 2>::from_iterator(fall_data.iter().cloned()), 
 	//	SMatrix::<f64, 12, 2>::from_iterator(cie_fl_data.iter().cloned()),
 	assert_abs_diff_eq!(

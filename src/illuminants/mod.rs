@@ -23,3 +23,4 @@ by using its default constructor, and getting its first, and single row vector.
 
 pub trait Illuminant : SpectralData + Default {}
 
+pub const ALL: usize = 0;
