@@ -173,7 +173,7 @@ fn test_d50(){
 	use approx::assert_abs_diff_eq;
 
 
-	let d50xyz: models::Yxy<Cie1931> = D50::default().into();
+	let d50xyz: models::CieYxy<Cie1931> = D50::default().into();
 	assert_abs_diff_eq!(d50xyz.data.column(0).y, 0.34567 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 x value
 	assert_abs_diff_eq!(d50xyz.data.column(0).z, 0.35851 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 y value - there is a slight deviation here... 50 vs 51
 } 
@@ -217,10 +217,10 @@ fn test_d55(){
 	use crate::models;
 	use approx::assert_abs_diff_eq;
 
-	let c: models::XYZ<Cie1931> = D55::default().into();
+	let c: models::CieXYZ<Cie1931> = D55::default().into();
 	println!("{}", c);
 
-	let d: models::Yxy<Cie1931> = D55::default().into();
+	let d: models::CieYxy<Cie1931> = D55::default().into();
 	assert_abs_diff_eq!(d.data.column(0).y, 0.33243 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 x value
 	assert_abs_diff_eq!(d.data.column(0).z, 0.34744 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 y value - there is a slight deviation here... 50 vs 51
 } 
@@ -266,12 +266,12 @@ fn test_d65(){
 	use approx::assert_abs_diff_eq;
 
 
-	let xyz: models::XYZ<Cie1931> = D65::default().into();
+	let xyz: models::CieXYZ<Cie1931> = D65::default().into();
 	assert_abs_diff_eq!(xyz.data.column(0).x, 6.859677E-3 , epsilon = 2E-6);  //  CIE 15:2004 Tables, calculated in Excel
 	assert_abs_diff_eq!(xyz.data.column(0).y, 7.217449E-3, epsilon = 2E-6);  // 
 	assert_abs_diff_eq!(xyz.data.column(0).z, 7.858362E-3, epsilon = 2E-6);  // 
 
-	let yxy: models::Yxy<Cie1931> = D65::default().into();
+	let yxy: models::CieYxy<Cie1931> = D65::default().into();
 	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 x value
 	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 y value
 } 
@@ -316,7 +316,7 @@ fn test_d75(){
 	use approx::assert_abs_diff_eq;
 
 
-	let xyz: models::Yxy<Cie1931> = D75::default().into();
+	let xyz: models::CieYxy<Cie1931> = D75::default().into();
 	assert_abs_diff_eq!(xyz.data.column(0).y, 0.29903, epsilon = 5E-5);  // CIE 15:2004, Table T.3. D75 x value
 	assert_abs_diff_eq!(xyz.data.column(0).z, 0.31488, epsilon = 5E-5);  // CIE 15:2004, Table T.3. D75 y value
 } 

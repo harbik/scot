@@ -82,6 +82,8 @@ All rights reserved.
  */
 pub mod models;
 
+pub mod differences;
+
 pub mod spectra; // spectral matrix and range 
 
 pub mod illuminants;

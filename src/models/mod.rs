@@ -1,5 +1,7 @@
 pub mod xyz;
 pub mod lab;
 
-pub use crate::models::xyz::{XYZ, Yxy};
-pub use crate::models::lab::Lab;
+pub use crate::models::xyz::{CieXYZ, CieYxy};
+pub use crate::models::lab::CieLab;
+
+pub trait Model{}

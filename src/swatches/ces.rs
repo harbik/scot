@@ -76,11 +76,11 @@ impl Swatches for Ces {}
 
 #[test]
 fn test_tcs(){
-	use crate::models::Lab;
+	use crate::models::CieLab;
 	use crate::illuminants::D65;
 	use crate::observers::Cie1931;
 
-	let ces_lab: Lab<Cie1931,D65> = Ces::default().into();
+	let ces_lab: CieLab<Cie1931,D65> = Ces::default().into();
 
 	println!("{:.4}", ces_lab.data.transpose());
 

@@ -123,13 +123,13 @@ impl<const I:usize> SpectralData for FIES<I> {
 fn test_f(){
 	use crate::observers::Cie1931;
 	use approx::assert_abs_diff_eq;
-	let f = crate::models::Yxy::<Cie1931>::from(FL::<1>);
+	let f = crate::models::CieYxy::<Cie1931>::from(FL::<1>);
 	// println!("{}", f);
 	let [_, x, y] = f.yxy(0);
 	assert_abs_diff_eq!(x, 0.3131, epsilon=0.0005); // CIE.15.2004 table 8
 	assert_abs_diff_eq!(y, 0.3371, epsilon=0.0005);
 
-	let fall = crate::models::Yxy::<Cie1931>::from(FL::<ALL>);
+	let fall = crate::models::CieYxy::<Cie1931>::from(FL::<ALL>);
 
 	let cie_fl_test = SMatrix::from_data(ArrayStorage(FLTEST));
 	let cie_fl_data = cie_fl_test.slice_range(..2, ..);
@@ -146,7 +146,7 @@ fn test_f(){
 	);
 
 	let cie_fl3_test = SMatrix::from_data(ArrayStorage(FL3TEST));
-	let f3all = crate::models::Yxy::<Cie1931>::from(FL3::<ALL>);
+	let f3all = crate::models::CieYxy::<Cie1931>::from(FL3::<ALL>);
 	// println!("{:.5}", f3all.data.slice_range(1..3,..));
 	// println!("{:.5}", cie_fl3_test.slice_range(0..2,..));
 	//	SMatrix::<f64, 12, 2>::from_iterator(fall_data.iter().cloned()), 
@@ -157,7 +157,7 @@ fn test_f(){
 		epsilon = 7E-5 // reference data's precision
 	);
 
-	let fies = crate::models::Yxy::<Cie1931>::from(FIES::<ALL>);
+	let fies = crate::models::CieYxy::<Cie1931>::from(FIES::<ALL>);
 	println!("{:.5}", fies.data.slice_range(1..3,..).transpose());
 	// println!("{:.5}", cie_fl3_test.slice_range(0..2,..));
 	//	SMatrix::<f64, 12, 2>::from_iterator(fall_data.iter().cloned()), 

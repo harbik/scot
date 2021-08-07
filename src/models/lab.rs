@@ -6,23 +6,75 @@
 
 use std::{fmt::Display, marker::PhantomData};
 
-use nalgebra::{Matrix3x1, Matrix3xX};
+use nalgebra::{Matrix3x1, Matrix3xX,};
 use crate::illuminants::Illuminant;
 use crate::observers::StandardObserver;
 use crate::spectra::SpectralData;
-use crate::swatches::Swatches;
+use crate::swatches::{Swatches};
 use crate::util::units::{Meter, Scale};
 
 #[derive(Debug)]
-pub struct Lab<C: StandardObserver, I: Illuminant> {
+pub struct CieLab<C: StandardObserver, I: Illuminant> {
 	pub data : Matrix3xX<f64>,
 	cmf: PhantomData<*const C>, // only used through C::Default(), but needed to mark the type
 	illuminant: PhantomData<*const I>, // only used through I::Default(), but needed to mark the type
 }
 
-impl<C: StandardObserver, I: Illuminant> Lab<C,I> {
+impl<C: StandardObserver, I: Illuminant> CieLab<C,I> {
 	pub fn new(data: Matrix3xX<f64>) -> Self {
 		Self { data, cmf: PhantomData, illuminant: PhantomData}
+	}
+}
+
+pub struct LabIter<C: StandardObserver,I: Illuminant> {
+	lab: CieLab<C,I>,
+	i: usize,
+}
+
+impl<C: StandardObserver, I: Illuminant> Iterator for LabIter<C, I> {
+	type Item = LabValues;
+	fn next(&mut self) -> Option<Self::Item> {
+		if self.i < self.lab.data.ncols() {
+			let l = self.lab.data[(0, self.i)];
+			let a = self.lab.data[(1, self.i)];
+			let b = self.lab.data[(2, self.i)];
+			self.i += 1;
+			Some(LabValues {l, a, b})
+		} else {
+			None
+		}
+	}
+}
+
+#[derive(Debug)]
+pub struct LabValues {
+	pub l: f64,
+	pub a: f64,
+	pub b: f64,
+}
+
+impl<C: StandardObserver,I:Illuminant> IntoIterator for CieLab<C,I> {
+	type Item = LabValues;
+
+	type IntoIter = LabIter<C,I>;
+
+	fn into_iter(self) -> Self::IntoIter {
+		Self::IntoIter {
+			lab: self,
+			i: 0,
+		}
+
+	}
+
+}
+
+#[test]
+fn test_lab_iter(){
+	use crate::swatches::checker::ColorChecker;
+	use crate::observers::Cie1931;
+	use crate::illuminants::D65;
+	for LabValues {l, a, b}  in CieLab::<Cie1931, D65>::from(ColorChecker::default()){
+		println!("{}, {}, {}", l, a, b);
 	}
 }
 
@@ -45,7 +97,7 @@ fn lab_f(v: f64) -> f64 {
  /**
 	Calculates CIELAB values for color swatches
   */
-impl<'a, S, C, I> From<S> for Lab<C, I> 
+impl<'a, S, C, I> From<S> for CieLab<C, I> 
 where 
 	S: Swatches,
 	C: StandardObserver,
@@ -62,11 +114,11 @@ where
 
 		let (xyz_n, xyz) = C::xyz_from_dom_ill_mat(ill_dom, ill_data, sw_data);
 
-		Lab{ data: cielab(xyz_n, xyz), cmf: PhantomData, illuminant: PhantomData }
+		CieLab{ data: cielab(xyz_n, xyz), cmf: PhantomData, illuminant: PhantomData }
     }
 }
 
-impl<C: StandardObserver, I: Illuminant> Display for Lab<C, I> {
+impl<C: StandardObserver, I: Illuminant> Display for CieLab<C, I> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		write!(f, "Lab<{}>: {:.5}", C::NAME, self.data)
     }
@@ -95,7 +147,7 @@ fn cielab(xyz_n: Matrix3x1<f64>, xyz: Matrix3xX<f64>) -> Matrix3xX<f64> {
 */ 
 fn test_cielab_colorchecker(){
 
-		use crate::models::Lab;
+		use crate::models::CieLab;
 		use crate::observers::Cie1931;
 		use crate::illuminants::D50;
 		use crate::swatches::checker::ColorChecker;
@@ -103,19 +155,19 @@ fn test_cielab_colorchecker(){
 		use approx::{assert_abs_diff_eq};
 		use nalgebra::{matrix};
 
-		let white:  Lab<Cie1931, D50> = White::default().into();
+		let white:  CieLab<Cie1931, D50> = White::default().into();
 		assert_abs_diff_eq!(white.data[(0,0)], 100.0, epsilon = 0.00001);
 		assert_abs_diff_eq!(white.data[(1,0)], 0.0, epsilon = 0.00001);
 		assert_abs_diff_eq!(white.data[(2,0)], 0.0, epsilon = 0.00001);
 	//	println!("White {:.4}", white);
 
-		let gray:  Lab<Cie1931, D50> = Gray(0.18418651851244416).into();
+		let gray:  CieLab<Cie1931, D50> = Gray(0.18418651851244416).into();
 		assert_abs_diff_eq!(gray.data[(0,0)], 50.0, epsilon = 0.00001);
 		assert_abs_diff_eq!(gray.data[(1,0)], 0.0, epsilon = 0.00001);
 		assert_abs_diff_eq!(gray.data[(2,0)], 0.0, epsilon = 0.00001);
 	//	println!("Gray {:.4}", gray);
 
-		let checker_lab: Lab<Cie1931,D50> = ColorChecker::default().into();
+		let checker_lab: CieLab<Cie1931,D50> = ColorChecker::default().into();
 
 		let babel = matrix![
 			38.44, 13.61, 14.53;

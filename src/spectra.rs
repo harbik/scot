@@ -5,7 +5,7 @@ extern crate nalgebra as na;
 use na::DMatrix;
 
 use crate::observers::StandardObserver;
-use crate::models::xyz::XYZ;
+use crate::models::xyz::CieXYZ;
 use crate::util::domain::{Domain};
 use crate::util::units::{Meter, Scale, Unit};
 
@@ -74,7 +74,7 @@ pub trait SpectralData {
 	println!("{}",bb);
 	```
  */
-impl<C, S> From<S> for XYZ<C>
+impl<C, S> From<S> for CieXYZ<C>
 where 
 	C: StandardObserver,
 	&'static C: Default,
@@ -84,7 +84,7 @@ where
  {
 	fn from(sd: S) -> Self {
 		let xyz = <&C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().scale.unit(1).value();
-		XYZ::<C>::new(xyz)
+		CieXYZ::<C>::new(xyz)
 	}
 }
 

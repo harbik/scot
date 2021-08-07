@@ -169,11 +169,11 @@ const TCS: [[f64;N];M] = [
 
 #[test]
 fn test_tcs(){
-	use crate::models::Lab;
+	use crate::models::CieLab;
 	use crate::illuminants::D65;
 	use crate::observers::Cie1931;
 
-	let tcs_lab: Lab<Cie1931,D65> = Tcs::default().into();
+	let tcs_lab: CieLab<Cie1931,D65> = Tcs::default().into();
 
 	println!("{:.4}", tcs_lab.data.transpose());
 

@@ -30,7 +30,10 @@ pub use crate::observers::cie1931::{Cie1931}; // allow use as observers::Cie1931
 
 	
  */
-pub trait StandardObserver : 'static  {
+pub trait StandardObserver 
+where
+	Self: 'static,
+{
 	const K: f64;
 	const NAME: &'static str;	
 

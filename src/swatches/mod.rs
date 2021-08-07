@@ -35,7 +35,8 @@ pub trait Swatches: SpectralData {}
 /// such as the Munsell color swatches.
 
 
-pub struct White ();
+#[derive(Default)]
+pub struct White;
 
 impl SpectralData for White {
     type ScaleType = WavelengthScale;
@@ -50,12 +51,6 @@ impl SpectralData for White {
 
     fn domain(&self) -> Domain<Self::ScaleType> {
         Domain::default()
-    }
-}
-
-impl Default for White {
-    fn default() -> Self {
-        Self()
     }
 }
 
