@@ -24,6 +24,10 @@ impl<C: StandardObserver, I: Illuminant> CieLab<C,I> {
 	pub fn new(data: Matrix3xX<f64>) -> Self {
 		Self { data, cmf: PhantomData, illuminant: PhantomData}
 	}
+
+	pub fn len(&self) -> usize {
+		self.data.ncols()
+	}
 }
 
 pub struct LabIter<C: StandardObserver,I: Illuminant> {
