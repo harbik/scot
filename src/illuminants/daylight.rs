@@ -10,6 +10,12 @@ use crate::util::interpolate::{sprague_cols};
 
 use super::Illuminant;
 
+pub type D50 = CieIllD50;
+pub type D55 = CieIllD55;
+pub type D65 = CieIllD65;
+pub type D75 = CieIllD75;
+pub type CieD = CieDaylight;
+
 
 /**
 	Spectral distributions of one or multiple generic blackbody illuminants.
@@ -59,21 +65,21 @@ use super::Illuminant;
  */
 
 #[derive(Debug)]
-pub struct Daylight {
+pub struct CieDaylight {
 	pub ccts: CCTs,
 }
 
-impl Daylight {
+impl CieDaylight {
 
-	pub fn new(parameters: impl Into<CCTs>) -> Daylight
+	pub fn new(parameters: impl Into<CCTs>) -> CieDaylight
 	{
-		Daylight {
+		CieDaylight {
 			ccts: parameters.into(),
 		}
 	}
 }
 
-impl SpectralData for Daylight {
+impl SpectralData for CieDaylight {
 
 	type ScaleType = WavelengthScale;
 
@@ -132,9 +138,9 @@ impl SpectralData for Daylight {
 	
 }
 
-pub struct D50(SVector<f64, 97>);
+pub struct CieIllD50(SVector<f64, 97>);
 
-impl SpectralData for D50 {
+impl SpectralData for CieIllD50 {
     type ScaleType = WavelengthScale;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
@@ -158,28 +164,28 @@ impl SpectralData for D50 {
 	}
 }
 
-impl Default for D50 {
+impl Default for CieIllD50 {
     fn default() -> Self {
 		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D50_DATA)))
     }
 }
 
-impl Illuminant for D50 {}
+impl Illuminant for CieIllD50 {}
 
 #[test]
 fn test_d50(){
-	use crate::observers::Cie1931;
+	use crate::observers::CieObs1931;
 	use crate::models;
 	use approx::assert_abs_diff_eq;
 
 
-	let d50xyz: models::CieYxy<Cie1931> = D50::default().into();
+	let d50xyz: models::CieYxy<CieObs1931> = CieIllD50::default().into();
 	assert_abs_diff_eq!(d50xyz.data.column(0).y, 0.34567 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 x value
 	assert_abs_diff_eq!(d50xyz.data.column(0).z, 0.35851 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 y value - there is a slight deviation here... 50 vs 51
 } 
-pub struct D55(SVector<f64, 97>);
+pub struct CieIllD55(SVector<f64, 97>);
 
-impl SpectralData for D55 {
+impl SpectralData for CieIllD55 {
     type ScaleType = WavelengthScale;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
@@ -203,31 +209,31 @@ impl SpectralData for D55 {
 	}
 }
 
-impl Default for D55 {
+impl Default for CieIllD55 {
     fn default() -> Self {
 		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D55_DATA)))
     }
 }
 
-impl Illuminant for D55 {}
+impl Illuminant for CieIllD55 {}
 
 #[test]
 fn test_d55(){
-	use crate::observers::Cie1931;
+	use crate::observers::CieObs1931;
 	use crate::models;
 	use approx::assert_abs_diff_eq;
 
-	let c: models::CieXYZ<Cie1931> = D55::default().into();
+	let c: models::CieXYZ<CieObs1931> = CieIllD55::default().into();
 	println!("{}", c);
 
-	let d: models::CieYxy<Cie1931> = D55::default().into();
+	let d: models::CieYxy<CieObs1931> = CieIllD55::default().into();
 	assert_abs_diff_eq!(d.data.column(0).y, 0.33243 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 x value
 	assert_abs_diff_eq!(d.data.column(0).z, 0.34744 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 y value - there is a slight deviation here... 50 vs 51
 } 
 
-pub struct D65(SVector<f64, 97>);
+pub struct CieIllD65(SVector<f64, 97>);
 
-impl SpectralData for D65 {
+impl SpectralData for CieIllD65 {
     type ScaleType = WavelengthScale;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
@@ -251,34 +257,34 @@ impl SpectralData for D65 {
 	}
 }
 
-impl Default for D65 {
+impl Default for CieIllD65 {
     fn default() -> Self {
 		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D65_DATA)))
     }
 }
 
-impl Illuminant for D65 {}
+impl Illuminant for CieIllD65 {}
 
 #[test]
 fn test_d65(){
-	use crate::observers::Cie1931;
+	use crate::observers::CieObs1931;
 	use crate::models;
 	use approx::assert_abs_diff_eq;
 
 
-	let xyz: models::CieXYZ<Cie1931> = D65::default().into();
+	let xyz: models::CieXYZ<CieObs1931> = CieIllD65::default().into();
 	assert_abs_diff_eq!(xyz.data.column(0).x, 6.859677E-3 , epsilon = 2E-6);  //  CIE 15:2004 Tables, calculated in Excel
 	assert_abs_diff_eq!(xyz.data.column(0).y, 7.217449E-3, epsilon = 2E-6);  // 
 	assert_abs_diff_eq!(xyz.data.column(0).z, 7.858362E-3, epsilon = 2E-6);  // 
 
-	let yxy: models::CieYxy<Cie1931> = D65::default().into();
+	let yxy: models::CieYxy<CieObs1931> = CieIllD65::default().into();
 	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 x value
 	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 y value
 } 
 
-pub struct D75(SVector<f64, 97>);
+pub struct CieIllD75(SVector<f64, 97>);
 
-impl SpectralData for D75 {
+impl SpectralData for CieIllD75 {
     type ScaleType = WavelengthScale;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
@@ -302,21 +308,21 @@ impl SpectralData for D75 {
 	}
 }
 
-impl Default for D75 {
+impl Default for CieIllD75 {
     fn default() -> Self {
 		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D75_DATA)))
     }
 }
-impl Illuminant for D75 {}
+impl Illuminant for CieIllD75 {}
 
 #[test]
 fn test_d75(){
-	use crate::observers::Cie1931;
+	use crate::observers::CieObs1931;
 	use crate::models;
 	use approx::assert_abs_diff_eq;
 
 
-	let xyz: models::CieYxy<Cie1931> = D75::default().into();
+	let xyz: models::CieYxy<CieObs1931> = CieIllD75::default().into();
 	assert_abs_diff_eq!(xyz.data.column(0).y, 0.29903, epsilon = 5E-5);  // CIE 15:2004, Table T.3. D75 x value
 	assert_abs_diff_eq!(xyz.data.column(0).z, 0.31488, epsilon = 5E-5);  // CIE 15:2004, Table T.3. D75 y value
 } 

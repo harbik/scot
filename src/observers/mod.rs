@@ -14,7 +14,7 @@ use nalgebra::{DMatrix, Matrix3x1, Matrix3xX};
 use crate::util::domain::Domain;
 use crate::util::units::{Meter, WavelengthScale, Scale, Unit};
 
-pub use crate::observers::cie1931::{Cie1931}; // allow use as observers::Cie1931 instead of observers::cie1931::Cie1931
+pub use crate::observers::cie1931::{CieObs1931}; // allow use as observers::Cie1931 instead of observers::cie1931::Cie1931
 
 
 

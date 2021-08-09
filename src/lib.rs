@@ -77,6 +77,10 @@ All rights reserved.
 */
 
 
+pub type DefaultObserver = self::observers::CieObs1931;
+
+pub const ALL: usize = 0;
+
 /**
 
  */
@@ -96,6 +100,7 @@ pub mod util;
 CIE Standard Observers
  */
 pub mod observers; 
+
 
 
 #[cfg(test)]

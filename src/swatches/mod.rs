@@ -22,13 +22,13 @@ use nalgebra::{DMatrix};
 use crate::{spectra::SpectralData, util::{domain::Domain, units::{Scale, WavelengthScale}}};
 
 pub mod checker;
-pub use crate::swatches::checker::ColorChecker;
+pub use self::checker::*;
 
 pub mod tcs;
-pub use crate::swatches::tcs::Tcs;
+pub use self::tcs::*;
 
 pub mod ces;
-pub use crate::swatches::ces::Ces;
+pub use self::ces::*;
 
 pub trait Swatches: SpectralData {}
 /// trait marker for swatch reflection spectra, 

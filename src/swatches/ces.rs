@@ -28,9 +28,9 @@ const N: usize = 401; // number of points in a spectral distributions, and the n
 const M: usize = 99; // number of spectra in the set, or the number of columns in the spectral matrix
 
 #[derive(Default)]
-pub struct Ces;
+pub struct IesTm30Ces;
 
-impl SpectralData for Ces {
+impl SpectralData for IesTm30Ces {
     type ScaleType = WavelengthScale;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
@@ -71,16 +71,16 @@ impl SpectralData for Ces {
 	}
 }
 
-impl Swatches for Ces {}
+impl Swatches for IesTm30Ces {}
 
 
 #[test]
 fn test_tcs(){
 	use crate::models::CieLab;
-	use crate::illuminants::D65;
-	use crate::observers::Cie1931;
+	use crate::illuminants::CieIllD65;
+	use crate::observers::CieObs1931;
 
-	let ces_lab: CieLab<Cie1931,D65> = Ces::default().into();
+	let ces_lab: CieLab<CieIllD65, CieObs1931> = IesTm30Ces::default().into();
 
 	println!("{:.4}", ces_lab.data.transpose());
 

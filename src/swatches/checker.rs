@@ -10,8 +10,9 @@ Of the 30 data sets, 24 were measured with Eye-One Pro spectrocolorimeters from 
 BabelColor is a Registered Trademark of The BabelColor Company.
 ColorChecker and X-Rite are Trademarks of X-Rite Incorporated.
 */
-use nalgebra::{ArrayStorage, SMatrix};
+use nalgebra::{ArrayStorage, SMatrix, SVectorSlice};
 
+use crate::ALL;
 use crate::spectra::SpectralData;
 use crate::util::domain::Domain;
 use crate::util::units::{WavelengthScale, Scale, NM10};
@@ -19,10 +20,14 @@ use crate::util::interpolate::sprague_cols;
 
 use super::Swatches;
 
-#[derive(Default)]
-pub struct ColorChecker;
 
-impl SpectralData for ColorChecker {
+const N: usize = 36;
+const M: usize = 24;
+
+#[derive(Default)]
+pub struct ColorChecker<const I:usize>;
+
+impl<const I: usize> SpectralData for ColorChecker<I> {
     type ScaleType = WavelengthScale;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
@@ -30,8 +35,17 @@ impl SpectralData for ColorChecker {
 		L: Scale,
 		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
 	{
-		let data = SMatrix::<f64, 36, 24>::from_data(ArrayStorage::<f64, 36, 24>(COLORCHECKER));
-		sprague_cols(&self.domain(), &domain, &data)
+		match I {
+			ALL => {
+				let data = SMatrix::<f64, N, M>::from_data(ArrayStorage::<f64, N, M>(COLORCHECKER));
+				sprague_cols(&self.domain(), &domain, &data)
+			}
+			i@1..=M => {
+				let data = SVectorSlice::<f64, N>::from_slice(&COLORCHECKER[i-1]);
+				sprague_cols(&self.domain(), &domain, &data)
+			}
+			_ => panic!("Illegal Index in Fluorescent Illuminant")
+		}
     }
 
     fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
@@ -73,9 +87,9 @@ impl SpectralData for ColorChecker {
 }
 
 
-impl Swatches for ColorChecker {}
+impl<const I:usize> Swatches for ColorChecker<I> {}
 
-static COLORCHECKER: [[f64;36];24] = [
+static COLORCHECKER: [[f64;N];M] = [
 [0.05475, 0.05833, 0.06116, 0.06238, 0.06231, 0.06207, 0.06183, 0.06159, 0.06154, 0.06162, 0.06203, 0.06296, 0.06518, 0.07027, 0.07640, 0.07949, 0.08128, 0.08429, 0.09058, 0.10290, 0.11905, 0.13426, 0.14320, 0.14688, 0.15078, 0.15810, 0.16819, 0.17890, 0.18755, 0.18964, 0.18577, 0.18149, 0.18161, 0.18721, 0.19605, 0.20949],
 [0.11713, 0.14345, 0.17453, 0.19093, 0.19560, 0.19900, 0.20423, 0.21318, 0.22842, 0.25127, 0.28005, 0.30878, 0.32945, 0.33336, 0.31460, 0.28628, 0.27349, 0.27646, 0.27720, 0.28930, 0.33938, 0.42022, 0.48779, 0.52511, 0.54574, 0.56156, 0.57788, 0.59497, 0.61180, 0.62475, 0.63810, 0.65596, 0.67822, 0.69958, 0.71709, 0.73382],
 [0.13036, 0.17707, 0.25101, 0.30625, 0.32392, 0.32993, 0.33283, 0.33097, 0.32342, 0.31134, 0.29823, 0.28533, 0.26943, 0.25037, 0.23144, 0.21426, 0.19942, 0.18451, 0.16938, 0.15729, 0.14911, 0.14482, 0.14186, 0.14057, 0.14067, 0.14109, 0.14257, 0.14654, 0.15184, 0.15351, 0.15009, 0.14395, 0.13639, 0.13235, 0.13496, 0.14673],

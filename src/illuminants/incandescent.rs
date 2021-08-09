@@ -214,9 +214,9 @@ impl<const N: usize> SpectralData for BB<N> {
 
 #[test]
 fn test_planckian(){
-	use crate::observers::{Cie1931};
+	use crate::observers::{CieObs1931};
 	use crate::models::{CieYxy};
 
-	let pl_yxy = CieYxy::<Cie1931>::from(Planckian::new([2855.0, 3000.0]));
+	let pl_yxy = CieYxy::<CieObs1931>::from(Planckian::new([2855.0, 3000.0]));
 	println!("{}", pl_yxy);
 }

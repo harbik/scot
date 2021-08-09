@@ -8,15 +8,15 @@ use crate::util::units::{NM5, WavelengthScale, Meter, Scale};
 const N: usize = 95;
 
 #[derive(Debug)]
-pub struct Cie1931 {
+pub struct CieObs1931 {
 	data: SMatrix<f64, 3, N>,
 	low: i32,
 	size: usize,
 	exp: i32
 }
 
-pub static CIE1931: &Cie1931 = 
-		&Cie1931 {
+pub static CIE1931: &CieObs1931 = 
+		&CieObs1931 {
 			data: matrix![ 
 				0.0001299, 0.0002321, 0.0004149, 0.0007416, 0.001368, 0.002236, 0.004243, 0.00765, 0.01431, 0.02319, 0.04351,
 				0.07763, 0.13438, 0.21477, 0.2839, 0.3285, 0.34828, 0.34806, 0.3362, 0.3187, 0.2908, 0.2511, 0.19536, 0.1421,
@@ -48,7 +48,7 @@ pub static CIE1931: &Cie1931 =
 			exp: -10, // Angstrom
 		};
 
-impl StandardObserver for Cie1931 {
+impl StandardObserver for CieObs1931 {
 	const K: f64 = 683.0;
 	const NAME: &'static str = "CIE1931";
 
@@ -67,7 +67,7 @@ impl StandardObserver for Cie1931 {
 
 }
 
-impl Default for &Cie1931 {
+impl Default for &CieObs1931 {
 	fn default() -> Self {
 			CIE1931
 		
