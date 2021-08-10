@@ -1,9 +1,11 @@
 
 /*!
-CIE &Delta;E 1976 color differences for two color source collections.
+CIE &Delta;E 1976 color differences for two spectral color collections.
 
-In this formula the color difference is represented by the direct distance
+In this formula each color difference is calculated as the direct distance
 between two color points in the CIE L<sup>*</sup>a<sup>*</sup>b<sup>*</sup> color space.	
+
+
 It has been succeeded by better color difference metrix in 1994, and 2000.
 
 # Example
@@ -128,9 +130,10 @@ fn test_ciede76(){
 	use crate::illuminants::{CieIllD65};
 	use crate::swatches::{ColorChecker, IesTm30Ces};
 	let de = CieDE1976::<CieIllD65, CieObs1931>::from((ColorChecker::<13>, IesTm30Ces));
-	println!("{:.1}", de);
+//	println!("{:.1}", de);
 	let m = de.matches();
 	let mut prev = 0f64;
+	// check if error differences are in increasing order
 	for i in 0..m.ncols() {
 		let ind = m[(0,i)];
 		let v = de.0[(0,ind)];

@@ -32,7 +32,6 @@ and using a D50 white point:
 ```
  */
 
-use std::collections::HashMap;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
@@ -41,6 +40,8 @@ use nalgebra::DMatrix;
 use crate::models::{CieLab, LabValues};
 use crate::observers::{CieObs1931, StandardObserver};
 use crate::illuminants::{CieIllD65, Illuminant};
+
+use super::DeltaEValues;
 
 pub trait Application {
 	const KL: f64;
@@ -72,14 +73,14 @@ impl Application for Textiles {
 }
 
 #[derive()]
-pub struct CieDE1994<C = CieObs1931, I = CieIllD65, A = GraphicArts>(
+pub struct CieDE1994<I = CieIllD65, A = GraphicArts, C = CieObs1931 >(
 	pub DMatrix<f64>, 
 	PhantomData<*const C>, 
 	PhantomData<*const I>, 
 	PhantomData<*const A>
 );
 
-impl<C: StandardObserver, I: Illuminant, A: Application> CieDE1994<C,I,A> 
+impl<C: StandardObserver, I: Illuminant, A: Application> CieDE1994<I,A,C> 
 {
 
     pub fn new<L1, L2>(l1: L1 , l2: L2) -> Self
@@ -87,8 +88,35 @@ impl<C: StandardObserver, I: Illuminant, A: Application> CieDE1994<C,I,A>
 		L1: Into::<CieLab<I,C>>,
 		L2: Into::<CieLab<I,C>>,
 	{
-		let lab1: CieLab::<I,C> = l1.into();
-		let lab2: CieLab::<I,C> = l2.into();
+		Self::from((l1,l2))
+	}
+}
+
+impl<I: Illuminant, A: Application, C: StandardObserver> DeltaEValues<I,C> for CieDE1994<I,A,C>{}
+
+impl<I: Illuminant, A: Application, C: StandardObserver> AsRef<DMatrix<f64>> for CieDE1994<I,A, C> {
+    fn as_ref(&self) -> &DMatrix<f64> {
+        &self.0
+    }
+}
+
+impl<C: StandardObserver, I: Illuminant, A: Application> Debug for CieDE1994<C,I,A> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+       self.0.fmt(f) 
+    }
+}
+
+impl<L1,L2,I,C,A> From<(L1, L2)> for CieDE1994<I,A,C>
+where
+	L1: Into::<CieLab<I,C>>,
+	L2: Into::<CieLab<I,C>>,
+	I: Illuminant,
+	C: StandardObserver,
+	A: Application
+{
+    fn from(l: (L1, L2)) -> Self {
+		let lab1: CieLab::<I,C> = l.0.into();
+		let lab2: CieLab::<I,C> = l.1.into();
 
 		let n1 = lab1.len();
 		let n2 = lab2.len();
@@ -101,48 +129,40 @@ impl<C: StandardObserver, I: Illuminant, A: Application> CieDE1994<C,I,A>
 				let c1 = (a1*a1 + b1*b1).sqrt();
 				let c2 = (a2*a2 + b2*b2).sqrt();
 				let dc = c1 - c2;
-				let dh = (da * da + db * db - dc * dc).sqrt();
+				let dh2 = da * da + db * db - dc * dc; 
+				// avoid calculation of sqrt as only h^2 is needed, and potential small negative values
 				let sl = 1.0;
 				let sc = 1.0 + A::K1 * c1;
-				let sh = 1.0 + A::K2 * c1;
+				let sh = 1.0 + A::K2 * c1; 
+				// c1 here, not c2, according to wiki color differences, and bruce lindbloom site
 				v.push((
-					dl/(A::KL*sl).powi(2) +
-					dc/(A::KC*sc).powi(2) +
-					dh/(A::KH*sh).powi(2) 
+					(dl/(A::KL*sl)).powi(2) +
+					(dc/(A::KC*sc)).powi(2) +
+					dh2/(A::KH*sh).powi(2) 
 				).sqrt());
 
 			}
 		};
 		Self(DMatrix::from_vec(n1, n2, v), PhantomData, PhantomData, PhantomData)
     }
-
-	pub fn top3_matches(&self) -> Vec<Vec<(usize, f64)>> {
-		let mut matched: Vec<Vec<(usize, f64)>> = Vec::with_capacity(self.0.nrows());
-		for r in self.0.row_iter() {
-			let hm : HashMap<usize, f64> = r.into_iter().cloned().enumerate().collect();
-			let mut v: Vec<(usize,f64)> = hm.into_iter().collect();
-			v.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-			matched.push(v.into_iter().take(3).collect::<Vec<(usize,f64)>>());
-		}
-		matched
-	}
-}
-
-impl<C: StandardObserver, I: Illuminant, A: Application> Debug for CieDE1994<C,I,A> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-       self.0.fmt(f) 
-    }
 }
 
 #[test]
 fn test_ciede76(){
-	use crate::ALL;
 	use crate::observers::{CieObs1931};
 	use crate::illuminants::{CieIllD65};
 	use crate::swatches::{ColorChecker, IesTm30Ces};
-	let de = CieDE1994::<CieObs1931, CieIllD65, GraphicArts>::new(ColorChecker::<ALL>, IesTm30Ces);
-	println!("{:.0}", de.0);
-	println!("{:.3?}", de.top3_matches());
+	let de = CieDE1994::<CieIllD65, GraphicArts, CieObs1931>::new(ColorChecker::<13>, IesTm30Ces);
+	let m = de.matches();
+	let mut prev = 0f64;
+	// check if error differences are in increasing order
+	for i in 0..m.ncols() {
+		let ind = m[(0,i)];
+		let v = de.0[(0,ind)];
+		assert!(v>prev);
+		prev = v;
+		println!("{} {} {:.1}", i, ind, v);
+	}
 }
 
 
