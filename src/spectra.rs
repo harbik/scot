@@ -74,12 +74,13 @@ pub trait SpectralData {
 	println!("{}",bb);
 	```
  */
+
 impl<C, S> From<S> for CieXYZ<C>
 where 
 	C: StandardObserver,
 	&'static C: Default,
 	S: SpectralData,
-	Meter: From<<<S as SpectralData>::ScaleType as Scale>::UnitType>
+	Meter: From<<<S as SpectralData>::ScaleType as Scale>::UnitType>,
 
  {
 	fn from(sd: S) -> Self {

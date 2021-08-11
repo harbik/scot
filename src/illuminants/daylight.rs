@@ -64,7 +64,7 @@ pub type CieD = CieDaylight;
 	```
  */
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct CieDaylight {
 	pub ccts: CCTs,
 }
@@ -138,6 +138,7 @@ impl SpectralData for CieDaylight {
 	
 }
 
+#[derive(Debug,Clone)]
 pub struct CieIllD50(SVector<f64, 97>);
 
 impl SpectralData for CieIllD50 {
@@ -183,6 +184,7 @@ fn test_d50(){
 	assert_abs_diff_eq!(d50xyz.data.column(0).y, 0.34567 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 x value
 	assert_abs_diff_eq!(d50xyz.data.column(0).z, 0.35851 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 y value - there is a slight deviation here... 50 vs 51
 } 
+#[derive(Debug,Clone)]
 pub struct CieIllD55(SVector<f64, 97>);
 
 impl SpectralData for CieIllD55 {
@@ -231,6 +233,7 @@ fn test_d55(){
 	assert_abs_diff_eq!(d.data.column(0).z, 0.34744 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 y value - there is a slight deviation here... 50 vs 51
 } 
 
+#[derive(Debug,Clone)]
 pub struct CieIllD65(SVector<f64, 97>);
 
 impl SpectralData for CieIllD65 {
@@ -282,6 +285,7 @@ fn test_d65(){
 	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 y value
 } 
 
+#[derive(Debug,Clone)]
 pub struct CieIllD75(SVector<f64, 97>);
 
 impl SpectralData for CieIllD75 {

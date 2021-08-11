@@ -15,6 +15,7 @@ pub use self::incandescent::Planckian;
 pub use self::daylight::*;
 
 use crate::spectra::SpectralData;
+//use crate::util::{Meter, Scale};
 //use crate::observers::{StandardObserver};
 
 
@@ -23,5 +24,8 @@ Represents a type with a single spectral distrution, which values can be accesse
 by using its default constructor, and getting its first, and single row vector.
 */
 
-pub trait Illuminant : SpectralData + Default {}
+pub trait Illuminant where
+	Self:  SpectralData + Default,
+//	Meter: From<<<Self as SpectralData>::ScaleType as Scale>::UnitType> 
+	{}
 

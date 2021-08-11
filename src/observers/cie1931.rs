@@ -7,7 +7,7 @@ use crate::util::units::{NM5, WavelengthScale, Meter, Scale};
 
 const N: usize = 95;
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct CieObs1931 {
 	data: SMatrix<f64, 3, N>,
 	low: i32,

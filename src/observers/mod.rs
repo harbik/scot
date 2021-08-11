@@ -9,6 +9,10 @@ automatic transformations between the different mathematical representations of 
 
 
 pub mod cie1931;
+pub use cie1931::*;
+
+pub mod cie1964;
+pub use cie1964::*;
 
 use nalgebra::{DMatrix, Matrix3x1, Matrix3xX};
 use crate::util::domain::Domain;

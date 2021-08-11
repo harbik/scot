@@ -16,7 +16,7 @@ use nalgebra::{MatrixXx2};
 A collection tmperature (in kelvin) and radiant exitance values (in watt per square meter), both qualified to be positive and greater than 0.0.
 Used as input to create `Blackbody` and `CIEDaylight` collections.
 */
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct CCTs (
 	pub MatrixXx2<f64>
 );
