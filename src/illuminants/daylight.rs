@@ -276,13 +276,13 @@ fn test_d65(){
 
 
 	let xyz: models::CieXYZ<CieObs1931> = CieIllD65::default().into();
-	assert_abs_diff_eq!(xyz.data.column(0).x, 6.859677E-3 , epsilon = 2E-6);  //  CIE 15:2004 Tables, calculated in Excel
-	assert_abs_diff_eq!(xyz.data.column(0).y, 7.217449E-3, epsilon = 2E-6);  // 
-	assert_abs_diff_eq!(xyz.data.column(0).z, 7.858362E-3, epsilon = 2E-6);  // 
+	assert_abs_diff_eq!(xyz.data.column(0).x, 6.859677E-3 , epsilon = 1E-6);  //  CIE 15:2004 Tables, calculated in Excel
+	assert_abs_diff_eq!(xyz.data.column(0).y, 7.217449E-3, epsilon = 1E-6);  // 
+	assert_abs_diff_eq!(xyz.data.column(0).z, 7.858362E-3, epsilon = 1E-6);  // 
 
 	let yxy: models::CieYxy<CieObs1931> = CieIllD65::default().into();
-	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 x value
-	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 y value
+	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 x value
+	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 y value
 } 
 
 #[derive(Debug,Clone)]

@@ -51,11 +51,11 @@ where
     I: Illuminant,
     C: StandardObserver,
     Meter: From<<<I as SpectralData>::ScaleType as Scale>::UnitType>,
-    &'static C: Default,
+   // &'static C: Default,
 {
     fn from(lab: CieLab<I, C>) -> Self {
         let ill = I::default();
-        let XYZValues { x: xn, y: yn, z: zn, } = CieXYZ::from(ill).into_iter().next().unwrap();
+        let XYZValues { x: xn, y: yn, z: zn, } = CieXYZ::<C>::from(ill).into_iter().next().unwrap();
 		let mut v: Vec<f64> = Vec::with_capacity(lab.data.len());
         for LabValues { l, a, b } in lab {
             let s = (l + 16f64) / 116f64;
@@ -188,7 +188,7 @@ impl<'a, S, C, I> From<S> for CieLab<I, C>
 where
     S: Swatches,
     C: StandardObserver,
-    &'a C: Default,
+   // &'a C: Default,
     I: Illuminant,
     <<S as SpectralData>::ScaleType as Scale>::UnitType:
         From<<<I as SpectralData>::ScaleType as Scale>::UnitType>,

@@ -78,13 +78,13 @@ pub trait SpectralData {
 impl<C, S> From<S> for CieXYZ<C>
 where 
 	C: StandardObserver,
-	&'static C: Default,
+//	&'static C: Default,
 	S: SpectralData,
 	Meter: From<<<S as SpectralData>::ScaleType as Scale>::UnitType>,
 
  {
 	fn from(sd: S) -> Self {
-		let xyz = <&C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().scale.unit(1).value();
+		let xyz = <C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().scale.unit(1).value();
 		CieXYZ::<C>::new(xyz)
 	}
 }

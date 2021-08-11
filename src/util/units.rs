@@ -122,6 +122,7 @@ pub const UM: WavelengthScale = WavelengthScale { size: 1, exp: -6 }; // microme
 
 pub const NONE100: UnitlessScale = UnitlessScale { size: 1, exp: 2};
 pub const NONE50: UnitlessScale = UnitlessScale { size: 5, exp: 1};
+pub const NONE5: UnitlessScale = UnitlessScale { size: 5, exp: 0};
 pub const NONE2: UnitlessScale = UnitlessScale { size: 2, exp: 0};
 pub const NONE: UnitlessScale = UnitlessScale { size: 1, exp: 0};
 pub const PCT: UnitlessScale = UnitlessScale { size: 1, exp: -2};

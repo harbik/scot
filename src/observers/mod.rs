@@ -9,9 +9,11 @@ automatic transformations between the different mathematical representations of 
 
 
 pub mod cie1931;
+pub mod cie1931_data;
 pub use cie1931::*;
 
 pub mod cie1964;
+pub mod cie1964_data;
 pub use cie1964::*;
 
 use nalgebra::{DMatrix, Matrix3x1, Matrix3xX};
@@ -34,9 +36,7 @@ pub use crate::observers::cie1931::{CieObs1931}; // allow use as observers::Cie1
 
 	
  */
-pub trait StandardObserver 
-where
-	Self: 'static,
+pub trait StandardObserver : Default
 {
 	const K: f64;
 	const NAME: &'static str;	
@@ -65,9 +65,9 @@ where
 	where 
 		L: Scale,
 		Meter: From<<L>::UnitType>,
-		&'a Self : Default
+	//	&'a Self : Default
 	{
-		let c = <&'a Self>::default();
+		let c = <Self>::default();
 		c.cmf(&d) * m * Self::K * d.scale.unit(1).value()
 	}
 
@@ -83,10 +83,10 @@ where
 	where 
 		L: Scale,
 		Meter: From<<L>::UnitType>,
-		&'a Self : Default
+	//	&'a Self : Default
 	{
 		assert!(l.nrows()==m.nrows());
-		let c = <&'a Self>::default().cmf(&d);
+		let c = <Self>::default().cmf(&d);
 		let m: DMatrix<f64>  = DMatrix::from_fn(l.nrows(), m.ncols(), |i, j| l[(i,0)] * m[(i,j)]);
 		(
 			c.clone() * l.column(0) * Self::K * d.scale.unit(1).value(),

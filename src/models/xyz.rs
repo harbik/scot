@@ -2,7 +2,7 @@
 use std::{fmt::Display, marker::PhantomData};
 
 use nalgebra::{Matrix3xX};
-use crate::{observers::StandardObserver};
+use crate::{DefaultObserver, observers::StandardObserver};
 
 /**	
 	A collection of a tristimulus values, associated with a standard observer,
@@ -15,7 +15,7 @@ use crate::{observers::StandardObserver};
 
 */
 #[derive(Debug)]
-pub struct CieXYZ<C: StandardObserver> {
+pub struct CieXYZ<C: StandardObserver = DefaultObserver> {
 	pub data : Matrix3xX<f64>,
 	cmf: PhantomData<*const C>, // only used through C::Default(), but needed to mark the type
 }
