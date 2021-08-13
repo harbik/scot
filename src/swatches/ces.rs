@@ -84,7 +84,6 @@ fn test_tcs(){
 
 	println!("{:.4}", ces_lab.data.transpose());
 
-
 }
 
 const CES: [[f64;N];M] = [

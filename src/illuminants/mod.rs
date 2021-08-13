@@ -3,8 +3,16 @@
 
 
 */
+
+pub mod cct;
+pub use self::cct::*; // use illuminants::CCTs
+
 pub mod incandescent;
+mod incandescent_data;
+pub use self::incandescent::*; 
+
 pub mod daylight;
+pub use self::daylight::*;
 
 pub mod fluorescent;
 mod fluorescent_data;
@@ -14,18 +22,12 @@ pub mod hid;
 mod hid_data;
 pub use self::hid::*;
 
-pub mod cct;
-
-pub use self::cct::*; // use illuminants::CCTs
-pub use self::incandescent::*; 
-pub use self::daylight::*;
+pub mod led;
+mod led_data;
+pub use self::led::*;
 
 use crate::spectra::SpectralData;
 
-
-
-//use crate::util::{Meter, Scale};
-//use crate::observers::{StandardObserver};
 
 
 /**

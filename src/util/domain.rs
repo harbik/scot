@@ -110,16 +110,17 @@ where
 }
 
 /**
-	380 to 780 nm wavelength scale, with 5 nm steps
+	380 to 780 nm wavelength scale, with 1 nm steps
  */
 impl Default for Domain<WavelengthStep> {
     fn default() -> Self {
-        Domain::new(76, 156, WavelengthStep { size: 5, exp: -9 })
+        Domain::new(380, 780, WavelengthStep { size: 1, exp: -9 })
     }
 }
 
 impl<S1:Step,  S2:Step> PartialEq<Domain<S2>> for Domain<S1> {
     fn eq(&self, other: &Domain<S2>) -> bool {
+		/*
         if self.range.start == other.range.start &&
 			self.range.end == other.range.end &&
 			<S1 as Step>::UnitValueType::NAME == <S2 as Step>::UnitValueType::NAME &&
@@ -129,7 +130,11 @@ impl<S1:Step,  S2:Step> PartialEq<Domain<S2>> for Domain<S1> {
 			} else {
 				false
 			}
-    }
+		 */
+		self.range.start == other.range.start &&
+		self.range.end == other.range.end &&
+		<S1 as Step>::UnitValueType::NAME == <S2 as Step>::UnitValueType::NAME &&
+		self.scale.unitvalue(1).value() == other.scale.unitvalue(1).value()}
 }
 
 /**

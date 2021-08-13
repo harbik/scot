@@ -10,28 +10,37 @@
     performed correctly.
 */
 
+
+
 use nalgebra::{Const, Dynamic, VecStorage};
 use nalgebra::{storage::Storage, DMatrix, Dim, Matrix};
 
 use crate::util::Domain;
 use crate::util::{Step, Unit};
 
-pub fn linear_interpolate_rows_from_static_data<S1, S2, const R: usize, const C: usize>(
+pub fn linear_interpolate_rows_from_static_data<S1, S2, const R1: usize, const C1: usize>(
     from_domain: &Domain<S1>,
     to_domain: &Domain<S2>,
-    data: &[[f64; R]; C], // 
-) -> Matrix<f64, Const<R>, Dynamic, VecStorage<f64, Const<R>, Dynamic>> // MatrixNxX
+    data: &[[f64; R1]; C1], // 
+) -> Matrix<f64, Const<R1>, Dynamic, VecStorage<f64, Const<R1>, Dynamic>> // MatrixNxX
 where
     S1: Step + Clone + Copy,
     S2: Step + Clone + Copy,
-    S1::UnitValueType: From<<S2>::UnitValueType>, // need to be able to express a value in domain S2, as a value in domain S1
+    S1::UnitValueType: From<<S2>::UnitValueType>, // need to be able to express a value in domain S2 as a value in domain S1
 {
 
 	if  *from_domain== *to_domain {
-		todo!()
+		let mut v: Vec<f64> = Vec::with_capacity(R1*C1);
+		for d in data {
+			for a in d {
+				v.push(*a);
+			}
+		}
+		println!("Using direct copy");
+		Matrix::<f64, Const<R1>, Dynamic, _>::from_vec(v)
 	} else {
 
-		let mut values = Vec::<f64>::with_capacity(to_domain.len() * R);
+		let mut values = Vec::<f64>::with_capacity(to_domain.len() * R1);
 
 		let start = from_domain.scale.unitvalue(from_domain.range.start).value();
 		let div = from_domain.scale.unitvalue(1).value();
@@ -39,19 +48,19 @@ where
 		for ut in to_domain {
 			let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
 			let index = from_domain_interval.floor() as usize;
-			if (index==0 && from_domain_interval<0.0) || index>C-1 {
-				for _r in 0..R {
+			if (index==0 && from_domain_interval<0.0) || index>C1-1 {
+				for _r in 0..R1 {
 					values.push(0.0);
 				}
 			} else {
 				let frac = from_domain_interval.fract();
-				if index==C-1 && frac<1E-6 { // end point
-					for r in 0..R {
+				if index==C1-1 && frac<1E-6 { // end point
+					for r in 0..R1 {
 						//println!("{:?}", data[0][r]);
 						values.push(data[index][r]);
 					}
 				} else {
-					for r in 0..R {
+					for r in 0..R1 {
 						//println!("{:?}", data[0][r]);
 						values.push(data[index][r]*(1.0-frac)+data[index+1][r]*frac);
 					}
@@ -59,7 +68,7 @@ where
 
 			}
 		}
-		Matrix::<f64, Const<R>, Dynamic, _>::from_vec(values)
+		Matrix::<f64, Const<R1>, Dynamic, _>::from_vec(values)
 	}
 }
 
