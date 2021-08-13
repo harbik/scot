@@ -7,14 +7,23 @@ pub mod incandescent;
 pub mod daylight;
 
 pub mod fluorescent;
-pub mod fluorescent_data;
+mod fluorescent_data;
+pub use self::fluorescent::*;
+
+pub mod hid;
+mod hid_data;
+pub use self::hid::*;
+
 pub mod cct;
 
-pub use self::cct::CCTs; // use illuminants::CCTs
-pub use self::incandescent::Planckian; 
+pub use self::cct::*; // use illuminants::CCTs
+pub use self::incandescent::*; 
 pub use self::daylight::*;
 
 use crate::spectra::SpectralData;
+
+
+
 //use crate::util::{Meter, Scale};
 //use crate::observers::{StandardObserver};
 

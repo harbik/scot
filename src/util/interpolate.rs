@@ -13,8 +13,8 @@
 use nalgebra::{Const, Dynamic, VecStorage};
 use nalgebra::{storage::Storage, DMatrix, Dim, Matrix};
 
-use crate::util::domain::Domain;
-use crate::util::units::{Scale, Unit};
+use crate::util::Domain;
+use crate::util::{Step, Unit};
 
 pub fn linear_interpolate_rows_from_static_data<S1, S2, const R: usize, const C: usize>(
     from_domain: &Domain<S1>,
@@ -22,40 +22,45 @@ pub fn linear_interpolate_rows_from_static_data<S1, S2, const R: usize, const C:
     data: &[[f64; R]; C], // 
 ) -> Matrix<f64, Const<R>, Dynamic, VecStorage<f64, Const<R>, Dynamic>> // MatrixNxX
 where
-    S1: Scale + Clone + Copy + Eq + PartialEq,
-    S2: Scale + Clone + Copy + Eq + PartialEq,
-    S1::UnitType: From<<S2>::UnitType>, // need to be able to express a value in domain S2, as a value in domain S1
+    S1: Step + Clone + Copy,
+    S2: Step + Clone + Copy,
+    S1::UnitValueType: From<<S2>::UnitValueType>, // need to be able to express a value in domain S2, as a value in domain S1
 {
 
-    let mut values = Vec::<f64>::with_capacity(to_domain.len() * R);
+	if  *from_domain== *to_domain {
+		todo!()
+	} else {
 
-    let start = from_domain.scale.unit(from_domain.range.start).value();
-    let div = from_domain.scale.unit(1).value();
+		let mut values = Vec::<f64>::with_capacity(to_domain.len() * R);
 
-    for ut in to_domain {
-        let from_domain_interval = (Into::<S1::UnitType>::into(ut).value() - start) / div;
-        let index = from_domain_interval.floor() as usize;
-		if (index==0 && from_domain_interval<0.0) || index>C-1 {
-			for _r in 0..R {
-				values.push(0.0);
-			}
-		} else {
-			let frac = from_domain_interval.fract();
-			if index==C-1 && frac<1E-6 { // end point
-				for r in 0..R {
-					//println!("{:?}", data[0][r]);
-					values.push(data[index][r]);
+		let start = from_domain.scale.unitvalue(from_domain.range.start).value();
+		let div = from_domain.scale.unitvalue(1).value();
+
+		for ut in to_domain {
+			let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
+			let index = from_domain_interval.floor() as usize;
+			if (index==0 && from_domain_interval<0.0) || index>C-1 {
+				for _r in 0..R {
+					values.push(0.0);
 				}
 			} else {
-				for r in 0..R {
-					//println!("{:?}", data[0][r]);
-					values.push(data[index][r]*(1.0-frac)+data[index+1][r]*frac);
+				let frac = from_domain_interval.fract();
+				if index==C-1 && frac<1E-6 { // end point
+					for r in 0..R {
+						//println!("{:?}", data[0][r]);
+						values.push(data[index][r]);
+					}
+				} else {
+					for r in 0..R {
+						//println!("{:?}", data[0][r]);
+						values.push(data[index][r]*(1.0-frac)+data[index+1][r]*frac);
+					}
 				}
-			}
 
+			}
 		}
-    }
-    Matrix::<f64, Const<R>, Dynamic, _>::from_vec(values)
+		Matrix::<f64, Const<R>, Dynamic, _>::from_vec(values)
+	}
 }
 
 #[test]
@@ -115,9 +120,9 @@ pub fn sprague_rows<S1, S2, R, C, S>(
     data: &Matrix<f64, R, C, S>,
 ) -> DMatrix<f64>
 where
-    S1: Scale + Clone + Copy + Eq + PartialEq,
-    S2: Scale + Clone + Copy + Eq + PartialEq,
-    S1::UnitType: From<<S2>::UnitType>, // need to be able to express a value in domain S2, as a value in domain S1
+    S1: Step + Clone + Copy/* + Eq + PartialEq */,
+    S2: Step + Clone + Copy/* + Eq + PartialEq */,
+    S1::UnitValueType: From<<S2>::UnitValueType>, // need to be able to express a value in domain S2, as a value in domain S1
     R: Dim,
     C: Dim,
     S: Storage<f64, R, C>,
@@ -126,12 +131,12 @@ where
 
     let mut values = Vec::<f64>::with_capacity(to_domain.len() * n);
 
-    let start = from_domain.scale.unit(from_domain.range.start).value();
-    let div = from_domain.scale.unit(1).value();
+    let start = from_domain.scale.unitvalue(from_domain.range.start).value();
+    let div = from_domain.scale.unitvalue(1).value();
     let m = from_domain.len() - 1;
 
     for ut in to_domain {
-        let from_domain_interval = (Into::<S1::UnitType>::into(ut).value() - start) / div;
+        let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
         let index = from_domain_interval.floor() as isize;
         let undex = index as usize; // saturating cast since rust 1.45
         let frac = from_domain_interval.fract();
@@ -154,7 +159,7 @@ where
 
 #[test]
 fn test_sprague_rows() {
-    use crate::util::units::{NONE, NONE2};
+    use crate::util::{NONE, NONE2};
     use nalgebra::matrix;
     let m_in = matrix!(
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
@@ -181,9 +186,9 @@ pub fn sprague_cols<S1, S2, R, C, S>(
     data: &Matrix<f64, R, C, S>,
 ) -> DMatrix<f64>
 where
-    S1: Scale + Clone + Copy + Eq + PartialEq,
-    S2: Scale + Clone + Copy + Eq + PartialEq,
-    S1::UnitType: From<<S2>::UnitType>, // need to be able to express a value in domain S2, as a value in domain S1
+    S1: Step + Clone + Copy /*+ Eq + PartialEq*/,
+    S2: Step + Clone + Copy /*+ Eq + PartialEq*/,
+    S1::UnitValueType: From<<S2>::UnitValueType>, // need to be able to express a value in domain S2, as a value in domain S1
     R: Dim,
     C: Dim,
     S: Storage<f64, R, C>,
@@ -192,74 +197,24 @@ where
 
     let mut values = Vec::<f64>::with_capacity(to_domain.len() * n);
 
-    let start = from_domain.scale.unit(from_domain.range.start).value();
-    let div = from_domain.scale.unit(1).value();
+    let start = from_domain.scale.unitvalue(from_domain.range.start).value();
+    let div = from_domain.scale.unitvalue(1).value();
     let m = from_domain.len() - 1;
 
     for ut in to_domain {
-        let from_domain_interval = (Into::<S1::UnitType>::into(ut).value() - start) / div;
+        let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
         let index = from_domain_interval.floor() as isize;
         let undex = index as usize; // saturating cast since rust 1.45
         let frac = from_domain_interval.fract();
         for c in 0..n {
             // number of vectors
             values.push(match (index, undex, frac) {
-                (_, u, h) if u >= 2 && u <= m - 3 => sprague(
-                    h,
-                    [
-                        data[(u - 2, c)],
-                        data[(u - 1, c)],
-                        data[(u, c)],
-                        data[(u + 1, c)],
-                        data[(u + 2, c)],
-                        data[(u + 3, c)],
-                    ],
-                ), // most frequent condition
+                (_, u, h) if u >= 2 && u <= m - 3 => sprague( h, [ data[(u - 2, c)], data[(u - 1, c)], data[(u, c)], data[(u + 1, c)], data[(u + 2, c)], data[(u + 3, c)], ],), // most frequent condition
                 (i, _, _) if i < 0 => 0.0,
-                (_, 0, h) => sprague(
-                    h,
-                    [
-                        data[(0, c)],
-                        data[(0, c)],
-                        data[(0, c)],
-                        data[(1, c)],
-                        data[(2, c)],
-                        data[(3, c)],
-                    ],
-                ),
-                (_, 1, h) => sprague(
-                    h,
-                    [
-                        data[(0, c)],
-                        data[(0, c)],
-                        data[(1, c)],
-                        data[(2, c)],
-                        data[(3, c)],
-                        data[(4, c)],
-                    ],
-                ),
-                (_, u, h) if u == m - 2 => sprague(
-                    h,
-                    [
-                        data[(m - 4, c)],
-                        data[(m - 3, c)],
-                        data[(m - 2, c)],
-                        data[(m - 1, c)],
-                        data[(m, c)],
-                        data[(m, c)],
-                    ],
-                ),
-                (_, u, h) if u == m - 1 => sprague(
-                    h,
-                    [
-                        data[(m - 3, c)],
-                        data[(m - 2, c)],
-                        data[(m - 1, c)],
-                        data[(m, c)],
-                        data[(m, c)],
-                        data[(m, c)],
-                    ],
-                ),
+                (_, 0, h) => sprague( h, [ data[(0, c)], data[(0, c)], data[(0, c)], data[(1, c)], data[(2, c)], data[(3, c)], ],),
+                (_, 1, h) => sprague( h, [ data[(0, c)], data[(0, c)], data[(1, c)], data[(2, c)], data[(3, c)], data[(4, c)], ],),
+                (_, u, h) if u == m - 2 => sprague( h, [ data[(m - 4, c)], data[(m - 3, c)], data[(m - 2, c)], data[(m - 1, c)], data[(m, c)], data[(m, c)], ],),
+                (_, u, h) if u == m - 1 => sprague( h, [ data[(m - 3, c)], data[(m - 2, c)], data[(m - 1, c)], data[(m, c)], data[(m, c)], data[(m, c)], ],),
                 (_, u, h) if u == m && h.abs() < FRAC_EPS => data[(m, c)],
                 _ => 0.0,
             })
@@ -270,7 +225,7 @@ where
 
 #[test]
 fn test_sprague_cols() {
-    use crate::util::units::{NONE, NONE2};
+    use crate::util::{NONE, NONE2};
     use nalgebra::matrix;
     let m_in = matrix!(
         1.0, 1.0, 1.0;

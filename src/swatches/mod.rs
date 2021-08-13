@@ -19,7 +19,7 @@ Currently, this library has the following collections:
 use nalgebra::{DMatrix};
 
 
-use crate::{spectra::SpectralData, util::{domain::Domain, units::{Scale, WavelengthScale}}};
+use crate::{spectra::SpectralData, util::{Domain, Step, WavelengthStep}};
 
 pub mod checker;
 pub use self::checker::*;
@@ -39,12 +39,12 @@ pub trait Swatches: SpectralData {}
 pub struct White;
 
 impl SpectralData for White {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 		where
-			L: Scale,
-			<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+			L: Step,
+			<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 			 {
         DMatrix::from_element(domain.len(), 1, 1.0)
     }
@@ -76,11 +76,11 @@ impl Gray {
 	}
 }
 impl SpectralData for Gray {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 		where
-			L: Scale,
+			L: Step,
 	//		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
 			 {
         DMatrix::from_element(domain.len(), 1, self.0)

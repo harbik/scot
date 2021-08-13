@@ -6,8 +6,8 @@ use na::DMatrix;
 
 use crate::observers::StandardObserver;
 use crate::models::xyz::CieXYZ;
-use crate::util::domain::{Domain};
-use crate::util::units::{Meter, Scale, Unit};
+use crate::util::{Domain};
+use crate::util::{Meter, Step, Unit};
 
 
 
@@ -24,7 +24,7 @@ pub trait Pixel {}
 
 pub trait SpectralData {
 
-	type ScaleType: Scale;
+	type ScaleType: Step;
 //	type UnitValue;
 
 	/**
@@ -37,8 +37,8 @@ pub trait SpectralData {
 	*/
 	fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 		where
-			L: Scale,
-			<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+			L: Step,
+			<<Self as SpectralData>::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 			// need to be able to map the target domain onto the native domain of the spectral data,
 			// or, in other words, need to be able to convert from the target domain's unit into the
 			// object's domain's unit.
@@ -80,11 +80,11 @@ where
 	C: StandardObserver,
 //	&'static C: Default,
 	S: SpectralData,
-	Meter: From<<<S as SpectralData>::ScaleType as Scale>::UnitType>,
+	Meter: From<<<S as SpectralData>::ScaleType as Step>::UnitValueType>,
 
  {
 	fn from(sd: S) -> Self {
-		let xyz = <C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().scale.unit(1).value();
+		let xyz = <C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().scale.unitvalue(1).value();
 		CieXYZ::<C>::new(xyz)
 	}
 }

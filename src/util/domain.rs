@@ -2,13 +2,13 @@
 	Equidistant value ranges, used in this library for example to define wavelength ranges for spectral distributions.
  */
 
-use crate::util::units::{Scale, Unit};
+use crate::util::{Step, Unit};
 use std::fmt::Debug;
 use std::ops::Range;
 use std::iter::IntoIterator;
 use std::iter::ExactSizeIterator;
 
-use super::units::WavelengthScale;
+use super::WavelengthStep;
 
 /**
 
@@ -78,16 +78,16 @@ use super::units::WavelengthScale;
 	
 	
  */
-#[derive(Eq, PartialEq, Clone, Debug)]
-pub struct Domain<S> {
+#[derive(Clone, Debug, Eq)]
+pub struct Domain<S:Step> {
 	pub range: Range<i32>,
 	pub scale: S, 
 }
 
 impl<S> Domain<S> 
 where
-	S: Scale,
-	S::UnitType: Unit
+	S: Step,
+	S::UnitValueType: Unit
 {
 
 	/**
@@ -112,9 +112,23 @@ where
 /**
 	380 to 780 nm wavelength scale, with 5 nm steps
  */
-impl Default for Domain<WavelengthScale> {
+impl Default for Domain<WavelengthStep> {
     fn default() -> Self {
-        Domain::new(76, 156, WavelengthScale { size: 5, exp: -9 })
+        Domain::new(76, 156, WavelengthStep { size: 5, exp: -9 })
+    }
+}
+
+impl<S1:Step,  S2:Step> PartialEq<Domain<S2>> for Domain<S1> {
+    fn eq(&self, other: &Domain<S2>) -> bool {
+        if self.range.start == other.range.start &&
+			self.range.end == other.range.end &&
+			<S1 as Step>::UnitValueType::NAME == <S2 as Step>::UnitValueType::NAME &&
+			self.scale.unitvalue(1).value() == other.scale.unitvalue(1).value()
+		{
+				true
+			} else {
+				false
+			}
     }
 }
 
@@ -158,16 +172,16 @@ pub struct IterDomain<S> {
 
 impl<S> Iterator for IterDomain<S> 
 where 
-	S: Scale,
-	S::UnitType: Unit
+	S: Step,
+	S::UnitValueType: Unit
 {
-    type Item = S::UnitType;
+    type Item = S::UnitValueType;
 
     fn next(&mut self) -> Option<Self::Item> {
 		let c = self.i;	
 		if self.i<self.end {
 			self.i += 1;
-			Some(self.scale.unit(c))
+			Some(self.scale.unitvalue(c))
 		} else {
 			None
 		}
@@ -180,10 +194,10 @@ where
 */
 impl<S> IntoIterator for Domain<S>
 where 
-	S: Scale,
-	S::UnitType: Unit
+	S: Step,
+	S::UnitValueType: Unit
  {
-    type Item = S::UnitType;
+    type Item = S::UnitValueType;
 
     type IntoIter = IterDomain<S>;
 
@@ -200,8 +214,8 @@ where
 /**
 	Iterate through all the values for a reference to a spectral domain.
 */
-impl<S: Scale> IntoIterator for &Domain<S> {
-    type Item = S::UnitType;
+impl<S: Step> IntoIterator for &Domain<S> {
+    type Item = S::UnitValueType;
 
     type IntoIter = IterDomain<S>;
 
@@ -216,7 +230,7 @@ impl<S: Scale> IntoIterator for &Domain<S> {
 
 #[test]
 fn test_into_iterator_spectraldomain() {
-	use crate::util::units::KK;
+	use crate::util::KK;
 	assert_eq!(Domain::new(4, 6, KK).into_iter().map(|u|u.value()).collect::<Vec<_>>(), vec![4000.0, 5000.0, 6000.0]);
 }
 
@@ -224,7 +238,7 @@ fn test_into_iterator_spectraldomain() {
 #[test]
 fn test_iter_interpolate() {
 	{
-		use crate::util::units::{NONE100, NONE50};
+		use crate::util::{NONE100, NONE50};
 
 		let from_domain = Domain::new(3, 10, NONE100); // 2, 4
 		let din = from_domain.iter().map(|u|u.value()).collect::<Vec<_>>();

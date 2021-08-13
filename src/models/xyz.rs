@@ -84,7 +84,7 @@ fn test_lab_iter(){
 
 
 #[derive(Debug)]
-pub struct CieYxy<C: StandardObserver> {
+pub struct CieYxy<C: StandardObserver = DefaultObserver> {
 	pub data : Matrix3xX<f64>,
 	cmf: PhantomData<*const C>, // only used through C::Default(), but needed to mark the type
 }

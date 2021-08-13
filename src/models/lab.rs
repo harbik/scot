@@ -10,7 +10,7 @@ use crate::illuminants::{CieIllD65, Illuminant};
 use crate::observers::StandardObserver;
 use crate::spectra::SpectralData;
 use crate::swatches::{Swatches};
-use crate::util::units::{Meter, Scale};
+use crate::util::{Meter, Step};
 use crate::DefaultObserver;
 use nalgebra::{Matrix3x1, Matrix3xX};
 
@@ -50,7 +50,7 @@ impl<I, C> From<CieLab<I, C>> for CieXYZ<C>
 where
     I: Illuminant,
     C: StandardObserver,
-    Meter: From<<<I as SpectralData>::ScaleType as Scale>::UnitType>,
+    Meter: From<<<I as SpectralData>::ScaleType as Step>::UnitValueType>,
    // &'static C: Default,
 {
     fn from(lab: CieLab<I, C>) -> Self {
@@ -190,9 +190,9 @@ where
     C: StandardObserver,
    // &'a C: Default,
     I: Illuminant,
-    <<S as SpectralData>::ScaleType as Scale>::UnitType:
-        From<<<I as SpectralData>::ScaleType as Scale>::UnitType>,
-    Meter: From<<<I as SpectralData>::ScaleType as Scale>::UnitType>,
+    <<S as SpectralData>::ScaleType as Step>::UnitValueType:
+        From<<<I as SpectralData>::ScaleType as Step>::UnitValueType>,
+    Meter: From<<<I as SpectralData>::ScaleType as Step>::UnitValueType>,
 {
     fn from(swatch: S) -> Self {
         let ill = I::default(); // illuminant spectrum

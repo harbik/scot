@@ -5,7 +5,7 @@ use nalgebra::{ArrayStorage, SMatrix, SVectorSlice};
 
 use crate::spectra::SpectralData;
 use crate::util::domain::Domain;
-use crate::util::units::{WavelengthScale, Scale, NM5, NM};
+use crate::util::{WavelengthStep, Step, NM5, NM};
 use crate::util::interpolate::sprague_cols;
 
 use crate::ALL;
@@ -15,12 +15,12 @@ use super::fluorescent_data::*;
 pub struct FL<const I:usize>;
 
 impl<const I:usize> SpectralData for FL<I> {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
-		L: Scale,
-		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+		L: Step,
+		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		match I {
 			ALL => {
@@ -49,12 +49,12 @@ impl<const I:usize> SpectralData for FL<I> {
 pub struct FL3<const I:usize>;
 
 impl<const I:usize> SpectralData for FL3<I> {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
-		L: Scale,
-		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+		L: Step,
+		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		match I {
 			ALL => {
@@ -82,12 +82,12 @@ impl<const I:usize> SpectralData for FL3<I> {
 pub struct IesTm30Fluorescent<const I:usize>;
 
 impl<const I:usize> SpectralData for IesTm30Fluorescent<I> {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
-		L: Scale,
-		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+		L: Step,
+		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		match I {
 			ALL => {
@@ -166,3 +166,39 @@ fn test_f(){
 
 
 }
+pub static FLTEST : [[f64;4];12] = [
+		[0.3131, 0.3371, 6430.0, 76.0], // x, y, CCT, CRI
+		[0.3721, 0.3751, 4230.0, 64.0],
+		[0.4091, 0.3941, 3450.0, 57.0],
+		[0.4402, 0.4031, 2940.0, 51.0],
+		[0.3138, 0.3452, 6350.0, 72.0],
+		[0.3779, 0.3882, 4150.0, 59.0],
+		[0.3129, 0.3292, 6500.0, 90.0],
+		[0.3458, 0.3586, 5000.0, 95.0],
+		[0.3741, 0.3727, 4150.0, 90.0],
+		[0.3458, 0.3588, 5000.0, 81.0],
+		[0.3805, 0.3769, 4000.0, 83.0],
+		[0.4370, 0.4042, 3000.0, 83.0]
+];
+
+/**
+Reference values for the CIE FL3-series standard illuminant, as provided by CIE in CIE Technical Report 15:2004, 3rd Edition.
+*/
+pub static FL3TEST : [[f64;18];15] = [
+	// x, y, CCT, Ra, R1 ..= R14
+	[0.4407, 0.4033, 2932.0, 51.0, 42.0, 69.0, 89.0, 39.0, 41.0, 52.0, 66.0, 13.0, -109.0, 29.0, 19.0, 21.0, 47.0, 93.0],
+	[0.3808, 0.3734, 3965.0, 70.0, 65.0, 80.0, 89.0, 66.0, 66.0, 71.0, 79.0, 48.0, -37.0, 51.0, 56.0, 59.0, 68.0, 94.0],
+	[0.3153, 0.3439, 6280.0, 72.0, 64.0, 80.0, 89.0, 69.0, 69.0, 74.0, 81.0, 49.0, -63.0, 52.0, 62.0, 68.0, 68.0, 93.0],
+	[0.4429, 0.4043, 2904.0, 87.0, 91.0, 89.0, 79.0, 88.0, 88.0, 82.0, 88.0, 89.0, 76.0, 69.0, 88.0, 63.0, 91.0, 87.0],
+	[0.3749, 0.3672, 4086.0, 95.0, 97.0, 97.0, 92.0, 94.0, 97.0, 95.0, 94.0, 94.0, 88.0, 90.0, 95.0, 90.0, 97.0, 95.0],
+	[0.3488, 0.36, 4894.0, 96.0, 97.0, 97.0, 93.0, 97.0, 97.0, 95.0, 96.0, 96.0, 93.0, 90.0, 97.0, 92.0, 98.0, 95.0],
+	[0.4384, 0.4045, 2979.0, 82.0, 97.0, 94.0, 54.0, 88.0, 86.0, 81.0, 87.0, 64.0, -9.0, 51.0, 76.0, 50.0, 98.0, 69.0],
+	[0.382, 0.3832, 4006.0, 79.0, 94.0, 89.0, 50.0, 85.0, 83.0, 73.0, 86.0, 72.0, 5.0, 40.0, 68.0, 48.0, 95.0, 67.0],
+	[0.3499, 0.3591, 4853.0, 79.0, 94.0, 89.0, 48.0, 84.0, 84.0, 72.0, 85.0, 78.0, 22.0, 38.0, 68.0, 51.0, 95.0, 66.0],
+	[0.3455, 0.356, 5000.0, 88.0, 99.0, 97.0, 63.0, 92.0, 92.0, 85.0, 92.0, 86.0, 46.0, 62.0, 78.0, 72.0, 97.0, 75.0],
+	[0.3245, 0.3434, 5854.0, 78.0, 90.0, 86.0, 49.0, 82.0, 81.0, 70.0, 85.0, 79.0, 24.0, 34.0, 64.0, 50.0, 90.0, 67.0],
+	[0.4377, 0.4037, 2984.0, 93.0, 95.0, 98.0, 92.0, 95.0, 94.0, 97.0, 93.0, 83.0, 58.0, 88.0, 93.0, 85.0, 97.0, 94.0],
+	[0.383, 0.3724, 3896.0, 96.0, 98.0, 97.0, 98.0, 97.0, 99.0, 97.0, 94.0, 88.0, 71.0, 99.0, 94.0, 89.0, 99.0, 98.0],
+	[0.3447, 0.3609, 5045.0, 95.0, 93.0, 94.0, 97.0, 94.0, 94.0, 93.0, 97.0, 97.0, 93.0, 91.0, 95.0, 85.0, 92.0, 97.0],
+	[0.3127, 0.3288, 6509.0, 98.0, 99.0, 99.0, 96.0, 98.0, 99.0, 100.0, 98.0, 98.0, 96.0, 99.0, 100.0, 95.0, 98.0, 98.0]
+];

@@ -7,7 +7,7 @@ use crate::illuminants::{Illuminant};
 use crate::illuminants::cct::{CCTs};
 use crate::util::domain::Domain;
 use crate::util::physics::planck;
-use crate::util::units::{Meter, WavelengthScale, Scale, Unit};
+use crate::util::{Meter, WavelengthStep, Step, Unit};
 
 
 /**
@@ -78,7 +78,7 @@ impl Planckian {
 
 impl SpectralData for Planckian {
 
-	type ScaleType = WavelengthScale;
+	type ScaleType = WavelengthStep;
 
 	/**
 		Planckian Spectral values for multiple domain types.
@@ -87,15 +87,15 @@ impl SpectralData for Planckian {
 		This `UnitValue` item type of target domain's Unit doesn't have to be a `Meter` value, but needs to be
 		able to be converted into a `Meter` value, typically done by implementing a `From<X> for Meter` trait.
 	 */
-	fn values<L: Scale>(&self, dom: &Domain<L>) -> DMatrix<f64>
+	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
-		L: Scale,
-		<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType>
+		L: Step,
+		<<Self as SpectralData>::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		let mut v : Vec<f64> = Vec::with_capacity(self.ccts.len() * dom.len());
 		for (t,p) in &self.ccts {
 			for i in dom.range.clone() {
-				let meter_value: Meter = dom.scale.unit(i).into();
+				let meter_value: Meter = dom.scale.unitvalue(i).into();
 				v.push(planck(meter_value.value(), t, p));
 			}
 		}
@@ -196,12 +196,12 @@ impl<const N: usize> Default for BB<N> {
 impl<const N: usize> Illuminant for BB<N> {}
 
 impl<const N: usize> SpectralData for BB<N> {
-	type ScaleType = WavelengthScale;
+	type ScaleType = WavelengthStep;
 
-	fn values<L: Scale>(&self, dom: &Domain<L>) -> DMatrix<f64>
+	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
-		L: Scale,
-		<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType>
+		L: Step,
+		<<Self as SpectralData>::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		 Planckian::new(N * 100).values(dom)
 	 }

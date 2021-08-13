@@ -5,7 +5,7 @@ use nalgebra::{ArrayStorage, DMatrix, Matrix3xX, SMatrix, SVector};
 use crate::spectra::{SpectralData};
 use crate::illuminants::cct::{CCTs};
 use crate::util::domain::Domain;
-use crate::util::units::{WavelengthScale, Scale, NM5};
+use crate::util::{WavelengthStep, Step, NM5};
 use crate::util::interpolate::{sprague_cols};
 
 use super::Illuminant;
@@ -81,7 +81,7 @@ impl CieDaylight {
 
 impl SpectralData for CieDaylight {
 
-	type ScaleType = WavelengthScale;
+	type ScaleType = WavelengthStep;
 
 	/**
 		Spectral values for the CIE D illuminant.
@@ -90,10 +90,10 @@ impl SpectralData for CieDaylight {
 		This `UnitValue` item type of target domain's Unit doesn't have to be a `Meter` value, but needs to be
 		able to be converted into a `Meter` value, typically done by implementing a `From<X> for Meter` trait.
 	 */
-	fn values<L: Scale>(&self, dom: &Domain<L>) -> DMatrix<f64>
+	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
-		L: Scale,
-		<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType>
+		L: Step,
+		<<Self as SpectralData>::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 
 		let s_interpolated = sprague_cols(&self.domain(), &dom, &SMatrix::<f64,107,3>::from_data(ArrayStorage(S)));
@@ -142,12 +142,12 @@ impl SpectralData for CieDaylight {
 pub struct CieIllD50(SVector<f64, 97>);
 
 impl SpectralData for CieIllD50 {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
-		L: Scale,
-		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+		L: Step,
+		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		sprague_cols(&self.domain(), &domain, &self.0)
     }
@@ -188,12 +188,12 @@ fn test_d50(){
 pub struct CieIllD55(SVector<f64, 97>);
 
 impl SpectralData for CieIllD55 {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
-		L: Scale,
-		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+		L: Step,
+		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		sprague_cols(&self.domain(), &domain, &self.0)
     }
@@ -237,12 +237,12 @@ fn test_d55(){
 pub struct CieIllD65(SVector<f64, 97>);
 
 impl SpectralData for CieIllD65 {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
-		L: Scale,
-		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+		L: Step,
+		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		sprague_cols(&self.domain(), &domain, &self.0)
     }
@@ -289,12 +289,12 @@ fn test_d65(){
 pub struct CieIllD75(SVector<f64, 97>);
 
 impl SpectralData for CieIllD75 {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
-		L: Scale,
-		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+		L: Step,
+		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		sprague_cols(&self.domain(), &domain, &self.0)
     }

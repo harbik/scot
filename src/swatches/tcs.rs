@@ -17,9 +17,9 @@ Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 use nalgebra::{ArrayStorage, SMatrix};
 
 use crate::spectra::SpectralData;
-use crate::util::domain::Domain;
-use crate::util::units::{WavelengthScale, Scale, NM5};
-use crate::util::interpolate::sprague_cols;
+use crate::util::Domain;
+use crate::util::{WavelengthStep, Step, NM5};
+use crate::util::sprague_cols;
 
 use super::Swatches;
 
@@ -31,12 +31,12 @@ const M: usize = 15; // number of spectra in the set, or the number of columns i
 pub struct Tcs;
 
 impl SpectralData for Tcs {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
-		L: Scale,
-		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+		L: Step,
+		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		sprague_cols(&self.domain(), &domain, &SMatrix::from_data(ArrayStorage(TCS)))
     }

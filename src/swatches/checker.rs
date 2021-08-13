@@ -14,9 +14,9 @@ use nalgebra::{ArrayStorage, SMatrix, SVectorSlice};
 
 use crate::ALL;
 use crate::spectra::SpectralData;
-use crate::util::domain::Domain;
-use crate::util::units::{WavelengthScale, Scale, NM10};
-use crate::util::interpolate::sprague_cols;
+use crate::util::Domain;
+use crate::util::{WavelengthStep, Step, NM10};
+use crate::util::sprague_cols;
 
 use super::Swatches;
 
@@ -28,12 +28,12 @@ const M: usize = 24;
 pub struct ColorChecker<const I:usize>;
 
 impl<const I: usize> SpectralData for ColorChecker<I> {
-    type ScaleType = WavelengthScale;
+    type ScaleType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
-		L: Scale,
-		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
+		L: Step,
+		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		match I {
 			ALL => {
