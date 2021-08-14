@@ -30,12 +30,11 @@ use super::WavelengthStep;
 	# Examples
 	Define a wavelength range from 4530 to 4550 Angstrom with 1 Angstrom steps, resulting in 21 wavelength values.
 	```
-	use colorado::util::domain::Domain;
-	use colorado::util::units::A;
+	use colorado::util::{A, Unit, Domain};
 	use approx::assert_abs_diff_eq;
 
 	let d = Domain::new(4530, 4550, A);
-	let v = d.iter().collect::<Vec<f64>>();
+	let v = d.iter().map(|v|v.value()).collect::<Vec<f64>>();
 	let vlen = v.len();
 	assert_abs_diff_eq!(v[0], 4530E-10, epsilon = 1E-16);
 	assert_abs_diff_eq!(v[1] - v[0], 1E-10, epsilon = 1E-16); // 1 Angstrom distance between the points
@@ -46,12 +45,11 @@ use super::WavelengthStep;
 	in the original table of CIE 1931 color matching functions. In this case there are 94 values. The unit now used is
 	'NM5', and the range values are divided by 5 to get the right paramter index values.
 	```
-	use colorado::util::domain::Domain;
-	use colorado::util::units::NM5;
+	use colorado::util::{Domain, Unit, NM5};
 	use approx::assert_abs_diff_eq;
 
 	let d = Domain::new(360/5, 830/5, NM5);
-	let v = d.into_iter().collect::<Vec<f64>>();
+	let v = d.into_iter().map(|v|v.value()).collect::<Vec<f64>>();
 	let vlen = v.len();
 	assert_abs_diff_eq!(v[0], 360.0E-9);
 	assert_eq!(vlen, 95);
@@ -61,12 +59,11 @@ use super::WavelengthStep;
 	Here we define a range of 5 temperature values, with unit KK, or 'kilo Kelvin',
 	with values ranging from 3000.0 to 7000.0K
 	```
-	use colorado::util::domain::Domain;
-	use colorado::util::units::KK;
+	use colorado::util::{Domain, Unit, KK};
 	use approx::assert_abs_diff_eq;
 
 	let d = Domain::new(3, 7, KK);
-	let v = d.into_iter().collect::<Vec<f64>>();
+	let v = d.into_iter().map(|v|v.value()).collect::<Vec<f64>>();
 	let vlen = v.len();
 	assert_abs_diff_eq!(v[0], 3000.0);
 	assert_abs_diff_eq!(v[1], 4000.0);

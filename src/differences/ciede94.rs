@@ -2,34 +2,6 @@
 /*!
 CIE &Delta;E 1976 color differences for two color source collections.
 
-In this formula the color difference is represented by the direct distance
-between two color points in the CIE L<sup>*</sup>a<sup>*</sup>b<sup>*</sup> color space.	
-It has been succeeded by better color difference metrix in 1994, and 2000.
-
-# Example
-Calculate the CIE DE1976 color differences between Color Checker patches, and 
-the CIE CES color samples.
-```
-	use crate::observers::Cie1931;
-	use crate::illuminants::CieD65;
-	use crate::swatches::{ColorChecker, IesTm30Ces};
-	let de = CieDE1976::<Cie1931, CieD65>::new(ColorChecker, IesTm30Ces);
-	println!("{:.1}", de.0);
-```
-This will print a matrix, with 16 rows, each row corresponding to one of the 
-color checker samples, and 99 columns, each of the columns corresponding to 
-one of the IES TM30 color samples. This matrix can be used to find the 
-best match of a color checker sample to one of the IES CES samples.
-
-The same color sample sets can also be evaluated using the CIE 2015 2º color matching functions,
-and using a D50 white point:
-```
-	use crate::observers::{Cie2015};
-	use crate::illuminants::{CieD50};
-	use crate::swatches::{ColorChecker, IesTm30Ces};
-	let de = CieDE1976::<Cie2015, CieD50>::new(ColorChecker, IesTm30Ces);
-	println!("{:.1}", de.0);
-```
  */
 
 use std::fmt::Debug;

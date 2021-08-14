@@ -1,11 +1,10 @@
 
 
-use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
-use num::{ToPrimitive};
+use nalgebra::DMatrix;
+use num::ToPrimitive;
 
-use crate::ALL;
 use crate::spectra::{SpectralData};
-use crate::util::{Meter, NM, Step, Unit, WavelengthStep, led_ohno, simpson, sprague_cols, Domain};
+use crate::util::{Meter, Step, Unit, WavelengthStep, led_ohno, simpson, Domain};
 
 
 
@@ -119,85 +118,3 @@ impl SpectralData for LedOhno2005 {
 	
 }
 
-/**
-	CIE Standard LED illuminants.
-*/
-
-#[derive(Debug, Default)]
-pub struct CieIllLed<const I:usize>;
-
-impl<const I:usize> SpectralData for CieIllLed<I> {
-    type ScaleType = WavelengthStep;
-
-    fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
-	where
-		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		match I {
-			ALL => {
-				let data = SMatrix::from_data(ArrayStorage(super::led_data::CIE_LED_ILL_DATA));
-				sprague_cols(&self.domain(), &domain, &data)
-			}
-			i@1..=14 => {
-				let data = SVectorSlice::<f64, 81>::from_slice(&super::led_data::CIE_LED_ILL_DATA[i-1]);
-				sprague_cols(&self.domain(), &domain, &data)
-			}
-			_ => panic!("Illegal Index in CIE LED Data")
-		}
-    }
-
-    fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
-        Domain::new(380/5, 780/5, crate::util::NM5)
-    }
-
-	fn keys(&self) -> Option<Vec<String>> {
-		Some(super::led_data::CIE_LED_ILL_KEYS.iter().map(|s| s.to_string()).collect())
-	}
-
-	fn description(&self) -> Option<String> {
-		Some("IES TM30 Commercial LED Spectra".to_string())
-	}
-}
-
-impl<const I: usize> super::Illuminant for CieIllLed<I> {}
-
-
-#[derive(Debug, Default)]
-pub struct IesTm30Led<const I:usize>;
-
-impl<const I:usize> SpectralData for IesTm30Led<I> {
-    type ScaleType = WavelengthStep;
-
-    fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
-	where
-		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		match I {
-			ALL => {
-				let data = SMatrix::from_data(ArrayStorage(super::led_data::IES_LED_COM_DATA));
-				sprague_cols(&self.domain(), &domain, &data)
-			}
-			i@1..=14 => {
-				let data = SVectorSlice::<f64, 401>::from_slice(&super::led_data::IES_LED_COM_DATA[i-1]);
-				sprague_cols(&self.domain(), &domain, &data)
-			}
-			_ => panic!("Illegal Index in IES LED Data")
-		}
-    }
-
-    fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
-        Domain::new(380, 780, NM)
-    }
-
-	fn keys(&self) -> Option<Vec<String>> {
-		Some(super::led_data::IES_LED_COM_KEYS.iter().map(|s| s.to_string()).collect())
-	}
-
-	fn description(&self) -> Option<String> {
-		Some("IES TM30 Commercial LED Spectra".to_string())
-	}
-}
-
-impl<const I: usize> super::Illuminant for IesTm30Led<I> {}

@@ -97,7 +97,7 @@ impl CCTs {
 		The minimum value of temperatures in a CCT collection.
 		# Example
 		```
-		use colorado::cct::CCTs;
+		use colorado::illuminants::CCTs;
 
 		let cct_min = CCTs::new([5000.0, 8000.0, 3000.0]).min();
 		assert_eq!(cct_min, 3000.0);
@@ -111,7 +111,7 @@ impl CCTs {
 		The maximum value of temperatures in a CCT collection.
 		# Example
 		```
-		use colorado::cct::CCTs;
+		use colorado::illuminants::CCTs;
 
 		let cct_max = CCTs::new([5000.0, 8000.0, 3000.0]).max();
 		assert_eq!(cct_max, 8000.0);

@@ -75,7 +75,7 @@ impl<C: StandardObserver> IntoIterator for CieXYZ<C> {
 #[test]
 fn test_lab_iter(){
 	use crate::observers::CieObs1931;
-	use crate::illuminants::fluorescent::IesTm30Fluorescent;
+	use crate::illuminants::IesTm30Fluorescent;
 	use crate::ALL;
 	for XYZValues {x, y, z}  in CieXYZ::<CieObs1931>::from(IesTm30Fluorescent::<ALL>){
 		println!("{}, {}, {}", x, y, z);
@@ -168,7 +168,7 @@ impl<C: StandardObserver> IntoIterator for CieYxy<C> {
 #[test]
 fn test_yxy_iter(){
 	use crate::observers::CieObs1931;
-	use crate::illuminants::fluorescent::IesTm30Fluorescent;
+	use crate::illuminants::IesTm30Fluorescent;
 	use crate::ALL;
 	for YxyValues {l, x	, y}  in CieYxy::<CieObs1931>::from(IesTm30Fluorescent::<ALL>){
 		println!("{}, {}, {}", l, x, y);

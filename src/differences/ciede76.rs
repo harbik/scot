@@ -2,10 +2,8 @@
 /*!
 CIE &Delta;E 1976 color differences for two spectral color collections.
 
-In this formula each color difference is calculated as the direct distance
+In this formula the color difference is represented by the direct distance
 between two color points in the CIE L<sup>*</sup>a<sup>*</sup>b<sup>*</sup> color space.	
-
-
 It has been succeeded by better color difference metrix in 1994, and 2000.
 
 # Example
@@ -32,6 +30,7 @@ and using a D50 white point:
 	let de = CieDE1976::<Cie2015, CieD50>::new(ColorChecker, IesTm30Ces);
 	println!("{:.1}", de.0);
 ```
+
  */
 
 use std::fmt::{Debug};
