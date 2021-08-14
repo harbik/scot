@@ -1,13 +1,10 @@
 
-extern crate nalgebra as na;
 
-
-use na::DMatrix;
+use nalgebra::DMatrix;
 
 use crate::observers::StandardObserver;
-use crate::models::xyz::CieXYZ;
-use crate::util::{Domain};
-use crate::util::{Meter, Step, Unit};
+use crate::models::CieXYZ;
+use crate::util::{Domain, Meter, Step, Unit};
 
 
 

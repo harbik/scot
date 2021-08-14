@@ -1,88 +1,76 @@
 
 
 use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
+use num::{ToPrimitive};
 
 use crate::ALL;
 use crate::spectra::{SpectralData};
-use crate::illuminants::{Illuminant};
-use crate::illuminants::cct::{CCTs};
-use crate::util::domain::Domain;
-use crate::util::physics::planck;
-use crate::util::{Meter, NM, Step, Unit, WavelengthStep, sprague_cols};
+use crate::util::{Meter, NM, Step, Unit, WavelengthStep, led_ohno, simpson, sprague_cols, Domain};
 
-use super::led_data::{LED_IES_DATA, LED_IES_KEYS};
 
 
 /**
-	Spectral distributions of one or multiple generic blackbody illuminants.
+	Input parameters for single, direct LED emission models.
+
+	This covers only simple models, for non-white or monochrome LEDs.
+	The input parameters consist of a peak wavelength – the wavelength where emission is maximal – and
+	a full-width-half-maximum spectral width, both in units of meter, and a power value. 
+	A power value of 0.0 indicates a 'don't care' value, to be used if you're only interested in chromaticity, or it is
+	scaled in later step in the calculation anyway. There can be a calculation speed advantage, depending on the type of
+	model, if you decide not to specify an input power.
 	
-	Each of the blackbody sources is characterized by a temperature, in units of Kelvin, and radiant exitance
-	with unit W/m<sup>2</sup>. Through a `CCTs` helper class, it accepts multiple ways to specify the 
-	temperatures and exitance you want &mdash; see this class for examples.
-
-	The spectral power distribution for blackbody radiators is calculated using Planck's law.
-	The `values` method of the `SpectralDistribution` trait produces spectral radiant exitance values
-	over the range of the input domain, and at equidistant spacing. Besides the usual wavelength domains,
-	you can also use other domains with units which implement the Wavelength trait
-	
-
-	
-	
-
-	# Examples
-	A blackbody radiator, with a temperature of 3000K, and a irradiance of 1W/m<sup>2</sup>.
-	Here a single integer valued argument is used to specify a blackbody's temperature.
-
-	```
-	use colorado::illuminants::Planckian;
-	use colorado::observers::Cie1931;
-	use colorado::cie::XYZ;
-	use approx::assert_abs_diff_eq;
-
-	let pl = Planckian::new(3000);
-	let xyz = XYZ::<Cie1931>::from(pl);
-	```
-
-	# Examples
-	Y
-	A blackbody radiator, with a temperature of 3000K, and an illuminance of 0.1W/m<sup>2</sup>.
-	Here a single integer valued argument is used to specify a blackbody's temperature.
-
-	```
-	use colorado::illuminants::Planckian;
-	use colorado::observers::Cie1931;
-	use colorado::util::domain::Domain;
-	use colorado::spectra::SpectralDistribution;
-	use colorado::cie::XYZ;
-	use colorado::util::units::DEV; // dEv 
-	use approx::assert_abs_diff_eq;
-
-	let sd = Planckian::new([[6500.0,0.1]]);
-	let v = sd.values(Domain::new(15, 33, DEV)); // values for Planckian radiator from 1.5 (826.56nm) to 3.3 eV (375.709)
-	let val : Vec<f64> = v.into_iter().cloned().collect();
-	assert_eq!(val, vec![]);
-	```
- */
+*/
 
 #[derive(Debug, Clone, Copy)]
-pub struct LedModelParameters {
-	pub center: f64,
+pub struct LedParameters {
+	pub peak: f64,
 	pub fwhm: f64,
 	pub power: f64,
 }
 
-pub struct LedOhnoModel(Vec<LedModelParameters>);
+/**
+Ohno LED Model
+
+LED Model as published in "Spectral design considerations for white LED color rendering", Yoshi Ohno, in Optical
+Engineering 44(11), 111302 (November 2005).
+ */
+pub struct LedOhno2005(pub Vec<LedParameters>);
+
+impl<T: ToPrimitive> From<[T;2]> for LedOhno2005 {
+    fn from([c,w]: [T;2]) -> Self {
+		let mut peak = c.to_f64().unwrap();	
+		let mut fwhm = w.to_f64().unwrap();
+		if peak>1.0 {  // assume parameters are in nm
+			peak *= 1E-9;
+			fwhm *= 1E-9;
+		}
+        LedOhno2005 (
+			vec![
+				LedParameters{peak, fwhm, power: 0.0}
+			]
+		)
+    }
+}
+
+#[test]
+pub fn test_from_array(){
+	use crate::models::CieYxy;
+
+	let led = LedOhno2005::from([630,25]);
+	let y_xy : CieYxy =  led.into();
+	println!("{}", y_xy);
+}
 
 
-impl LedOhnoModel {
+impl LedOhno2005 {
 
-	pub fn new(parameters: impl Into<Vec<LedModelParameters>>) -> Self
+	pub fn new(parameters: impl Into<Vec<LedParameters>>) -> Self
 	{
 		Self(parameters.into()) 
 	}
 }
 
-impl SpectralData for LedOhnoModel {
+impl SpectralData for LedOhno2005 {
 
 	type ScaleType = WavelengthStep;
 
@@ -96,10 +84,15 @@ impl SpectralData for LedOhnoModel {
 		<<Self as SpectralData>::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		let mut v : Vec<f64> = Vec::with_capacity(self.0.len() * dom.len());
-		for LedModelParameters{center, fwhm, power} in &self.0 {
-			for i in dom.range {
+		for &LedParameters{peak, fwhm, power} in self.0.iter() {
+			let scale = if power>0.0 {
+				power / simpson(|l|led_ohno(l,peak, fwhm), peak - 3.0 * fwhm, peak + 3.0 * fwhm, 100)
+			} else {
+				1.0
+			};
+			for i in dom.range.clone() {
 				let meter_value: Meter = dom.scale.unitvalue(i).into();
-				v.push(ohno(meter_value.value(), center, fwhm, power));
+				v.push(scale * led_ohno(meter_value.value(), peak, fwhm));
 			}
 		}
 		DMatrix::from_vec(dom.len(), self.0.len(), v)
@@ -107,13 +100,13 @@ impl SpectralData for LedOhnoModel {
 	}
 
 	fn description(&self) -> Option<String> {
-		Some("Planckian Sources".to_string())
+		Some("Ohno 2005 LED model spectra ".to_string())
 	}
 
 	/// String temperature values for each of the blackbody sources in the collection.
 	fn keys(&self) -> Option<Vec<String>> {
-		let v: Vec<String> = Vec::with_capacity(self.0.len());
-		for LedModelParameters { center , fwhm, power: _ } in self.0 {
+		let mut v: Vec<String> = Vec::with_capacity(self.0.len());
+		for LedParameters { peak: center , fwhm, power: _ } in &self.0 {
 			v.push(format!("Ohno LED Model {:.1}/{:.1}",center, fwhm));
 		}
 		Some(v)
@@ -125,6 +118,49 @@ impl SpectralData for LedOhnoModel {
 	}
 	
 }
+
+/**
+	CIE Standard LED illuminants.
+*/
+
+#[derive(Debug, Default)]
+pub struct CieIllLed<const I:usize>;
+
+impl<const I:usize> SpectralData for CieIllLed<I> {
+    type ScaleType = WavelengthStep;
+
+    fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
+	where
+		L: Step,
+		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+	{
+		match I {
+			ALL => {
+				let data = SMatrix::from_data(ArrayStorage(super::led_data::CIE_LED_ILL_DATA));
+				sprague_cols(&self.domain(), &domain, &data)
+			}
+			i@1..=14 => {
+				let data = SVectorSlice::<f64, 81>::from_slice(&super::led_data::CIE_LED_ILL_DATA[i-1]);
+				sprague_cols(&self.domain(), &domain, &data)
+			}
+			_ => panic!("Illegal Index in CIE LED Data")
+		}
+    }
+
+    fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
+        Domain::new(380/5, 780/5, crate::util::NM5)
+    }
+
+	fn keys(&self) -> Option<Vec<String>> {
+		Some(super::led_data::CIE_LED_ILL_KEYS.iter().map(|s| s.to_string()).collect())
+	}
+
+	fn description(&self) -> Option<String> {
+		Some("IES TM30 Commercial LED Spectra".to_string())
+	}
+}
+
+impl<const I: usize> super::Illuminant for CieIllLed<I> {}
 
 
 #[derive(Debug, Default)]
@@ -140,11 +176,11 @@ impl<const I:usize> SpectralData for IesTm30Led<I> {
 	{
 		match I {
 			ALL => {
-				let data = SMatrix::from_data(ArrayStorage(LED_IES_DATA));
+				let data = SMatrix::from_data(ArrayStorage(super::led_data::IES_LED_COM_DATA));
 				sprague_cols(&self.domain(), &domain, &data)
 			}
 			i@1..=14 => {
-				let data = SVectorSlice::<f64, 401>::from_slice(&LED_IES_DATA[i-1]);
+				let data = SVectorSlice::<f64, 401>::from_slice(&super::led_data::IES_LED_COM_DATA[i-1]);
 				sprague_cols(&self.domain(), &domain, &data)
 			}
 			_ => panic!("Illegal Index in IES LED Data")
@@ -156,13 +192,12 @@ impl<const I:usize> SpectralData for IesTm30Led<I> {
     }
 
 	fn keys(&self) -> Option<Vec<String>> {
-		Some(LED_IES_KEYS.iter().map(|s| s.to_string()).collect())
-	
-
+		Some(super::led_data::IES_LED_COM_KEYS.iter().map(|s| s.to_string()).collect())
 	}
-
 
 	fn description(&self) -> Option<String> {
 		Some("IES TM30 Commercial LED Spectra".to_string())
 	}
 }
+
+impl<const I: usize> super::Illuminant for IesTm30Led<I> {}

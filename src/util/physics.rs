@@ -39,3 +39,11 @@ pub const C2: f64 = H * C / KB;
 
 pub const ELECTRONVOLT_AS_JOULE: f64 = 1.602_176_634E-19; // Joule
 pub const ELECTRONVOLT_AS_METER: f64 = 1.973_27E-7; // Meter
+
+// See Ohno, Spectral Design considerations for white LED Color Rendering, Optical Engineering 44(11), November 20005
+// Scale by spectralWidth
+pub fn led_ohno(wl: f64, peak: f64, width: f64) -> f64 {
+	let t = (wl - peak) / width;
+	let g = (-(t.powi(2))).exp();
+	(g + 2.0 * g.powi(5)) / 3.0
+}
