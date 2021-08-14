@@ -13,6 +13,9 @@ const N: usize = 81;
 const M: usize = 12;
 const M3: usize = 15;
 
+pub type CieFluorescent = FL::<ALL>;  	// need to use CieFluorescent::default() if this alias is used
+pub type CieFluorescent3 = FL3::<ALL>; 	// as opposed to FL::<ALL>, which can be used without explicit default constructor
+
 #[derive(Debug, Default)]
 pub struct FL<const I:usize>;
 
@@ -92,7 +95,8 @@ fn test_f(){
 	assert_abs_diff_eq!(x, 0.3131, epsilon=0.0005); // CIE.15.2004 table 8
 	assert_abs_diff_eq!(y, 0.3371, epsilon=0.0005);
 
-	let fall = crate::models::CieYxy::<CieObs1931>::from(FL::<ALL>);
+//	let fall = crate::models::CieYxy::<CieObs1931>::from(FL::<ALL>);
+	let fall = crate::models::CieYxy::<CieObs1931>::from(CieFluorescent::default());
 
 	let cie_fl_test = SMatrix::from_data(ArrayStorage(FLTEST));
 	let cie_fl_data = cie_fl_test.slice_range(..2, ..);

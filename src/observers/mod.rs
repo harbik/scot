@@ -9,19 +9,20 @@ automatic transformations between the different mathematical representations of 
 
 
 pub mod cie1931;
-mod cie1931_data;
 pub use cie1931::*;
 
 pub mod cie1964;
-mod cie1964_data;
 pub use cie1964::*;
+
+pub mod cie_f2;
+pub use cie_f2::*;
+
+pub mod cie_f10;
+pub use cie_f10::*;
 
 use nalgebra::{DMatrix, Matrix3x1, Matrix3xX};
 use crate::util::domain::Domain;
 use crate::util::{Meter, WavelengthStep, Step, Unit};
-
-pub use crate::observers::cie1931::{CieObs1931}; // allow use as observers::Cie1931 instead of observers::cie1931::Cie1931
-
 
 
 /**
@@ -32,9 +33,6 @@ pub use crate::observers::cie1931::{CieObs1931}; // allow use as observers::Cie1
 	domain for a spectral distribution. The mapping is typically done using a quadratic interpolation algorithm. Also
 	analytical models of the CIE standard observers exist, which allows to do the mapping by a straightforward
 	function evaluation.
-
-
-	
  */
 pub trait StandardObserver : Default
 {
