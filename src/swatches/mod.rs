@@ -39,17 +39,17 @@ pub trait Swatches: SpectralData {}
 pub struct White;
 
 impl SpectralData for White {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 		where
 			L: Step,
-			<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+			<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 			 {
         DMatrix::from_element(domain.len(), 1, 1.0)
     }
 
-    fn domain(&self) -> Domain<Self::ScaleType> {
+    fn domain(&self) -> Domain<Self::StepType> {
         Domain::default()
     }
 }
@@ -76,7 +76,7 @@ impl Gray {
 	}
 }
 impl SpectralData for Gray {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 		where
@@ -86,7 +86,7 @@ impl SpectralData for Gray {
         DMatrix::from_element(domain.len(), 1, self.0)
     }
 
-    fn domain(&self) -> Domain<Self::ScaleType> {
+    fn domain(&self) -> Domain<Self::StepType> {
         Domain::default()
     }
 }

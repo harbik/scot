@@ -15,12 +15,12 @@ use crate::util::{Step, WavelengthStep, sprague_cols, Domain};
 pub struct CieIllLed<const I:usize>;
 
 impl<const I:usize> SpectralData for CieIllLed<I> {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
 		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		match I {
 			ALL => {
@@ -35,7 +35,7 @@ impl<const I:usize> SpectralData for CieIllLed<I> {
 		}
     }
 
-    fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
+    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
         Domain::new(380/5, 780/5, crate::util::NM5)
     }
 

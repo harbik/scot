@@ -9,8 +9,13 @@ pub mod cct;
 pub use self::cct::*; // use illuminants::CCTs
 
 pub mod incandescent;
-mod incandescent_data;
 pub use self::incandescent::*; 
+
+#[cfg(feature="ies_tm30_incandescent_illuminants")]
+pub mod incandescent_ies_tm30;
+
+#[cfg(feature="ies_tm30_incandescent_illuminants")]
+pub use self::incandescent_ies_tm30::*; 
 
 pub mod daylight;
 pub use self::daylight::*;
@@ -27,9 +32,18 @@ pub mod fluorescent_ies_tm30;
 #[cfg(feature="ies_tm30_fluorescent_illuminants")]
 pub use self::fluorescent_ies_tm30::*;
 
-pub mod hid;
-mod hid_data;
-pub use self::hid::*;
+#[cfg(feature="cie_hid_illuminants")]
+pub mod hid_cie;
+
+#[cfg(feature="cie_hid_illuminants")]
+pub use self::hid_cie::*;
+
+#[cfg(feature="ies_tm30_hid_illuminants")]
+pub mod hid_ies_tm30;
+
+#[cfg(feature="ies_tm30_hid_illuminants")]
+pub use self::hid_ies_tm30::*;
+
 
 pub mod led;
 pub use self::led::*;

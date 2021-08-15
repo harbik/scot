@@ -143,8 +143,8 @@ impl<S1:Step,  S2:Step> PartialEq<Domain<S2>> for Domain<S1> {
 	An iterator starting at a value 4530 Angstrom, as a value 4530.0E-10m, and making steps of of 1 Angstrom, or
 	1.0E-10m.
 	```	
-	use colorado::util::domain::Domain;
-	use colorado::util::units::{A, Unit};
+	use colorado::util::Domain;
+	use colorado::util::{A, Unit};
 	use approx::assert_abs_diff_eq;
 
 	let mut it = Domain::new(4530, 4550, A).into_iter();
@@ -154,8 +154,8 @@ impl<S1:Step,  S2:Step> PartialEq<Domain<S2>> for Domain<S1> {
 	And here is an example for use in a for loop. 
 	This produces two values, 3000 and 4000K, and thier sum is supposed to be 7000.0 K.
 	```	
-	use colorado::util::domain::Domain;
-	use colorado::util::units::{KK, Unit};
+	use colorado::util::Domain;
+	use colorado::util::{KK, Unit};
 	use approx::assert_abs_diff_eq;
 
 	let mut sum = 0.0;

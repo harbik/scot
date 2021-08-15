@@ -4,7 +4,7 @@ use nalgebra::DMatrix;
 
 use crate::observers::StandardObserver;
 use crate::models::CieXYZ;
-use crate::util::{Domain, Meter, Step, Unit};
+use crate::util::{Domain, Meter, Step, Unit, };
 
 
 
@@ -21,8 +21,7 @@ pub trait Pixel {}
 
 pub trait SpectralData {
 
-	type ScaleType: Step;
-//	type UnitValue;
+	type StepType: Step;
 
 	/**
 		Values for a set of spectral distributions.
@@ -35,14 +34,14 @@ pub trait SpectralData {
 	fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 		where
 			L: Step,
-			<<Self as SpectralData>::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+			<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 			// need to be able to map the target domain onto the native domain of the spectral data,
 			// or, in other words, need to be able to convert from the target domain's unit into the
 			// object's domain's unit.
 			; 
 
 	/// spectral's native or default spectral range
-	fn domain(&self) -> Domain<Self::ScaleType>; 
+	fn domain(&self) -> Domain<Self::StepType>; 
 
 	/// Optional keys for each of the spectral distribution in the collection.
 	fn keys(&self) -> Option<Vec<String>> { None }
@@ -77,7 +76,7 @@ where
 	C: StandardObserver,
 //	&'static C: Default,
 	S: SpectralData,
-	Meter: From<<<S as SpectralData>::ScaleType as Step>::UnitValueType>,
+	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>,
 
  {
 	fn from(sd: S) -> Self {

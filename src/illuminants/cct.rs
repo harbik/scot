@@ -39,7 +39,7 @@ impl CCTs {
 		# Examples
 		From a single temperature value, and using a default value for power of 1.0W:
 		```
-		use colorado::cct::CCTs;
+		use colorado::illuminants::CCTs;
 
 		let ccts = CCTs::new(3000.0);
 		assert_eq!(ccts.0[(0,0)], 3000.0);
@@ -47,7 +47,7 @@ impl CCTs {
 		```
 		From an array of float values:
 		```
-		use colorado::cct::CCTs;
+		use colorado::illuminants::CCTs;
 
 		let ccts = CCTs::new([3000.0, 4000.0, 5000.0]);
 		assert_eq!(ccts.0[(0,0)], 3000.0); assert_eq!(ccts.0[(0,1)], 1.0);
@@ -56,7 +56,7 @@ impl CCTs {
 		```
 		And here we create a CCTs collection from a two-dimensional array with temperature and radiant exitance values:
 		```
-		use colorado::cct::CCTs;
+		use colorado::illuminants::CCTs;
 
 		let ccts = CCTs::new([[3000.0, 3.0], [4000.0, 4.0], [5000.0, 5.0]]);
 		assert_eq!(ccts.0[(0,0)], 3000.0); assert_eq!(ccts.0[(0,1)], 3.0);
@@ -65,7 +65,7 @@ impl CCTs {
 		```
 		And this works for vectors of \[f64;2\] too:
 		```
-		use colorado::cct::CCTs;
+		use colorado::illuminants::CCTs;
 
 		let ccts = CCTs::new(vec![[3000.0, 3.0], [4000.0, 4.0], [5000.0, 5.0]]);
 		assert_eq!(ccts.0[(0,0)], 3000.0); assert_eq!(ccts.0[(0,1)], 3.0);

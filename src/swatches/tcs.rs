@@ -31,17 +31,17 @@ const M: usize = 15; // number of spectra in the set, or the number of columns i
 pub struct Tcs;
 
 impl SpectralData for Tcs {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
 		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		sprague_cols(&self.domain(), &domain, &SMatrix::from_data(ArrayStorage(TCS)))
     }
 
-    fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
+    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
         Domain::new(360/5, 830/5, NM5)
     }
 

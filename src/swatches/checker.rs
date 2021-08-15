@@ -28,12 +28,12 @@ const M: usize = 24;
 pub struct ColorChecker<const I:usize>;
 
 impl<const I: usize> SpectralData for ColorChecker<I> {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
 		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		match I {
 			ALL => {
@@ -48,7 +48,7 @@ impl<const I: usize> SpectralData for ColorChecker<I> {
 		}
     }
 
-    fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
+    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
         Domain::new(38, 73, NM10)
     }
 

@@ -20,12 +20,12 @@ pub type CieFluorescent3 = FL3::<ALL>; 	// as opposed to FL::<ALL>, which can be
 pub struct FL<const I:usize>;
 
 impl<const I:usize> SpectralData for FL<I> {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
 		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		match I {
 			ALL => {
@@ -40,7 +40,7 @@ impl<const I:usize> SpectralData for FL<I> {
 		}
     }
 
-    fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
+    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
         Domain::new(380/5, 780/5, NM5)
     }
 
@@ -54,12 +54,12 @@ impl<const I:usize> SpectralData for FL<I> {
 pub struct FL3<const I:usize>;
 
 impl<const I:usize> SpectralData for FL3<I> {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
 		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		match I {
 			ALL => {
@@ -74,7 +74,7 @@ impl<const I:usize> SpectralData for FL3<I> {
 		}
     }
 
-    fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
+    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
         Domain::new(380/5, 780/5, NM5)
     }
 

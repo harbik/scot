@@ -31,18 +31,18 @@ const M: usize = 99; // number of spectra in the set, or the number of columns i
 pub struct IesTm30Ces;
 
 impl SpectralData for IesTm30Ces {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
 	where
 		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		// todo use linear interpolation in this case, as interval is 1nm?
 		sprague_cols(&self.domain(), &domain, &SMatrix::from_data(ArrayStorage(CES)))
     }
 
-    fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
+    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
         Domain::new(380, 780, NM)
     }
 

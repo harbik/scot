@@ -35,7 +35,7 @@ pub type CieD = CieDaylight;
 
 	```
 	use colorado::illuminants::Blackbody;
-	use colorado::observers::Cie1931;
+	use colorado::observers::CieObs1931;
 	use colorado::cie::XYZ;
 	use approx::assert_abs_diff_eq;
 
@@ -50,11 +50,11 @@ pub type CieD = CieDaylight;
 
 	```
 	use colorado::illuminants::Blackbody;
-	use colorado::observers::Cie1931;
+	use colorado::observers::CieObs1931;
 	use colorado::util::domain::Domain;
 	use colorado::spectra::SpectralDistribution;
 	use colorado::cie::XYZ;
-	use colorado::util::units::DEV; // dEv 
+	use colorado::util::DEV; // dEv 
 	use approx::assert_abs_diff_eq;
 
 	let sdbb = Blackbody::new([[6500.0,0.1]]);
@@ -81,7 +81,7 @@ impl CieDaylight {
 
 impl SpectralData for CieDaylight {
 
-	type ScaleType = WavelengthStep;
+	type StepType = WavelengthStep;
 
 	/**
 		Spectral values for the CIE D illuminant.
@@ -93,7 +93,7 @@ impl SpectralData for CieDaylight {
 	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<<Self as SpectralData>::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType>
+		<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 
 		let s_interpolated = sprague_cols(&self.domain(), &dom, &SMatrix::<f64,107,3>::from_data(ArrayStorage(S)));
@@ -132,7 +132,7 @@ impl SpectralData for CieDaylight {
 	}
 
 	/// Domain which covering the visible part of the spectrum
-	fn domain(&self) -> Domain<Self::ScaleType> {
+	fn domain(&self) -> Domain<Self::StepType> {
 		Domain::new(60, 166, NM5)
 	}
 	
@@ -142,17 +142,17 @@ impl SpectralData for CieDaylight {
 pub struct CieIllD50(SVector<f64, 97>);
 
 impl SpectralData for CieIllD50 {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		sprague_cols(&self.domain(), &domain, &self.0)
     }
 
-    fn domain(&self) -> Domain<Self::ScaleType> {
+    fn domain(&self) -> Domain<Self::StepType> {
 		Domain::new(60, 156, NM5)
     }
 
@@ -188,17 +188,17 @@ fn test_d50(){
 pub struct CieIllD55(SVector<f64, 97>);
 
 impl SpectralData for CieIllD55 {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		sprague_cols(&self.domain(), &domain, &self.0)
     }
 
-    fn domain(&self) -> Domain<Self::ScaleType> {
+    fn domain(&self) -> Domain<Self::StepType> {
 		Domain::new(60, 156, NM5)
     }
 
@@ -237,17 +237,17 @@ fn test_d55(){
 pub struct CieIllD65(SVector<f64, 97>);
 
 impl SpectralData for CieIllD65 {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		sprague_cols(&self.domain(), &domain, &self.0)
     }
 
-    fn domain(&self) -> Domain<Self::ScaleType> {
+    fn domain(&self) -> Domain<Self::StepType> {
 		Domain::new(60, 156, NM5)
     }
 
@@ -289,17 +289,17 @@ fn test_d65(){
 pub struct CieIllD75(SVector<f64, 97>);
 
 impl SpectralData for CieIllD75 {
-    type ScaleType = WavelengthStep;
+    type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
 		sprague_cols(&self.domain(), &domain, &self.0)
     }
 
-    fn domain(&self) -> Domain<Self::ScaleType> {
+    fn domain(&self) -> Domain<Self::StepType> {
 		Domain::new(60, 156, NM5)
     }
 

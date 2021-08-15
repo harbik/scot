@@ -1,22 +1,98 @@
 
-pub(super) static INC_IES_KEYS: [&str; 14] = [
-/*  1 */ 	"Halogen (1)", 
-/*  2 */	"Halogen (2)", 
-/*  3 */	"Halogen (3)", 
-/*  4 */	"Halogen MR16 (1)", 
-/*  5 */	"Halogen MR16 (2)", 
-/*  6 */	"Halogen MR16 (3)", 
-/*  7 */	"Incandescent (60WA19)", 
-/*  8 */	"Incandescent (75WA19 Halogena)", 
-/*  9 */	"Incandescent (75WA19 Neodymium)", 
-/* 10 */	"Incandescent (75WA19 Rough House)", 
-/* 11 */	"Incandescent (75WA19 Softer White)", 
-/* 12 */	"Krypton Incandescent", 
-/* 13 */	"Neodymium Incandescent", 
-/* 14 */	"Filtered Halogen"
+use nalgebra::{ArrayStorage, SMatrix, SVectorSlice};
+
+use crate::ALL;
+use crate::spectra::{SpectralData};
+use crate::util::{Domain, NM, Step, WavelengthStep, sprague_cols};
+
+/**
+	Example spectral data for a collection of incandescent and halogen lamps, curated by the IES TM30 working group.
+
+	The collection is included by default, but can be excluded using the `--no-default-features` command-line flag,
+	or the `default-features = false` option in a `Cargo.toml` dependency declaration. If not included by default, 
+	it can be included using the `ies_tm30_incandescent_illuminants` feature, or the `ies_tm30_illuminants` feature.
+
+	The collection consists of:
+	- 3 Halogen lamps (1,2,3)
+	- 3 Halogen MR16 spot lamps (4,5,6)
+	- A standard 60W A 19 incandescent lamp (7)
+	- A 75W A19 Halogena lamp, an A19 shaped bulb with a mains voltage Halogen lamp as source inside (8)
+	- A 75W A19 Incandescent lamp, with its light filtered by Neodymium coating on the insize of the bulb (9)
+	- Another 75W A19 Incandescent lamp example, in this case one of the so-called "Rough House" variety,
+		which has a stronger filament design  (10)
+	- And a 75W A19 "Softer White" sample (11) 
+	- Krypton Incandescent (12)
+	- Neodymium Incandescent (13)
+	- and last, a "Filtered Halogen" example (14)
+
+	All these spectral distributions are measured from commercially available lamps.
+	Further details, such as their manufacturers, or part numbers, are not available:
+	the intention of this dataset is to be used for general color science research only.
+
+	The data is given on the wavelength range from 380 to 780nm, with steps of 1nm,
+	and linearly interpolated between the data points for finer domain grids (with steps less than 1 nm).
+	
+
+	# Examples
+
+
+ */
+#[derive(Debug, Default)]
+pub struct IesTm30Incandescent<const I:usize>;
+
+impl<const I:usize> SpectralData for IesTm30Incandescent<I> {
+    type StepType = WavelengthStep;
+
+    fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
+	where
+		L: Step,
+		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
+	{
+		match I {
+			ALL => {
+				let data = SMatrix::from_data(ArrayStorage(INC_IES_DATA));
+				sprague_cols(&self.domain(), &domain, &data)
+			}
+			i@1..=14 => {
+				let data = SVectorSlice::<f64, 401>::from_slice(&INC_IES_DATA[i-1]);
+				sprague_cols(&self.domain(), &domain, &data)
+			}
+			_ => panic!("Illegal Index in IES Incandescent Data")
+		}
+    }
+
+    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
+        Domain::new(380, 780, NM)
+    }
+
+	fn keys(&self) -> Option<Vec<String>> {
+		Some(INC_IES_KEYS.iter().map(|s| s.to_string()).collect())
+	}
+
+
+	fn description(&self) -> Option<String> {
+		Some("IES TM30 Example Commercially available Halogen and Incandescent Illuminants".into())
+	}
+}
+
+static INC_IES_KEYS: [&str; 14] = [
+	/*  1 */ 	"Halogen (1)", 
+	/*  2 */	"Halogen (2)", 
+	/*  3 */	"Halogen (3)", 
+	/*  4 */	"Halogen MR16 (1)", 
+	/*  5 */	"Halogen MR16 (2)", 
+	/*  6 */	"Halogen MR16 (3)", 
+	/*  7 */	"Incandescent (60WA19)", 
+	/*  8 */	"Incandescent (75WA19 Halogena)", 
+	/*  9 */	"Incandescent (75WA19 Neodymium)", 
+	/* 10 */	"Incandescent (75WA19 Rough House)", 
+	/* 11 */	"Incandescent (75WA19 Softer White)", 
+	/* 12 */	"Krypton Incandescent", 
+	/* 13 */	"Neodymium Incandescent", 
+	/* 14 */	"Filtered Halogen"
 ];
 
-pub(super) static INC_IES_DATA: [[f64;401];14] = [
+static INC_IES_DATA: [[f64;401];14] = [
 	[0.007067, 0.0074204, 0.0077738, 0.0081272, 0.0084806, 0.008834, 0.0095406, 0.010247, 0.010954, 0.01166, 0.012367,
 	0.013427, 0.014487, 0.015548, 0.016608, 0.017668, 0.019435, 0.021202, 0.022968, 0.024735, 0.026502, 0.028975,
 	0.031449, 0.033922, 0.036396, 0.038869, 0.042049, 0.045229, 0.04841, 0.05159, 0.05477, 0.057244, 0.059717, 0.062191,

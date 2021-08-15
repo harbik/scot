@@ -71,7 +71,7 @@ impl LedOhno2005 {
 
 impl SpectralData for LedOhno2005 {
 
-	type ScaleType = WavelengthStep;
+	type StepType = WavelengthStep;
 
 	/**
 		Spectral values for Ohno Model LEDs.
@@ -80,7 +80,7 @@ impl SpectralData for LedOhno2005 {
 	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<<Self as SpectralData>::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType>
+		<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		let mut v : Vec<f64> = Vec::with_capacity(self.0.len() * dom.len());
 		for &LedParameters{peak, fwhm, power} in self.0.iter() {
@@ -112,7 +112,7 @@ impl SpectralData for LedOhno2005 {
 	}
 
 	/// Domain covering the visible part of the spectrum
-	fn domain(&self) -> Domain<Self::ScaleType> {
+	fn domain(&self) -> Domain<Self::StepType> {
 		Domain::default()
 	}
 	

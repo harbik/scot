@@ -1,16 +1,12 @@
 
 
-use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
+use nalgebra::{DMatrix };
 
-use crate::ALL;
 use crate::spectra::{SpectralData};
 use crate::illuminants::{Illuminant};
 use crate::illuminants::cct::{CCTs};
-use crate::util::domain::Domain;
-use crate::util::physics::planck;
-use crate::util::{Meter, NM, Step, Unit, WavelengthStep, sprague_cols};
+use crate::util::{Domain, planck, Meter, Step, Unit, WavelengthStep, };
 
-use super::incandescent_data::{INC_IES_DATA, INC_IES_KEYS};
 
 
 /**
@@ -81,7 +77,7 @@ impl Planckian {
 
 impl SpectralData for Planckian {
 
-	type ScaleType = WavelengthStep;
+	type StepType = WavelengthStep;
 
 	/**
 		Planckian Spectral values for multiple domain types.
@@ -93,7 +89,7 @@ impl SpectralData for Planckian {
 	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<<Self as SpectralData>::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType>
+		<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		let mut v : Vec<f64> = Vec::with_capacity(self.ccts.len() * dom.len());
 		for (t,p) in &self.ccts {
@@ -116,7 +112,7 @@ impl SpectralData for Planckian {
 	}
 
 	/// Domain which covering the visible part of the spectrum
-	fn domain(&self) -> Domain<Self::ScaleType> {
+	fn domain(&self) -> Domain<Self::StepType> {
 		Domain::default()
 	}
 	
@@ -132,59 +128,18 @@ impl<const T: usize> Default for BB<T> {
 impl<const N: usize> Illuminant for BB<N> {}
 
 impl<const N: usize> SpectralData for BB<N> {
-	type ScaleType = WavelengthStep;
+	type StepType = WavelengthStep;
 
 	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<<Self as SpectralData>::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType>
+		<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		 Planckian::new(N).values(dom)
 	 }
 	
 	/// Domain which covering the visible part of the spectrum
-	fn domain(&self) -> Domain<Self::ScaleType> {
+	fn domain(&self) -> Domain<Self::StepType> {
 		Domain::default()
-	}
-}
-
-
-#[derive(Debug, Default)]
-pub struct IesTm30Incandescent<const I:usize>;
-
-impl<const I:usize> SpectralData for IesTm30Incandescent<I> {
-    type ScaleType = WavelengthStep;
-
-    fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
-	where
-		L: Step,
-		<Self::ScaleType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		match I {
-			ALL => {
-				let data = SMatrix::from_data(ArrayStorage(INC_IES_DATA));
-				sprague_cols(&self.domain(), &domain, &data)
-			}
-			i@1..=14 => {
-				let data = SVectorSlice::<f64, 401>::from_slice(&INC_IES_DATA[i-1]);
-				sprague_cols(&self.domain(), &domain, &data)
-			}
-			_ => panic!("Illegal Index in IES Incandescent Data")
-		}
-    }
-
-    fn domain(&self) -> crate::util::domain::Domain<Self::ScaleType> {
-        Domain::new(380, 780, NM)
-    }
-
-	fn keys(&self) -> Option<Vec<String>> {
-		Some(INC_IES_KEYS.iter().map(|s| s.to_string()).collect())
-	
-
-	}
-
-
-	fn description(&self) -> Option<String> {
-		Some("IES TM30 Example Halogen and Incandescent Illuminants".to_string())
 	}
 }
