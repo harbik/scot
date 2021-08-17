@@ -10,7 +10,7 @@ Of the 30 data sets, 24 were measured with Eye-One Pro spectrocolorimeters from 
 BabelColor is a Registered Trademark of The BabelColor Company.
 ColorChecker and X-Rite are Trademarks of X-Rite Incorporated.
 */
-use nalgebra::{ArrayStorage, SMatrix, SVectorSlice};
+use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::ALL;
 use crate::spectra::SpectralData;
@@ -30,7 +30,7 @@ pub struct ColorChecker<const I:usize>;
 impl<const I: usize> SpectralData for ColorChecker<I> {
     type StepType = WavelengthStep;
 
-    fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
+    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
 		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 

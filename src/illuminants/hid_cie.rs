@@ -1,6 +1,6 @@
 
 
-use nalgebra::{ArrayStorage, SMatrix, SVectorSlice};
+use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::spectra::SpectralData;
 use crate::util::Domain;
@@ -15,7 +15,7 @@ pub struct HP<const I:usize>;
 impl<const I:usize> SpectralData for HP<I> {
     type StepType = WavelengthStep;
 
-    fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
+    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
 		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 

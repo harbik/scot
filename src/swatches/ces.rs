@@ -14,7 +14,7 @@ Source:
 Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 
 */
-use nalgebra::{ArrayStorage, SMatrix};
+use nalgebra::{ArrayStorage, DMatrix, SMatrix};
 
 use crate::spectra::SpectralData;
 use crate::util::Domain;
@@ -33,7 +33,7 @@ pub struct IesTm30Ces;
 impl SpectralData for IesTm30Ces {
     type StepType = WavelengthStep;
 
-    fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
+    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
 		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 

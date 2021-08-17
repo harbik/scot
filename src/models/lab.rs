@@ -12,7 +12,7 @@ use crate::spectra::SpectralData;
 use crate::swatches::{Swatches};
 use crate::util::{Meter, Step};
 use crate::DefaultObserver;
-use nalgebra::{Matrix3x1, Matrix3xX};
+use nalgebra::{Matrix3x1, Matrix3xX, };
 
 use super::{CieXYZ, XYZValues};
 
@@ -197,7 +197,7 @@ where
     fn from(swatch: S) -> Self {
         let ill = I::default(); // illuminant spectrum
         let ill_dom = ill.domain();
-        let ill_data = ill.values(&ill_dom);
+        let ill_data  = ill.values(&ill_dom);
         let sw_data = swatch.values(&ill_dom);
 
         let (xyz_n, xyz) = C::xyz_from_dom_ill_mat(ill_dom, ill_data, sw_data);

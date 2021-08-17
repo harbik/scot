@@ -1,5 +1,5 @@
 use nalgebra::{ArrayStorage, Matrix3xX, SMatrix, convert};
-use crate::util::{NM, linear_interpolate_rows_from_static_data};
+use crate::util::{NM, matrix_from_data_by_lin_row_int};
 use crate::{observers::StandardObserver};
 use crate::util::{sprague_rows};
 use crate::util::{Domain};
@@ -49,7 +49,7 @@ impl StandardObserver for CieObs1964 {
 		L: Step,
 		Meter: From<<L>::UnitValueType>
 	 {
-		linear_interpolate_rows_from_static_data(&self.domain(), &target, &CIE1964NM1)
+		matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE1964NM1)
 	}
 
 	fn domain(&self) -> Domain<WavelengthStep> {

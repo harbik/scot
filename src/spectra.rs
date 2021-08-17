@@ -1,10 +1,11 @@
 
 
+
 use nalgebra::DMatrix;
 
 use crate::observers::StandardObserver;
 use crate::models::CieXYZ;
-use crate::util::{Domain, Meter, Step, Unit, };
+use crate::util::{Domain, Meter, Step, };
 
 
 
@@ -77,10 +78,12 @@ where
 //	&'static C: Default,
 	S: SpectralData,
 	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>,
-
+//	<Matrix<f64, Const, Dynamic, VecStorage<f64, Const, Dynamic>> as Mul<<S as SpectralData>::MatrixType>>::Output
  {
 	fn from(sd: S) -> Self {
-		let xyz = <C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().scale.unitvalue(1).value();
+	//	let xyz = 
+		//	<C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().scale.unitvalue(1).value();
+		let xyz = C::xyz_from_dom_mat(sd.domain(), sd.values(&sd.domain()));
 		CieXYZ::<C>::new(xyz)
 	}
 }

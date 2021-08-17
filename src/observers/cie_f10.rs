@@ -1,5 +1,5 @@
 use nalgebra::{Dynamic, Matrix, U3, VecStorage};
-use crate::util::linear_interpolate_rows_from_static_data;
+use crate::util::matrix_from_data_by_lin_row_int;
 use crate::{observers::StandardObserver};
 use crate::util::{Domain};
 use crate::util::{NM, WavelengthStep, Meter, Step};
@@ -28,7 +28,7 @@ impl StandardObserver for CieObsF10 {
 		L: Step,
 		Meter: From<<L>::UnitValueType>
 	 {
-		linear_interpolate_rows_from_static_data(&self.domain(), &target, &CIE_OBS_F10)
+		matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE_OBS_F10)
 	}
 }
 

@@ -1,7 +1,7 @@
 const N_IES: usize = 401;
 const M_IES: usize = 43;
 
-use nalgebra::{ArrayStorage, SMatrix, SVectorSlice};
+use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::spectra::SpectralData;
 use crate::util::domain::Domain;
@@ -16,7 +16,7 @@ pub struct IesTm30Fluorescent<const I:usize>;
 impl<const I:usize> SpectralData for IesTm30Fluorescent<I> {
     type StepType = WavelengthStep;
 
-    fn values<L>(&self, domain: &Domain<L>) -> nalgebra::DMatrix<f64>
+    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
 		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 

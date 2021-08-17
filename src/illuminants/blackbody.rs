@@ -40,7 +40,7 @@ use crate::util::{Domain, planck, Meter, Step, Unit, WavelengthStep, };
 	```
 
 	# Examples
-	Y
+	
 	A blackbody radiator, with a temperature of 3000K, and an illuminance of 0.1W/m<sup>2</sup>.
 	Here a single integer valued argument is used to specify a blackbody's temperature.
 
@@ -138,7 +138,6 @@ impl<const N: usize> SpectralData for BB<N> {
 		 Planckian::new(N).values(dom)
 	 }
 	
-	/// Domain which covering the visible part of the spectrum
 	fn domain(&self) -> Domain<Self::StepType> {
 		Domain::default()
 	}

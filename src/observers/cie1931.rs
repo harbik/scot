@@ -1,5 +1,5 @@
 use nalgebra::{ArrayStorage, Dynamic, Matrix, Matrix3xX, SMatrix, U3, VecStorage, convert};
-use crate::util::linear_interpolate_rows_from_static_data;
+use crate::util::matrix_from_data_by_lin_row_int;
 use crate::{observers::StandardObserver};
 use crate::util::{sprague_rows};
 use crate::util::{Domain};
@@ -52,7 +52,7 @@ impl StandardObserver for CieObs1931 {
 		L: Step,
 		Meter: From<<L>::UnitValueType>
 	 {
-		linear_interpolate_rows_from_static_data(&self.domain(), &target, &CIE1931NM1)
+		matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE1931NM1)
 	}
 
 }

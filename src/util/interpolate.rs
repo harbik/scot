@@ -12,17 +12,20 @@
 
 
 
-use nalgebra::{Const, Dynamic, VecStorage};
+
+
+
+use nalgebra::{Const, Dynamic, MatrixSlice, VecStorage};
 use nalgebra::{storage::Storage, DMatrix, Dim, Matrix};
 
 use crate::util::Domain;
 use crate::util::{Step, Unit};
 
-pub fn linear_interpolate_rows_from_static_data<S1, S2, const R1: usize, const C1: usize>(
+pub fn matrix_from_data_by_lin_row_int<S1, S2, const R: usize, const C: usize>(
     from_domain: &Domain<S1>,
     to_domain: &Domain<S2>,
-    data: &[[f64; R1]; C1], // 
-) -> Matrix<f64, Const<R1>, Dynamic, VecStorage<f64, Const<R1>, Dynamic>> // MatrixNxX
+    data: &[[f64; R]; C], // 
+) -> Matrix<f64, Const<R>, Dynamic, VecStorage<f64, Const<R>, Dynamic>> // MatrixNxX
 where
     S1: Step + Clone + Copy,
     S2: Step + Clone + Copy,
@@ -30,17 +33,14 @@ where
 {
 
 	if  *from_domain== *to_domain {
-		let mut v: Vec<f64> = Vec::with_capacity(R1*C1);
-		for d in data {
-			for a in d {
-				v.push(*a);
-			}
-		}
 		println!("Using direct copy");
-		Matrix::<f64, Const<R1>, Dynamic, _>::from_vec(v)
+		//let mut v: Vec<f64> = Vec::with_capacity(R*C);
+		//data.iter().flat_map(|v|*v).for_each(|d|  v.push(d));
+		//Matrix::<f64, Const<R>, Dynamic, _>::from_vec(v)
+		Matrix::<f64, Const<R>, Dynamic, _>::from_iterator(to_domain.len(), data.iter().flat_map(|v|*v))
 	} else {
 
-		let mut values = Vec::<f64>::with_capacity(to_domain.len() * R1);
+		let mut values = Vec::<f64>::with_capacity(to_domain.len() * R);
 
 		let start = from_domain.scale.unitvalue(from_domain.range.start).value();
 		let div = from_domain.scale.unitvalue(1).value();
@@ -48,27 +48,26 @@ where
 		for ut in to_domain {
 			let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
 			let index = from_domain_interval.floor() as usize;
-			if (index==0 && from_domain_interval<0.0) || index>C1-1 {
-				for _r in 0..R1 {
-					values.push(0.0);
+			if (index==0 && from_domain_interval<0.0) || index>C-1 {
+				for _r in 0..R {
+					values.push(0.0)
 				}
 			} else {
 				let frac = from_domain_interval.fract();
-				if index==C1-1 && frac<1E-6 { // end point
-					for r in 0..R1 {
+				if index==C-1 && frac<1E-6 { // end point
+					for r in 0..R {
 						//println!("{:?}", data[0][r]);
 						values.push(data[index][r]);
 					}
 				} else {
-					for r in 0..R1 {
+					for r in 0..R {
 						//println!("{:?}", data[0][r]);
 						values.push(data[index][r]*(1.0-frac)+data[index+1][r]*frac);
 					}
 				}
-
 			}
 		}
-		Matrix::<f64, Const<R1>, Dynamic, _>::from_vec(values)
+		Matrix::<f64, Const<R>, Dynamic, _>::from_vec(values)
 	}
 }
 
@@ -80,10 +79,59 @@ fn test_lin_row(){
 	let dfrom = Domain::new(0,2, NONE5);
 	let dto = Domain::new(0,10, NONE);
 	let data = [[0.0], [5.0], [10.0]]; // column major array in nalgebra
-	let m = linear_interpolate_rows_from_static_data(&dfrom, &dto, &data);
+	let m = matrix_from_data_by_lin_row_int(&dfrom, &dto, &data);
 	//println!("{}", m);
 	assert_abs_diff_eq!(m, Matrix1xX::from_vec(vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]));
 }
+
+pub fn interp_cols<'a, S1, S2>(
+    from_domain: &Domain<S1>,
+    to_domain: &Domain<S2>,
+	nc: usize,
+    data: &'a [f64] // 
+) -> DMatrix<f64>
+where
+    S1: Step + Clone + Copy,
+    S2: Step + Clone + Copy,
+    S1::UnitValueType: From<<S2>::UnitValueType>, 
+{
+	let nrows = from_domain.len();
+	if  *from_domain== *to_domain {
+		println!("Using direct copy");
+		DMatrix::<f64>::from_iterator(to_domain.len(), nc, data.iter().cloned())
+	} else {
+		let m = MatrixSlice::from_slice_generic(data, Dynamic::new(from_domain.len()), Dynamic::new(nc));
+		let mut values = Vec::<f64>::with_capacity(to_domain.len() * nc);
+
+		let start = from_domain.scale.unitvalue(from_domain.range.start).value();
+		let div = from_domain.scale.unitvalue(1).value();
+		for ut in to_domain {
+			let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
+			let index = from_domain_interval.ceil() as usize;
+			let h = from_domain_interval - index as f64 + 1.0;
+		//	println!("{}\t{}\t{}\t{}", from_domain_interval, index, h);
+			match (index,h) {
+				(i,h) if i>0 && i<=nrows-1 => (0..nc).into_iter().for_each(|c|values.push(m[(i-1, c)]*(1.0-h)+m[(i,c)]*h)),
+				(_,_) => (0..nc).into_iter().for_each(|_|values.push(0.0)),
+			}
+		}
+		DMatrix::<f64>::from_vec(to_domain.len(), nc, values)
+	}
+}
+
+#[test]
+fn test_interp_col(){
+	use super::{NONE5, NONE};
+	use approx::assert_abs_diff_eq;
+	let dfrom = Domain::new(0,2, NONE5);
+	let dto = Domain::new(0,10, NONE);
+	let data = [0.0, 5.0, 10.0]; // column major array in nalgebra
+	let m = interp_cols(&dfrom, &dto, 1, &data);
+	//println!("{}", m);
+	assert_abs_diff_eq!(m, DMatrix::<f64>::from_vec(11, 1, vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]));
+}
+
+
 
 /**
 Sprague interpolation, using a 5th order polynomial fitted through 6 points.
