@@ -2,8 +2,8 @@
 use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::ALL;
-use crate::spectra::{SpectralData};
-use crate::util::{Domain, NM, Step, WavelengthStep, sprague_cols};
+use crate::SpectralData;
+use crate::{Domain, NM, Step, WavelengthStep, sprague_cols};
 
 /**
 	Example spectral data for a collection of incandescent and halogen lamps, curated by the IES TM30 working group.
@@ -37,6 +37,9 @@ use crate::util::{Domain, NM, Step, WavelengthStep, sprague_cols};
 
 
  */
+
+pub const IES_TM30_INCANDESCENT: IesTm30Incandescent::<ALL> = IesTm30Incandescent::<ALL>;
+
 #[derive(Debug, Default)]
 pub struct IesTm30Incandescent<const I:usize>;
 

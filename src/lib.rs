@@ -89,13 +89,12 @@ pub mod models;
 
 pub mod differences;
 
-pub mod spectra; // spectral matrix and range 
-
 pub mod illuminants;
 
 pub mod swatches;
 
 pub mod util;
+pub use crate::util::*;
 
 /**
 CIE Standard Observers

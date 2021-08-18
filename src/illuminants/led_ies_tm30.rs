@@ -2,9 +2,10 @@
 use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::ALL;
-use crate::spectra::{SpectralData};
-use crate::util::{Step, WavelengthStep, sprague_cols, Domain, NM};
+use crate::SpectralData;
+use crate::{Step, WavelengthStep, sprague_cols, Domain, NM};
 
+pub const IES_TM30_LED: IesTm30Led::<ALL> = IesTm30Led::<ALL>;
 
 #[derive(Debug, Default)]
 pub struct IesTm30Led<const I:usize>;

@@ -3,8 +3,7 @@
 use nalgebra::DMatrix;
 use num::ToPrimitive;
 
-use crate::spectra::{SpectralData};
-use crate::util::{Meter, Step, Unit, WavelengthStep, led_ohno, simpson, Domain};
+use crate::{SpectralData, Meter, Step, Unit, WavelengthStep, led_ohno, simpson, Domain};
 
 
 

@@ -1,6 +1,6 @@
 use nalgebra::{DMatrix, };
 
-use crate::spectra::SpectralData;
+use crate::util::SpectralData;
 use crate::util::{Domain, interp_cols};
 use crate::util::{WavelengthStep, Step, NM};
 

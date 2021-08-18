@@ -19,3 +19,6 @@ pub use self::units::*;
 
 pub mod math;
 pub use self::math::*;
+
+pub mod spectra;
+pub use self::spectra::*;
