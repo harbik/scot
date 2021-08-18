@@ -90,7 +90,7 @@ impl SpectralData for LedOhno2005 {
 				1.0
 			};
 			for i in dom.range.clone() {
-				let meter_value: Meter = dom.scale.unitvalue(i).into();
+				let meter_value: Meter = dom.step.unitvalue(i).into();
 				v.push(scale * led_ohno(meter_value.value(), peak, fwhm));
 			}
 		}

@@ -94,7 +94,7 @@ impl SpectralData for Planckian {
 		let mut v : Vec<f64> = Vec::with_capacity(self.ccts.len() * dom.len());
 		for (t,p) in &self.ccts {
 			for i in dom.range.clone() {
-				let meter_value: Meter = dom.scale.unitvalue(i).into();
+				let meter_value: Meter = dom.step.unitvalue(i).into();
 				v.push(planck(meter_value.value(), t, p));
 			}
 		}

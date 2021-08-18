@@ -79,7 +79,7 @@ use super::WavelengthStep;
 #[derive(Clone, Debug, Eq)]
 pub struct Domain<S:Step> {
 	pub range: Range<i32>,
-	pub scale: S, 
+	pub step: S, 
 }
 
 impl<S> Domain<S> 
@@ -94,7 +94,7 @@ where
 	pub fn new(start:i32, end:i32, scale: S) -> Self {
 		Self {
 			range: Range {start, end: end+1},  // this it the non-inclusive end range, so we're adding a 1. The InclusiveRange range has no support for i32!
-			scale
+			step: scale
 		}
 	}
 
@@ -110,11 +110,16 @@ where
 	where
 		S::UnitValueType: From<<S2>::UnitValueType>, 
 	{
-		let div = self.scale.unitvalue(1).value();
-		let stride = Into::<S::UnitValueType>::into(to_domain.scale.unitvalue(1)).value()/div;
-		println!("Stride: {}", stride);
+		let div = self.step.unitvalue(1).value();
+		let s = Into::<S::UnitValueType>::into(to_domain.step.unitvalue(1)).value()/div;
+		let stride = if s.fract()<1E-10 && s>0.5 {
+			s as usize
+		} else {
+			0usize
+		};
+		//println!("Stride: {}", stride);
 		IterInterpolate {
-			start: self.scale.unitvalue(self.range.start).value(),
+			start: self.step.unitvalue(self.range.start).value(),
 			div,
 			stride,
 			ito: 0usize,
@@ -130,7 +135,7 @@ pub struct IterInterpolate<S:Step, S2: Step> {
 //	pub to: Domain<S2>,
 	pub start: f64,
 	pub div: f64,
-	pub stride: f64,
+	pub stride: usize,
 	pub n: usize,
 	pub ito: usize,
 	pub iter_to: IterDomain<S2>,
@@ -195,7 +200,7 @@ impl<S1:Step,  S2:Step> PartialEq<Domain<S2>> for Domain<S1> {
 		self.range.start == other.range.start &&
 		self.range.end == other.range.end &&
 		<S1 as Step>::UnitValueType::NAME == <S2 as Step>::UnitValueType::NAME &&
-		self.scale.unitvalue(1).value() == other.scale.unitvalue(1).value()}
+		self.step.unitvalue(1).value() == other.step.unitvalue(1).value()}
 }
 
 /**
@@ -271,7 +276,7 @@ where
 		Self::IntoIter {
 			i: self.range.start,
 			end: self.range.end,
-			scale: self.scale,
+			scale: self.step,
 		}
     }
 }
@@ -289,7 +294,7 @@ impl<S: Step> IntoIterator for &Domain<S> {
 		Self::IntoIter {
 			i: self.range.start,
 			end: self.range.end,
-			scale: self.scale,
+			scale: self.step,
 		}
     }
 }

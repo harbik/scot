@@ -66,7 +66,7 @@ pub trait StandardObserver : Default
 	//	&'a Self : Default
 	{
 		let c = <Self>::default();
-		c.cmf(&d) * m * Self::K * d.scale.unitvalue(1).value()
+		c.cmf(&d) * m * Self::K * d.step.unitvalue(1).value()
 	}
 
 	/**
@@ -86,8 +86,8 @@ pub trait StandardObserver : Default
 		let c = <Self>::default().cmf(&d);
 		let m: DMatrix<f64>  = DMatrix::from_fn(l.nrows(), m.ncols(), |i, j| l[(i,0)] * m[(i,j)]);
 		(
-			c.clone() * l.column(0) * Self::K * d.scale.unitvalue(1).value(),
-			c * m * Self::K * d.scale.unitvalue(1).value()
+			c.clone() * l.column(0) * Self::K * d.step.unitvalue(1).value(),
+			c * m * Self::K * d.step.unitvalue(1).value()
 		)
 	}
 

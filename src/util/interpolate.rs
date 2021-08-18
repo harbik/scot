@@ -44,8 +44,8 @@ where
 
 		let mut values = Vec::<f64>::with_capacity(to_domain.len() * R);
 
-		let start = from_domain.scale.unitvalue(from_domain.range.start).value();
-		let div = from_domain.scale.unitvalue(1).value();
+		let start = from_domain.step.unitvalue(from_domain.range.start).value();
+		let div = from_domain.step.unitvalue(1).value();
 
 		for ut in to_domain {
 			let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
@@ -86,36 +86,6 @@ fn test_lin_row(){
 	assert_abs_diff_eq!(m, Matrix1xX::from_vec(vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]));
 }
 
-
-/*
-pub fn interp_cols<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nc: usize, data: &'a [f64]  ) -> DMatrix<f64>
-where
-    S1: Step + Clone + Copy,
-    S2: Step + Clone + Copy,
-    S1::UnitValueType: From<<S2>::UnitValueType>, 
-{
-	let nrows = from_domain.len();
-	if  *from_domain== *to_domain {
-		println!("Using direct copy");
-		DMatrix::<f64>::from_iterator(to_domain.len(), nc, data.iter().cloned())
-	} else {
-		let mfr = MatrixSlice::from_slice_generic(data, Dynamic::new(from_domain.len()), Dynamic::new(nc));
-		let mut mto = DMatrix::<f64>::zeros(to_domain.len(), nc);
-
-		let start = from_domain.scale.unitvalue(from_domain.range.start).value();
-		let div = from_domain.scale.unitvalue(1).value();
-		for (rto, ut) in to_domain.into_iter().enumerate() {
-			let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
-			let i = from_domain_interval.ceil() as usize;
-			if i>0 && i<=nrows-1 { 
-				let h = from_domain_interval - (i-1) as f64;
-				(0..nc).into_iter().for_each(|c|mto[(rto,c)] = mfr[(i-1, c)]*(1.0-h)+mfr[(i,c)]*h);
-			}
-		}
-		mto
-	}
-}
-*/
 
 pub fn interp_cols<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nc: usize, data: &'a [f64]  ) -> DMatrix<f64>
 where
@@ -228,8 +198,8 @@ where
 
     let mut values = Vec::<f64>::with_capacity(to_domain.len() * n);
 
-    let start = from_domain.scale.unitvalue(from_domain.range.start).value();
-    let div = from_domain.scale.unitvalue(1).value();
+    let start = from_domain.step.unitvalue(from_domain.range.start).value();
+    let div = from_domain.step.unitvalue(1).value();
     let m = from_domain.len() - 1;
 
     for ut in to_domain {
@@ -294,8 +264,8 @@ where
 
     let mut values = Vec::<f64>::with_capacity(to_domain.len() * n);
 
-    let start = from_domain.scale.unitvalue(from_domain.range.start).value();
-    let div = from_domain.scale.unitvalue(1).value();
+    let start = from_domain.step.unitvalue(from_domain.range.start).value();
+    let div = from_domain.step.unitvalue(1).value();
     let m = from_domain.len() - 1;
 
     for ut in to_domain {
