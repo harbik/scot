@@ -18,6 +18,7 @@ pub const UM: WavelengthStep = WavelengthStep { size: 1, exp: -6 }; // micromete
 
 pub const NONE100: UnitlessStep = UnitlessStep { size: 1, exp: 2};
 pub const NONE50: UnitlessStep = UnitlessStep { size: 5, exp: 1};
+pub const NONE10: UnitlessStep = UnitlessStep { size: 1, exp: 1};
 pub const NONE5: UnitlessStep = UnitlessStep { size: 5, exp: 0};
 pub const NONE2: UnitlessStep = UnitlessStep { size: 2, exp: 0};
 pub const NONE: UnitlessStep = UnitlessStep { size: 1, exp: 0};

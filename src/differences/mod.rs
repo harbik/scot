@@ -93,6 +93,7 @@ where
 #[test]
 fn test_match(){
 	use crate::swatches::{ColorChecker,IesTm30Ces};
-	let _de: CieDE1976 = (ColorChecker::<3>, IesTm30Ces).into();
+	use crate::ALL;
+	let _de: CieDE1976 = (ColorChecker::<3>, IesTm30Ces::<ALL>).into();
 
 }

@@ -16,10 +16,12 @@
 
 
 use nalgebra::{Const, Dynamic, MatrixSlice, VecStorage};
-use nalgebra::{storage::Storage, DMatrix, Dim, Matrix};
+use nalgebra::{storage::Storage, DMatrix, Dim, Matrix,};
 
 use crate::util::Domain;
 use crate::util::{Step, Unit};
+
+use super::IterInterpolateType;
 
 pub fn matrix_from_data_by_lin_row_int<S1, S2, const R: usize, const C: usize>(
     from_domain: &Domain<S1>,
@@ -84,12 +86,9 @@ fn test_lin_row(){
 	assert_abs_diff_eq!(m, Matrix1xX::from_vec(vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]));
 }
 
-pub fn interp_cols<'a, S1, S2>(
-    from_domain: &Domain<S1>,
-    to_domain: &Domain<S2>,
-	nc: usize,
-    data: &'a [f64] // 
-) -> DMatrix<f64>
+
+/*
+pub fn interp_cols<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nc: usize, data: &'a [f64]  ) -> DMatrix<f64>
 where
     S1: Step + Clone + Copy,
     S2: Step + Clone + Copy,
@@ -100,22 +99,44 @@ where
 		println!("Using direct copy");
 		DMatrix::<f64>::from_iterator(to_domain.len(), nc, data.iter().cloned())
 	} else {
-		let m = MatrixSlice::from_slice_generic(data, Dynamic::new(from_domain.len()), Dynamic::new(nc));
-		let mut values = Vec::<f64>::with_capacity(to_domain.len() * nc);
+		let mfr = MatrixSlice::from_slice_generic(data, Dynamic::new(from_domain.len()), Dynamic::new(nc));
+		let mut mto = DMatrix::<f64>::zeros(to_domain.len(), nc);
 
 		let start = from_domain.scale.unitvalue(from_domain.range.start).value();
 		let div = from_domain.scale.unitvalue(1).value();
-		for ut in to_domain {
+		for (rto, ut) in to_domain.into_iter().enumerate() {
 			let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
-			let index = from_domain_interval.ceil() as usize;
-			let h = from_domain_interval - index as f64 + 1.0;
-		//	println!("{}\t{}\t{}\t{}", from_domain_interval, index, h);
-			match (index,h) {
-				(i,h) if i>0 && i<=nrows-1 => (0..nc).into_iter().for_each(|c|values.push(m[(i-1, c)]*(1.0-h)+m[(i,c)]*h)),
-				(_,_) => (0..nc).into_iter().for_each(|_|values.push(0.0)),
+			let i = from_domain_interval.ceil() as usize;
+			if i>0 && i<=nrows-1 { 
+				let h = from_domain_interval - (i-1) as f64;
+				(0..nc).into_iter().for_each(|c|mto[(rto,c)] = mfr[(i-1, c)]*(1.0-h)+mfr[(i,c)]*h);
 			}
 		}
-		DMatrix::<f64>::from_vec(to_domain.len(), nc, values)
+		mto
+	}
+}
+*/
+
+pub fn interp_cols<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nc: usize, data: &'a [f64]  ) -> DMatrix<f64>
+where
+    S1: Step + Clone + Copy,
+    S2: Step + Clone + Copy,
+    S1::UnitValueType: From<<S2>::UnitValueType>, 
+{
+	if *from_domain== *to_domain {
+		println!("Using direct copy");
+		DMatrix::<f64>::from_iterator(to_domain.len(), nc, data.iter().cloned())
+	} else {
+		let mfr = MatrixSlice::from_slice_generic(data, Dynamic::new(from_domain.len()), Dynamic::new(nc));
+		let mut mto = DMatrix::<f64>::zeros(to_domain.len(), nc);
+		for ip in from_domain.iter_interpolate(to_domain) {
+			match ip {
+				IterInterpolateType::Interpolate(j,i,h) => (0..nc).into_iter().for_each(|c|mto[(j,c)] = mfr[(i, c)]*(1.0-h)+mfr[(i+1,c)]*h),
+				IterInterpolateType::RangeEnd(j,i) => (0..nc).into_iter().for_each(|c|mto[(j,c)] = mfr[(i, c)]),
+				_ => () // extrapolation with 0.0 in this case, by default in mto
+			}
+		}
+		mto
 	}
 }
 
@@ -127,8 +148,27 @@ fn test_interp_col(){
 	let dto = Domain::new(0,10, NONE);
 	let data = [0.0, 5.0, 10.0]; // column major array in nalgebra
 	let m = interp_cols(&dfrom, &dto, 1, &data);
-	//println!("{}", m);
+	println!("{}", m);
 	assert_abs_diff_eq!(m, DMatrix::<f64>::from_vec(11, 1, vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]));
+}
+
+#[test]
+fn test_interp_col2(){
+	use super::{NONE5, NONE};
+	use approx::assert_abs_diff_eq;
+	let dfrom = Domain::new(0,2, NONE5);
+	let dto = Domain::new(0,10, NONE);
+	let data = [0.0, 5.0, 10.0, 0.0, 50.0, 100.0]; // column major array in nalgebra
+	let m = interp_cols(&dfrom, &dto, 2, &data);
+	println!("{}", m);
+	assert_abs_diff_eq!(m, DMatrix::<f64>::from_vec(
+		22, 
+		1, 
+		vec![
+			0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,
+			0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0,
+			]),
+	/*epsilon = 1E-9*/);
 }
 
 

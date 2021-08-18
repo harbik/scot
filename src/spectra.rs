@@ -5,7 +5,7 @@ use nalgebra::DMatrix;
 
 use crate::observers::StandardObserver;
 use crate::models::CieXYZ;
-use crate::util::{Domain, Meter, Step, };
+use crate::util::{Domain, Meter, Step, Unit, };
 
 
 
@@ -81,9 +81,9 @@ where
 //	<Matrix<f64, Const, Dynamic, VecStorage<f64, Const, Dynamic>> as Mul<<S as SpectralData>::MatrixType>>::Output
  {
 	fn from(sd: S) -> Self {
-	//	let xyz = 
-		//	<C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().scale.unitvalue(1).value();
-		let xyz = C::xyz_from_dom_mat(sd.domain(), sd.values(&sd.domain()));
+		let xyz = 
+			<C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().scale.unitvalue(1).value();
+		//let xyz = C::xyz_from_dom_mat(sd.domain(), sd.values(&sd.domain()));
 		CieXYZ::<C>::new(xyz)
 	}
 }

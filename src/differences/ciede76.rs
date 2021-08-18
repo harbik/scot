@@ -128,7 +128,8 @@ fn test_ciede76(){
 	use crate::observers::{CieObs1931};
 	use crate::illuminants::{CieIllD65};
 	use crate::swatches::{ColorChecker, IesTm30Ces};
-	let de = CieDE1976::<CieIllD65, CieObs1931>::from((ColorChecker::<13>, IesTm30Ces));
+	use crate::ALL;
+	let de = CieDE1976::<CieIllD65, CieObs1931>::from((ColorChecker::<13>, IesTm30Ces::<ALL>));
 //	println!("{:.1}", de);
 	let m = de.matches();
 	let mut prev = 0f64;

@@ -124,7 +124,8 @@ fn test_ciede76(){
 	use crate::observers::{CieObs1931};
 	use crate::illuminants::{CieIllD65};
 	use crate::swatches::{ColorChecker, IesTm30Ces};
-	let de = CieDE1994::<CieIllD65, GraphicArts, CieObs1931>::new(ColorChecker::<13>, IesTm30Ces);
+	use crate::ALL;
+	let de = CieDE1994::<CieIllD65, GraphicArts, CieObs1931>::new(ColorChecker::<13>, IesTm30Ces::<ALL>);
 	let m = de.matches();
 	let mut prev = 0f64;
 	// check if error differences are in increasing order

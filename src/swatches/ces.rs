@@ -19,6 +19,7 @@ use nalgebra::{DMatrix, };
 use crate::spectra::SpectralData;
 use crate::util::{Domain, interp_cols};
 use crate::util::{WavelengthStep, Step, NM};
+use crate::ALL;
 
 use super::Swatches;
 
@@ -26,10 +27,12 @@ use super::Swatches;
 const N: usize = 401; // number of points in a spectral distributions, and the number of rows in the column major spectral matrix
 const M: usize = 99; // number of spectra in the set, or the number of columns in the spectral matrix
 
-#[derive(Default)]
-pub struct IesTm30Ces;
+pub const IES_TM30_CES: IesTm30Ces::<ALL> = IesTm30Ces::<ALL>;
 
-impl SpectralData for IesTm30Ces {
+#[derive(Default)]
+pub struct IesTm30Ces<const I:usize>;
+
+impl<const I:usize> SpectralData for IesTm30Ces<I> {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
@@ -37,41 +40,27 @@ impl SpectralData for IesTm30Ces {
 		L: Step,
 		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 	{
-		// todo use linear interpolation in this case, as interval is 1nm?
-	//	sprague_cols(&self.domain(), &domain, &SMatrix::from_data(ArrayStorage(CES)))
-	interp_cols(&self.domain(), &domain, M, &CES)
+		match I {
+			ALL => {
+				interp_cols(&self.domain(), &domain, M, &CES_DATA)
+			}
+			i@1..=M => {
+				interp_cols(&self.domain(), &domain, M, &CES_DATA[(i-1)*N..i*N])
+			}
+			_ => panic!("Illegal Index")
+		}
     }
 
     fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
         Domain::new(380, 780, NM)
     }
 
-	fn keys(&self) -> Option<Vec<String>> {
-		Some(vec![
-			"7.5 R 6/4|light greyish red".to_string(),
-			"5 Y 6/4|Dark greyish yellow".to_string(),
-			"5 GY 6/8|Strong yellow green".to_string(),
-			"2.5 G 6/6|Moderate yellowish green".to_string(),
-			"10 BG 6/4|Light bluish green".to_string(),
-			"5 PB 6/8|Light blue".to_string(),
-			"2.5 P 6/8|Light violet".to_string(),
-			"10 P 6/8|Light reddish purple".to_string(),
-			"4.5 R 4/13|Strong red".to_string(),
-			"5 Y 8/10|Strong yellow".to_string(),
-			"4.5 G 5/8|Strong green".to_string(),
-			"3 PB 3/11|Strong blue".to_string(),
-			"5 YR 8/4|Light yellowish pink".to_string(),
-			"5 GY 4/4|Moderate olive green".to_string(),
-			"|Japanese skin".to_string(),
-		])
-	}
-
 	fn description(&self) -> Option<String> {
-		Some("CRI Test Color Samples (TCS)".to_string())
+		Some("IES TM30 CES  Color Evaluation Samples (CES)".into())
 	}
 }
 
-impl Swatches for IesTm30Ces {}
+impl<const I:usize> Swatches for IesTm30Ces<I> {}
 
 
 #[test]
@@ -79,14 +68,15 @@ fn test_tcs(){
 	use crate::models::CieLab;
 	use crate::illuminants::CieIllD65;
 	use crate::observers::CieObs1931;
+	use crate::ALL;
 
-	let ces_lab: CieLab<CieIllD65, CieObs1931> = IesTm30Ces::default().into();
+	let ces_lab: CieLab<CieIllD65, CieObs1931> = IesTm30Ces::<ALL>::default().into();
 
-	println!("{:.4}", ces_lab.data.transpose());
+	println!("{:.10}", ces_lab.data.transpose());
 
 }
 
-const CES: [f64;N*M] = [
+static CES_DATA: [f64;N*M] = [
 /* CES01 */ 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359068, 0.635934, 0.6359612, 0.6359544, 0.6359,
 0.6358064, 0.6356632, 0.635554, 0.6356068, 0.6359, 0.636418768, 0.63716784, 0.638094912, 0.639110144, 0.64015, 0.641219392, 0.642315072, 0.643402592,
 0.644440592, 0.6454, 0.646271744, 0.647043712, 0.6477236, 0.648331328, 0.64888, 0.64936208, 0.64977224, 0.65012176, 0.65042752, 0.6507, 0.650937568, 0.65114088,

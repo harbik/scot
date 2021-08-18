@@ -7,6 +7,7 @@ use std::fmt::Debug;
 use std::ops::Range;
 use std::iter::IntoIterator;
 use std::iter::ExactSizeIterator;
+use std::marker::PhantomData;
 
 use super::WavelengthStep;
 
@@ -104,6 +105,69 @@ where
 	pub fn iter(&self) -> IterDomain<S> {
 		self.into_iter()
 	}
+
+	pub fn iter_interpolate<S2: Step> (&self, to_domain: &Domain<S2>) -> IterInterpolate<S, S2>
+	where
+		S::UnitValueType: From<<S2>::UnitValueType>, 
+	{
+		let div = self.scale.unitvalue(1).value();
+		let stride = Into::<S::UnitValueType>::into(to_domain.scale.unitvalue(1)).value()/div;
+		println!("Stride: {}", stride);
+		IterInterpolate {
+			start: self.scale.unitvalue(self.range.start).value(),
+			div,
+			stride,
+			ito: 0usize,
+			iter_to: to_domain.into_iter(),
+			n: self.len()-1, // max index value
+			_phd: PhantomData
+		}
+	}
+}
+
+pub struct IterInterpolate<S:Step, S2: Step> {
+//	pub fr: Domain<S1>,
+//	pub to: Domain<S2>,
+	pub start: f64,
+	pub div: f64,
+	pub stride: f64,
+	pub n: usize,
+	pub ito: usize,
+	pub iter_to: IterDomain<S2>,
+	_phd: PhantomData::<*const S>
+}
+
+#[derive(Debug)]
+pub enum IterInterpolateType { // index target domain, left index interval from domain, and fraction
+	ExtrapolateLow(usize, isize, f64),
+	ExtrapolateHigh(usize, usize, f64),
+	Interpolate(usize, usize, f64),
+	RangeEnd(usize, usize),
+}
+
+impl<S: Step, S2: Step> Iterator for IterInterpolate<S,S2> 
+where
+    S::UnitValueType: From<<S2>::UnitValueType>, 
+{
+    type Item = IterInterpolateType;
+
+    fn next(&mut self) -> Option<Self::Item> {
+		match self.iter_to.next(){
+			Some(ut) => {
+				let j = self.ito;
+				self.ito += 1;
+				let from_domain_interval = (Into::<S::UnitValueType>::into(ut).value() - self.start) / self.div;
+				let i = from_domain_interval.floor() as isize;
+				match (i, i as usize, from_domain_interval - i as f64) {
+					(i, _, h) if i<0 => Some(IterInterpolateType::ExtrapolateLow(j, i, h)),
+					(_, u, h) if u <self.n =>  Some(IterInterpolateType::Interpolate(j, u, h)), // i>=0
+					(_, u, h) if u==self.n && h<1E-6 => Some(IterInterpolateType::RangeEnd(j, u)),
+					(_, u, h) => Some(IterInterpolateType::ExtrapolateHigh(j, u-self.n, h)),
+				}
+			}
+			None => None,
+		}
+    }
 }
 
 /**
@@ -240,16 +304,18 @@ fn test_into_iterator_spectraldomain() {
 #[test]
 fn test_iter_interpolate() {
 	{
-		use crate::util::{NONE100, NONE50};
+		use crate::util::{NONE5, NONE};
 
-		let from_domain = Domain::new(3, 10, NONE100); // 2, 4
+		let from_domain = Domain::new(1, 2, NONE5); // 2, 4
 		let din = from_domain.iter().map(|u|u.value()).collect::<Vec<_>>();
-		assert_eq!(din,vec![300.0, 400.0, 500.0, 600.0, 700.0, 800.0, 900.0, 1000.0]);
+		assert_eq!(din,vec![5.0, 10.0]);
 		 
-		let to_domain = Domain::new(5, 21, NONE50); // 0, 1, 2, 3, 4, 5
+		let to_domain = Domain::new(4, 11, NONE); // 0, 1, 2, 3, 4, 5
 		let dout = to_domain.clone().into_iter().map(|u|u.value()).collect::<Vec<_>>();
-		assert_eq!(dout,vec![250.0, 300.0, 350.0, 400.0, 450.0, 500.0, 550.0, 600.0, 650.0, 700.0, 750.0, 800.0, 850.0, 900.0, 950.0, 1000.0, 1050.0]);
+		assert_eq!(dout,vec![4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0,]);
 
+		let val = from_domain.iter_interpolate(&to_domain).into_iter().collect::<Vec<_>>();
+		println!("{:?}", val)
 	}
 
 }
