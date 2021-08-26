@@ -3,7 +3,7 @@
 use nalgebra::{ArrayStorage, DMatrix, Matrix3xX, SMatrix, SVector};
 
 use crate::spectra::{SpectralData};
-use crate::illuminants::cct::{CCTs};
+use crate::illuminants::cct_parameters::{CctParameters};
 use crate::util::domain::Domain;
 use crate::util::{WavelengthStep, Step, NM5};
 use crate::util::interpolate::{sprague_cols};
@@ -66,12 +66,12 @@ pub type CieD = CieDaylight;
 
 #[derive(Debug,Clone)]
 pub struct CieDaylight {
-	pub ccts: CCTs,
+	pub ccts: CctParameters,
 }
 
 impl CieDaylight {
 
-	pub fn new(parameters: impl Into<CCTs>) -> CieDaylight
+	pub fn new(parameters: impl Into<CctParameters>) -> CieDaylight
 	{
 		CieDaylight {
 			ccts: parameters.into(),

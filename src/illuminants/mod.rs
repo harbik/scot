@@ -3,10 +3,13 @@
 
 */
 
-use crate::spectra::SpectralData;
+use crate::SpectralData;
 
 pub mod cct;
-pub use self::cct::*; // use illuminants::CCTs
+pub use self::cct::*;
+
+pub mod cct_parameters;
+pub use self::cct_parameters::*; // use illuminants::CCTs
 
 pub mod daylight;
 pub use self::daylight::*;

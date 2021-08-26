@@ -2,7 +2,7 @@
 	Equidistant value ranges, used in this library for example to define wavelength ranges for spectral distributions.
  */
 
-use crate::util::{Step, Unit};
+use crate::{Step, Unit};
 use std::fmt::Debug;
 use std::ops::Range;
 use std::iter::IntoIterator;

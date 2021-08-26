@@ -2,9 +2,9 @@
 
 use nalgebra::{DMatrix };
 
-use crate::spectra::{SpectralData};
+use crate::{SpectralData};
 use crate::illuminants::{Illuminant};
-use crate::illuminants::cct::{CCTs};
+use crate::illuminants::cct_parameters::{CctParameters};
 use crate::util::{Domain, planck, Meter, Step, Unit, WavelengthStep, };
 
 
@@ -62,12 +62,12 @@ use crate::util::{Domain, planck, Meter, Step, Unit, WavelengthStep, };
 
 #[derive(Debug)]
 pub struct Planckian {
-	pub ccts: CCTs,
+	pub ccts: CctParameters,
 }
 
 impl Planckian {
 
-	pub fn new(parameters: impl Into<CCTs>) -> Planckian
+	pub fn new(parameters: impl Into<CctParameters>) -> Planckian
 	{
 		Planckian {
 			ccts: parameters.into(),

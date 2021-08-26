@@ -1,6 +1,9 @@
 
 
 
+use std::collections::{HashMap, };
+
+use maplit::hashmap;
 use nalgebra::{DMatrix, Dynamic, MatrixSlice};
 
 use crate::spectra::SpectralData;
@@ -13,8 +16,8 @@ use crate::ALL;
 const M: usize = 12;
 const M3: usize = 15;
 
-pub type CieFluorescent = FL::<ALL>;  	// need to use CieFluorescent::default() if this alias is used
-pub type CieFluorescent3 = FL3::<ALL>; 	// as opposed to FL::<ALL>, which can be used without explicit default constructor
+pub const CIE_FLUORESCENT: FL::<ALL> = FL::<ALL>;  	// need to use CieFluorescent::default() if this alias is used
+pub const CIE_FLUORESCENT3: FL3::<ALL> = FL3::<ALL>; 	// as opposed to FL::<ALL>, which can be used without explicit default constructor
 
 #[derive(Debug, Default)]
 pub struct FL<const I:usize>;
@@ -100,7 +103,7 @@ fn test_f(){
 	assert_abs_diff_eq!(y, 0.3371, epsilon=0.0005);
 
 //	let fall = crate::models::CieYxy::<CieObs1931>::from(FL::<ALL>);
-	let fall = crate::models::CieYxy::<CieObs1931>::from(CieFluorescent::default());
+	let fall = crate::models::CieYxy::<CieObs1931>::from(CIE_FLUORESCENT);
 
 	let cie_fl_test = SMatrix::from_data(ArrayStorage(FLTEST));
 	let cie_fl_data = cie_fl_test.slice_range(..2, ..);
@@ -151,6 +154,24 @@ pub static FLTEST : [[f64;4];12] = [
 		[0.3805, 0.3769, 4000.0, 83.0],
 		[0.4370, 0.4042, 3000.0, 83.0]
 ];
+
+pub fn fl_ies_tm30_tool_values() ->  HashMap<&'static str, [f64;6]> {
+	// cie 1931: x, y, cct, duv, Rf, Rg
+	hashmap![
+		"F1" =>  [0.31310, 0.33728, 6425.14, 0.00719, 80.7, 89.8],
+		"F2" =>  [0.37209, 0.37530, 4225.07, 0.00187, 70.2, 86.4],
+		"F3" =>  [0.40910, 0.39431, 3447.36, 0.00075, 63.2, 84.4],
+		"F4" =>  [0.44019, 0.40330, 2939.6, -0.00074, 56.8, 83.5],
+		"F5" =>  [0.31380, 0.34532, 6342.52, 0.01081, 77.9, 87.4],
+		"F6" =>  [0.37790, 0.38836, 4148.93, 0.00611, 66.6, 83.5],
+		"F7" =>  [0.31292, 0.32934, 6489.75, 0.00327, 91.5, 98.9],
+		"F8" =>  [0.34589, 0.35876, 4994.67, 0.00325, 95.5, 101.6],
+		"F9" =>  [0.37417, 0.37283, 4147.98, 0.00004, 91.0, 99.7],
+		"F10" =>  [0.34580, 0.35897, 4998.73, 0.00339, 79.6, 99.2],
+		"F11" =>  [0.38052, 0.37714, 4000.68, 0.00016, 80.1, 101.0],
+		"F12" =>  [0.43695, 0.40442, 3002.57, 0.00014, 77.7, 102.4],
+	]
+} 
 
 /**
 Reference values for the CIE FL3-series standard illuminant, as provided by CIE in CIE Technical Report 15:2004, 3rd Edition.

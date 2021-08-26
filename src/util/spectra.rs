@@ -3,9 +3,7 @@
 
 use nalgebra::DMatrix;
 
-use crate::observers::StandardObserver;
-use crate::models::CieXYZ;
-use crate::util::{Domain, Meter, Step, Unit, };
+use crate::util::{Domain, Step, };
 
 
 
@@ -53,38 +51,4 @@ pub trait SpectralData {
 
 }
 
-/**
-	Calculate XYZ tristimilus value from spectral distributions.
-
-	This is a generic implementation for calculation of XYZ values. 
-	It interpolates the color matching functions values onto the 
-	spectral distribution's domain.
-
-	# Examples
-	Calculate Tristimulus values for a Blackbody radiator
-	```
-	use colorado::illuminants::Blackbody;
-	use colorado::observers::Cie1931;
-	use colorado::cie::XYZ;
-
-	let bb = XYZ::<Cie1931>::from(Blackbody::new(3000));
-	println!("{}",bb);
-	```
- */
-
-impl<C, S> From<S> for CieXYZ<C>
-where 
-	C: StandardObserver,
-//	&'static C: Default,
-	S: SpectralData,
-	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>,
-//	<Matrix<f64, Const, Dynamic, VecStorage<f64, Const, Dynamic>> as Mul<<S as SpectralData>::MatrixType>>::Output
- {
-	fn from(sd: S) -> Self {
-		let xyz = 
-			<C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().step.unitvalue(1).value();
-		//let xyz = C::xyz_from_dom_mat(sd.domain(), sd.values(&sd.domain()));
-		CieXYZ::<C>::new(xyz)
-	}
-}
 

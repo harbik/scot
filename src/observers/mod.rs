@@ -21,18 +21,16 @@ pub mod cie_f10;
 pub use cie_f10::*;
 
 use nalgebra::{DMatrix, Matrix3x1, Matrix3xX};
-use crate::util::domain::Domain;
-use crate::util::{Meter, WavelengthStep, Step, Unit};
+use crate::{Domain, Meter, WavelengthStep, Step, Unit};
 
 
 /**
 	Color matching functions mapped to a spectral data domain.
 
-	A trait to get a standard observer chromatic responses, referred to as color matching functions
-	x&#772;(&lambda;), y&#772;(&lambda;) z&#772;(&lambda;) by the CIE, as a matrix over target domain, typically the default
-	domain for a spectral distribution. The mapping is typically done using a quadratic interpolation algorithm. Also
-	analytical models of the CIE standard observers exist, which allows to do the mapping by a straightforward
-	function evaluation.
+	A trait to get a standard observer chromatic responses – generally referred to as color matching functions
+	x&#772;(&lambda;), y&#772;(&lambda;) z&#772;(&lambda;) – as a matrix over target domain.
+	The mapping is done using an interpolation algorithm: typically a linear interpolation is used 
+	if the base data set is finely spaces (1nm).
  */
 pub trait StandardObserver : Default
 {
@@ -94,6 +92,13 @@ pub trait StandardObserver : Default
 	/// Domain associated with the data for the standard observer itself, as defined in their standard. 
 	/// These standards uses meter as domain unit.
 	fn domain(&self) -> Domain<WavelengthStep>;
+
+	/*
+	fn planckian_locus(ctl: CctLadder) -> CieXYZ<Self> {
+		let v: Vec<f64> = ctl.into_iter().collect();
+		CieXYZ::<Self>::from(Planckian::new(v))
+	}
+	 */
 }
 
 
