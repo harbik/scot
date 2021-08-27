@@ -2,7 +2,7 @@
 use std::{fmt::Display, marker::PhantomData};
 
 use nalgebra::{Matrix3xX};
-use crate::{DefaultObserver, observers::StandardObserver};
+use crate::{DefaultObserver, illuminants::{CctDuv, CctDuvValue, Planckian}, observers::StandardObserver};
 
 use super::{CieXYZ, XYZValues};
 
@@ -35,6 +35,40 @@ where
 		}
 		Self::new(Matrix3xX::<f64>::from_vec(v))
 	}
+}
+
+#[allow(dead_code)]
+pub(crate) fn uv_from_cct_duv<C: StandardObserver>(cct:f64, duv:f64) ->(f64,f64) {
+	let CieYuv1960Values{y: _, u: u0, v: v0} = CieYuv1960::<C>::from(Planckian::new(cct)).into_iter().next().unwrap();
+	let CieYuv1960Values{y: _, u: u1, v: v1} = CieYuv1960::<C>::from(Planckian::new(cct+0.01)).into_iter().next().unwrap();
+	let du = u0 - u1;
+	let dv = v0 - v1;
+	let hyp = du.hypot(dv);
+	(u0 - dv * duv/hyp, v0 + du  * duv/hyp) // see Ohno, Leukos, Practical Use and Calculation of CCT and DUV 
+}
+
+impl<C> From<CctDuv<C>> for CieYuv1960<C> 
+where 
+	C: StandardObserver,
+{
+    fn from(tds: CctDuv<C>) -> Self {
+		let mut mv: Vec<f64> = Vec::with_capacity(3 * tds.len());
+		for CctDuvValue{t,d} in tds {
+			let (u,v) = uv_from_cct_duv::<C>(t,d);
+			mv.push(1.0); // y
+			mv.push(u);
+			mv.push(v);
+		}
+		Self::new(Matrix3xX::<f64>::from_vec(mv))
+    }
+}
+
+#[test]
+fn test_from_cctduv(){
+	use crate::observers::CieObs1931;
+	let tds : CctDuv<CieObs1931> = CctDuv::new(vec![[3000.0,0.0], [3000.0, 0.01], [3000.0, -0.01]]);
+	let yuv: CieYuv1960<_> = tds.into();
+	println!("{}", yuv);
 }
 
 impl<C: StandardObserver> Display for CieYuv1960<C> {

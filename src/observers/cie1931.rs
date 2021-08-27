@@ -36,7 +36,7 @@ CIE 1931 2º color matching functions, defined from 380 to 780nm, in steps of 1n
 Source: ANSI/IES TM-30-18 Advanced Calculation Tool V2.0, Aug 10, 2018.
 
 */
-#[derive(Debug,Clone,Default)]
+#[derive( Debug,Clone,Default, PartialEq)]
 pub struct CieObs1931 {}
 
 impl StandardObserver for CieObs1931 {

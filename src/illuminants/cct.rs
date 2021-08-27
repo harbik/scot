@@ -28,6 +28,10 @@ for spectral distributions for a long time.
 In comparison with the other methods in this library it is fast, especially if the Robertson table has already been calculated.
 Here this method can be used for any observer, including the CIE1931 standard observer, which is the one implemented by Robertson.
 
+Drawbacks of this method are its limited accuracy –
+approximately 2K for CCTs around 6500K, and larger for points further from the Planckian locus –
+and limit in low temperature range: it fails for color temperatures less than 1667K.
+
 
 # Ohno: 1% step table search with parabolic and linear interpolation
 
@@ -88,6 +92,7 @@ use core::panic;
 use std::fmt::Display;
 use std::{error::Error,  marker::PhantomData};
 
+use approx::{AbsDiffEq, };
 use nalgebra::{DVector, Matrix2xX, Matrix3xX};
 use crate::{DefaultObserver, /*Meter, SpectralData, Step,*/};
 use crate::models::yuv1960::{CieYuv1960, CieYuv1960Values};
@@ -104,7 +109,42 @@ use super::Planckian;
 	above the Planckian, and negative values below the Planckian locus. 
 	For Duv's larger than 0.05, or CCTs below or above the covered range, `f64::NAN` values are reported.
 */
+#[derive(PartialEq, Debug, Clone)]
 pub struct CctDuv<C: StandardObserver>(Matrix2xX<f64>, PhantomData<*const C>);
+
+impl<C: StandardObserver> CctDuv<C> {
+	pub fn new(td: Vec<[f64;2]>) -> Self {
+		let mut mv: Vec<f64> = Vec::with_capacity(td.len() * 2);
+		for [t,d] in td {
+			mv.push(t);
+			mv.push(d);
+		}
+		Self(Matrix2xX::from_vec(mv), PhantomData)
+	}
+	
+	pub fn len(&self) -> usize {
+		self.0.ncols()
+	}
+}
+
+impl<C> AbsDiffEq for CctDuv<C>
+where C: StandardObserver + PartialEq
+{
+    type Epsilon = (f64, f64);
+
+    fn default_epsilon() -> Self::Epsilon {
+		(1.0, 1E-4)
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+		for (a,b) in self.0.column_iter().zip(other.0.column_iter()) {
+			if (a.x-b.x).abs() > epsilon.0 || (a.y-b.y).abs()> epsilon.1 {
+				return false
+			};
+		}
+		true
+    }
+}
 
 pub struct CctDuvValue {
 	pub t: f64,
@@ -212,8 +252,6 @@ impl<C: StandardObserver> CctDuvCalc for Robertson<C> {
     fn cct_duv<U>(&self, uv: U) -> CctDuv<Self::Observer>
 	where
 		U: Into<CieYuv1960<Self::Observer>>,
-	//	S: SpectralData,
-	//	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
 	 {
 		let yuvs : CieYuv1960<C> = uv.into();
 		let mut tdv: Vec<f64> = Vec::with_capacity(2 * yuvs.data.len());
@@ -238,15 +276,18 @@ impl<C: StandardObserver> CctDuvCalc for Robertson<C> {
 				dm /= (1.0 + self.0[(2,ir-1)].powi(2)).sqrt();
         		let p = dm / (dm - di);     // p interpolation parameter
         		let t = (ROBERTSON_MRD[ir - 1] * (1.0-p) + ROBERTSON_MRD[ir] * p).recip() * 1E6;
-			//	println!{"***** {} {}", p, t};
 				tdv.push(t);
 				let CieYuv1960Values { y: _, u: up, v: vp } = 
 					CieYuv1960::<C>::from(Planckian::new(t)).into_iter().next().unwrap();
 				let d = (u-up).hypot(v-vp);
-				if v<vp {
-					tdv.push(-d)
+				if d>0.05 {
+					tdv.push(f64::NAN)
 				} else {
-					tdv.push(d)
+					if v<vp {
+						tdv.push(-d)
+					} else {
+						tdv.push(d)
+					}
 				}
 			}
 		}
@@ -267,7 +308,7 @@ fn robertson_normal<C: StandardObserver>(cct:f64) ->(f64, f64,f64) {
 #[allow(dead_code)]
 const ROBERTSON_MRD: [f64;31] = [
 	1.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 125.0, 150.0, 175.0, 200.0, 225.0, 250.0, 275.0, 
-	300.0, 325.0, 350.0, 375.0, 400.0, 425.0, 450.0, 475.0, 500.0, 525.0, 550.0, 575.0, 600.0
+	300.0, 325.0, 350.0, 375.0, 400.0, 425.0, 450.0, 475.0, 500.0, 525.0, 550.0, 575.0, 600.0,
 ];
 
 
@@ -277,7 +318,7 @@ fn robertson_normal_test(){
 	use crate::illuminants::{Robertson, FL, CctDuvCalc};
 
 	let r: Robertson<CieObs1931> = Robertson::new();
-//	println!("{:8.4}", r.0.transpose());
+	println!("{:8.4}", r.0.transpose());
 
 
 	let cct_duv_fl1 = r.cct_duv(FL::<1>);
@@ -292,8 +333,28 @@ fn robertson_normal_test(){
 }
 
 
+#[test]
+fn test_robertson_from_cctduv(){
+	use crate::observers::CieObs1931;
+	use crate::illuminants::{Robertson, CctDuvCalc};
+	use approx::assert_abs_diff_eq;
+
+	let r: Robertson<CieObs1931> = Robertson::new();
+	
+	let tds : CctDuv<CieObs1931> = CctDuv::new(vec![
+		[12000.0,0.0], [12000.0, 0.01], [12000.0, -0.],
+		[6500.0,0.0], [6500.0, 0.01], [6500.0, -0.0499],
+		[3000.0,0.0], [3000.0, 0.01], [3000.0, -0.01],
+		[1800.0,0.0], [1667.0,0.0], 
+
+	]);
+	let yuv: CieYuv1960<_> = tds.clone().into();
+	
+	let td_calc = r.cct_duv(yuv);
+	assert_abs_diff_eq!(tds, td_calc, epsilon = (5.0, 0.000_01));
+}
 /**
-	Multiplicative increasing temperature scale
+	Multiplicative increasing temperature scale as used in Ohno's method
 */
 #[derive(Clone,Copy)]
 pub struct 	CctLadder {
@@ -485,8 +546,6 @@ where C: StandardObserver
     fn cct_duv<U>(&self, uv: U) -> CctDuv<Self::Observer>
 	where
 		U: Into<CieYuv1960<Self::Observer>>,
-	//	S: SpectralData,
-	//	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
 	{
 		let pt = PlanckianTable::<C>::new(None);
 		let uvs_test: CieYuv1960<C> = uv.into();
@@ -528,8 +587,6 @@ where
     fn cct_duv<U>(&self, uv: U) -> CctDuv<Self::Observer>
 	where
 		U: Into<CieYuv1960<Self::Observer>>,
-	//	S: SpectralData,
-	//	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
 	{
 		let uvs_test: CieYuv1960<C> = uv.into();
 		let mut mv: Vec<f64> = Vec::with_capacity(uvs_test.data.len());
@@ -543,15 +600,6 @@ where
 	}
 }
 
-#[allow(dead_code)]
-fn uv_from_cct_duv<C: StandardObserver>(cct:f64, duv:f64) ->(f64,f64) {
-	let CieYuv1960Values{y: _, u: u0, v: v0} = CieYuv1960::<C>::from(Planckian::new(cct-0.005)).into_iter().next().unwrap();
-	let CieYuv1960Values{y: _, u: u1, v: v1} = CieYuv1960::<C>::from(Planckian::new(cct+0.005)).into_iter().next().unwrap();
-	let du = u0 - u1;
-	let dv = v0 - v1;
-	let hyp = du.hypot(dv);
-	(u0 - dv * duv/hyp, v0 + du  * duv/hyp) // see Ohno, Leukos, Practical Use and Calculation of CCT and DUV 
-}
 
 #[test]
 fn test_ohno(){
@@ -567,7 +615,7 @@ fn test_ohno(){
 		[6500.0, 0.001],
 		[6500.0, -0.001],
 	] {
-		let (u,v) = uv_from_cct_duv::<crate::observers::CieObs1931>(t, d);
+		let (u,v) = crate::models::uv_from_cct_duv::<crate::observers::CieObs1931>(t, d);
 		let p = PlanckianTable::<crate::observers::CieObs1931>::new(None);
 		let [tc,dc] = p.ohno2014(u,v);
 //		println!("{} {}", t, d);
@@ -580,6 +628,7 @@ fn test_ohno(){
 
 #[test]
 fn test_bounds(){
+	use crate::models::uv_from_cct_duv;
 	let p = PlanckianTable::<crate::observers::CieObs1931>::new(None);
 
 	let (u,v) = uv_from_cct_duv::<crate::observers::CieObs1931>(900.0, 0.0);
@@ -612,6 +661,7 @@ fn test_bounds(){
 fn test_ohno_cascade(){
 
 	use approx::assert_abs_diff_eq;
+	use crate::models::uv_from_cct_duv;
 
 	for [t,d] in vec![
 		[3000.0, 0.045],
