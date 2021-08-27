@@ -21,6 +21,14 @@ And as a footnote it says:
 To calculate the correlated color temperature for a source accurately is quite difficult, and many different methods exist.
 Here the following methods are implemented:
 
+# Robertson
+
+This method is decribed by A.R. Robertson Robertson\[1968\], and was the defacto standard to calculate correlated color temperatures
+for spectral distributions for a long time. 
+In comparison with the other methods in this library it is fast, especially if the Robertson table has already been calculated.
+Here this method can be used for any observer, including the CIE1931 standard observer, which is the one implemented by Robertson.
+
+
 # Ohno: 1% step table search with parabolic and linear interpolation
 
 This is in a implementation of the method as described by Ohno\[2014\].
@@ -30,8 +38,43 @@ The implementation here starts with a temperature of 1000K, and uses a multiplic
 are 1000K * 1.01 = 1010K, and 1010K * 1.01 = 1020.1K.
 In total 303 values are generated, with a maximum of 20186.21K.
 
-# Ohno's cascase tables
+The algorithm is a basic brute force minimum search, with either triangular (|Duv|<0.002) or parabolic interpolation (otherwise) within the 
+interval containing the minimum values.
+As concerned to the accuracy of this method, Ohno reports:
 
+> The errors are mostly
+> within 0.5 K in the 2000 to 20,000 K range and −0.03 < Duv < 0.03 and the maximum error is 0.8 K
+
+Here is an example, calculating the cct and Duv values for the CIE FL1 illuminant:
+```
+	use colorado::illuminants::{Ohno2014, FL};
+	use colorado::observers::CieObs1931;
+
+	let ohno2014 = Ohno2014::<CieObs1931>::default();
+	
+	let cct = ohno2014.cct_duv(FL::<1>);
+	println!("{}", cct.0);
+```
+
+
+# Ohno's cascade tables
+
+Another minimum search algorithm, proposed by Ohno, is to use Planckian locus tables iteratively,
+starting with a large 15% step table – a multiplication factor of 1.15 – 
+and continuing with finer step table (with 10 times smaller step size, 1.5%) centered around the found minimum.
+This can be repeated a couple of times, getting to very small step size, and small errors.
+
+To use Ohno's Cascade method to calculate the CCT and Duv values for the CIE FL1 illuminant:
+
+```
+	use colorado::illuminants::{Ohno2014Cascade, FL};
+	use colorado::observers::CieObs1931;
+	
+	let ohno2014_cascade = Ohno2014Cascade::<CieObs1931>::default();
+	
+	let cct = ohno2014_cascade.cct_duv(FL::<1>);
+	println!("{}", cct.0);
+```
 
 
 # References
@@ -42,9 +85,10 @@ of North America, 10:1, 47-55, DOI: 10.1080/15502724.2014.839020
 
 */
 use core::panic;
+use std::fmt::Display;
 use std::{error::Error,  marker::PhantomData};
 
-use nalgebra::{DVector, Matrix2xX};
+use nalgebra::{DVector, Matrix2xX, Matrix3xX};
 use crate::{DefaultObserver, Meter, SpectralData, Step,};
 use crate::models::yuv1960::{CieYuv1960, CieYuv1960Values};
 use crate::observers::{StandardObserver};
@@ -54,15 +98,195 @@ use super::Planckian;
 
 /**
 	Correlated color temperatures, CCT, and distances to a Planckian locus, Duv, for a collection of spectral sources.
+
+	Output of the CctDuvCalc trait, encapsulating a matrix with two rows, the first row with the correlated color
+	temperatures in Kelvin, and the second row distances to the Planckian, or Duv's, with positive values being
+	above the Planckian, and negative values below the Planckian locus. 
+	For Duv's larger than 0.05, or CCTs below or above the covered range, `f64::NAN` values are reported.
 */
-pub struct CctDuv(Matrix2xX<f64>);
+pub struct CctDuv<C: StandardObserver>(Matrix2xX<f64>, PhantomData<*const C>);
+
+pub struct CctDuvValue {
+	pub t: f64,
+	pub d: f64,
+}
+
+pub struct CctDuvIter {
+	m: Matrix2xX<f64>,
+	i: usize,
+	n: usize,
+}
+
+impl Iterator for CctDuvIter {
+    type Item = CctDuvValue;
+
+    fn next(&mut self) -> Option<Self::Item> {
+		let k = self.i;
+        if k<self.n {
+			self.i += 1;
+			let td = self.m.column(k);
+			Some(
+				CctDuvValue {
+					t: td.x,
+					d: td.y
+				}
+			)
+		} else {
+			None
+		}
+    }
+}
+
+impl<C> IntoIterator for CctDuv<C>
+where C: StandardObserver
+ {
+    type Item = CctDuvValue;
+
+    type IntoIter = CctDuvIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        CctDuvIter {
+			n: self.0.ncols(),
+			m: self.0,
+			i: 0usize,
+		}
+    }
+}
 
 pub trait CctDuvCalc { // Illuminant?
-	fn cct_duv<S>(sd: S) -> CctDuv 
+	type Observer: StandardObserver;
+
+	fn cct_duv<S>(&self, sd: S) -> CctDuv<Self::Observer>
 	where
 		S: SpectralData,
 		Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
 	;
+}
+
+impl<C: StandardObserver> Display for CctDuv<C> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		write!(f, "{:7.5}", self.0)
+    }
+}
+
+/**
+# Robertson
+
+In comparison with the other methods in this library it is fast, especially if the Robertson table has already been calculated,
+which is done using:
+```
+	use colorado::illuminants::{Robertson, FL, CctDuvCalc};
+	use colorado::observers::{CieObs1931};
+	let robertson: Robertson<CieObs1931> = Robertson::new();
+
+	let cct_duv_fl1 = robertson.cct_duv(FL::<1>);
+	println!("Robertson {}", cct_duv_fl1);
+```
+ */
+pub struct Robertson<C:StandardObserver = DefaultObserver>(Matrix3xX<f64>, PhantomData::<*const C>);
+
+impl<C: StandardObserver> Robertson<C> {
+   pub fn new() -> Self {
+		Robertson::<C>::default()
+   } 
+}
+
+impl<C> Default for Robertson<C>
+where C: StandardObserver {
+    fn default() -> Self {
+		let mut rv: Vec<f64> = Vec::with_capacity(3*ROBERTSON_MRD.len());
+		for t in ROBERTSON_MRD {
+			let (u,v,m)	= robertson_normal::<crate::observers::CieObs1931>(1E6/t);
+			rv.push(u);
+			rv.push(v);
+			rv.push(m);
+		}
+        Self(Matrix3xX::from_vec(rv), PhantomData)
+    }
+}
+
+impl<C: StandardObserver> CctDuvCalc for Robertson<C> {
+    type Observer = C;
+
+    fn cct_duv<S>(&self, sd: S) -> CctDuv<Self::Observer>
+	where
+		S: SpectralData,
+		Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
+	 {
+		let yuvs = CieYuv1960::<C>::from(sd);
+		let mut tdv: Vec<f64> = Vec::with_capacity(2 * yuvs.data.len());
+		for CieYuv1960Values { y: _, u, v } in yuvs {
+			let mut dm = 0f64;
+			let mut di = 0f64;
+			let mut ir = 0usize;
+			for (i, uvl) in self.0.column_iter().enumerate() {
+				let (ur,vr,t) = (uvl.x, uvl.y, uvl.z);
+				di = (v - vr) - t * (u - ur);
+                if i>0 && (((di < 0.0) && (dm >= 0.0)) || ((di >= 0.0) && (dm < 0.0))) {
+					ir = i; 
+					break;
+				}
+                dm = di;
+			}
+			if ir == 0usize {
+				tdv.push(f64::NAN);
+				tdv.push(f64::NAN);
+			} else {
+				di /= (1.0 + self.0[(2,ir)].powi(2)).sqrt();
+				dm /= (1.0 + self.0[(2,ir-1)].powi(2)).sqrt();
+        		let p = dm / (dm - di);     // p interpolation parameter
+        		let t = (ROBERTSON_MRD[ir - 1] * (1.0-p) + ROBERTSON_MRD[ir] * p).recip() * 1E6;
+			//	println!{"***** {} {}", p, t};
+				tdv.push(t);
+				let CieYuv1960Values { y: _, u: up, v: vp } = 
+					CieYuv1960::<C>::from(Planckian::new(t)).into_iter().next().unwrap();
+				let d = (u-up).hypot(v-vp);
+				if v<vp {
+					tdv.push(-d)
+				} else {
+					tdv.push(d)
+				}
+			}
+		}
+		CctDuv(Matrix2xX::from_vec(tdv), PhantomData)
+    }
+}
+
+
+#[allow(dead_code)]
+fn robertson_normal<C: StandardObserver>(cct:f64) ->(f64, f64,f64) {
+	let CieYuv1960Values{y: _, u, v} = CieYuv1960::<C>::from(Planckian::new(cct)).into_iter().next().unwrap();
+	let CieYuv1960Values{y: _, u: u1, v: v1} = CieYuv1960::<C>::from(Planckian::new(cct*0.9999999)).into_iter().next().unwrap();
+	let du = u - u1;
+	let dv = v - v1;
+	(u, v,  -du/dv) 
+}
+
+#[allow(dead_code)]
+const ROBERTSON_MRD: [f64;31] = [
+	1.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 125.0, 150.0, 175.0, 200.0, 225.0, 250.0, 275.0, 
+	300.0, 325.0, 350.0, 375.0, 400.0, 425.0, 450.0, 475.0, 500.0, 525.0, 550.0, 575.0, 600.0
+];
+
+
+#[test]
+fn robertson_normal_test(){
+	use crate::observers::{CieObs1931, CieObsF10};
+	use crate::illuminants::{Robertson, FL, CctDuvCalc};
+
+	let r: Robertson<CieObs1931> = Robertson::new();
+//	println!("{:8.4}", r.0.transpose());
+
+
+	let cct_duv_fl1 = r.cct_duv(FL::<1>);
+	let CctDuvValue { t,d} = cct_duv_fl1.into_iter().next().unwrap();
+	println!("Robertson {} {}", t, d);
+
+	let r: Robertson<CieObsF10> = Robertson::new();
+//	println!("{:8.4}", r.0.transpose());
+	let cct_duv_fl1 = r.cct_duv(FL::<1>);
+	let CctDuvValue { t,d} = cct_duv_fl1.into_iter().next().unwrap();
+	println!("Robertson F10 {} {}", t, d);
 }
 
 
@@ -88,7 +312,6 @@ impl Default for CctLadder {
 		}
 	}
 }
-
 
 impl CctLadder {
 	/**
@@ -254,7 +477,8 @@ const OHNO_CORR_1PCT_STEP: f64 = 0.99991; // the somewhat 'magical' correction f
 pub struct Ohno2014<C:StandardObserver = DefaultObserver>(PhantomData::<*const C>);
 
 impl<C: StandardObserver> CctDuvCalc for Ohno2014<C>	 {
-    fn cct_duv<S>(sd: S) -> CctDuv
+    type Observer = C;
+    fn cct_duv<S>(&self, sd: S) -> CctDuv<Self::Observer>
 	where
 		S: SpectralData,
 		Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
@@ -268,15 +492,32 @@ impl<C: StandardObserver> CctDuvCalc for Ohno2014<C>	 {
 			if d.abs()<= 0.05 {mv.push(d)}
 			else {mv.push(f64::NAN)}; // out of range
 		}
-		CctDuv(Matrix2xX::<f64>::from_vec(mv))
+		CctDuv(Matrix2xX::<f64>::from_vec(mv), PhantomData)
 	}
+
+}
+
+#[test]
+fn test_ohno_trait(){
+	use crate::illuminants::{Ohno2014, FL};
+	use crate::observers::CieObs1931;
+
+	let ohno = Ohno2014::<CieObs1931>::default();
+	
+	let cct = ohno.cct_duv(FL::<1>);
+	println!("{}", cct.0);
+
+	let ohno_cascade = Ohno2014Cascade::<CieObs1931>::default();
+	let cct = ohno_cascade.cct_duv(FL::<1>);
+	println!("{}", cct.0);
 }
 
 #[derive(Default)]
 pub struct Ohno2014Cascade<C:StandardObserver = DefaultObserver>(PhantomData::<*const C>);
 
 impl<C: StandardObserver> CctDuvCalc for Ohno2014Cascade<C>	 {
-    fn cct_duv<S>(sd: S) -> CctDuv
+	type Observer = C;
+    fn cct_duv<S>(&self, sd: S) -> CctDuv<Self::Observer>
 	where
 		S: SpectralData,
 		Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
@@ -289,14 +530,14 @@ impl<C: StandardObserver> CctDuvCalc for Ohno2014Cascade<C>	 {
 			if d.abs()<= 0.05 {mv.push(d)}
 			else {mv.push(f64::NAN)}; // out of range
 		}
-		CctDuv(Matrix2xX::<f64>::from_vec(mv))
+		CctDuv(Matrix2xX::<f64>::from_vec(mv), PhantomData)
 	}
 }
 
 #[allow(dead_code)]
 fn uv_from_cct_duv<C: StandardObserver>(cct:f64, duv:f64) ->(f64,f64) {
-	let CieYuv1960Values{y: _, u: u0, v: v0} = CieYuv1960::<C>::from(Planckian::new(cct)).into_iter().next().unwrap();
-	let CieYuv1960Values{y: _, u: u1, v: v1} = CieYuv1960::<C>::from(Planckian::new(cct+0.01)).into_iter().next().unwrap();
+	let CieYuv1960Values{y: _, u: u0, v: v0} = CieYuv1960::<C>::from(Planckian::new(cct-0.005)).into_iter().next().unwrap();
+	let CieYuv1960Values{y: _, u: u1, v: v1} = CieYuv1960::<C>::from(Planckian::new(cct+0.005)).into_iter().next().unwrap();
 	let du = u0 - u1;
 	let dv = v0 - v1;
 	let hyp = du.hypot(dv);

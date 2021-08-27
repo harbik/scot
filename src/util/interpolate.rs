@@ -35,10 +35,6 @@ where
 {
 
 	if  *from_domain== *to_domain {
-		println!("Using direct copy");
-		//let mut v: Vec<f64> = Vec::with_capacity(R*C);
-		//data.iter().flat_map(|v|*v).for_each(|d|  v.push(d));
-		//Matrix::<f64, Const<R>, Dynamic, _>::from_vec(v)
 		Matrix::<f64, Const<R>, Dynamic, _>::from_iterator(to_domain.len(), data.iter().flat_map(|v|*v))
 	} else {
 
@@ -94,7 +90,6 @@ where
     S1::UnitValueType: From<<S2>::UnitValueType>, 
 {
 	if *from_domain== *to_domain {
-		println!("Using direct copy");
 		DMatrix::<f64>::from_iterator(to_domain.len(), nc, data.iter().cloned())
 	} else {
 		let mfr = MatrixSlice::from_slice_generic(data, Dynamic::new(from_domain.len()), Dynamic::new(nc));

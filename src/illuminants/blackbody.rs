@@ -22,21 +22,18 @@ use crate::util::{Domain, planck, Meter, Step, Unit, WavelengthStep, };
 	you can also use other domains with units which implement the Wavelength trait
 	
 
-	
-	
-
 	# Examples
 	A blackbody radiator, with a temperature of 3000K, and a irradiance of 1W/m<sup>2</sup>.
 	Here a single integer valued argument is used to specify a blackbody's temperature.
 
 	```
 	use colorado::illuminants::Planckian;
-	use colorado::observers::Cie1931;
+	use colorado::observers::CieObs1931;
 	use colorado::cie::XYZ;
 	use approx::assert_abs_diff_eq;
 
 	let pl = Planckian::new(3000);
-	let xyz = XYZ::<Cie1931>::from(pl);
+	let xyz = XYZ::<CieObs1931>::from(pl);
 	```
 
 	# Examples
@@ -46,7 +43,7 @@ use crate::util::{Domain, planck, Meter, Step, Unit, WavelengthStep, };
 
 	```
 	use colorado::illuminants::Planckian;
-	use colorado::observers::Cie1931;
+	use colorado::observers::CieObs1931;
 	use colorado::util::domain::Domain;
 	use colorado::spectra::SpectralDistribution;
 	use colorado::cie::XYZ;
