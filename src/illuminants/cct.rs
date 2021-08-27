@@ -89,7 +89,7 @@ use std::fmt::Display;
 use std::{error::Error,  marker::PhantomData};
 
 use nalgebra::{DVector, Matrix2xX, Matrix3xX};
-use crate::{DefaultObserver, Meter, SpectralData, Step,};
+use crate::{DefaultObserver, /*Meter, SpectralData, Step,*/};
 use crate::models::yuv1960::{CieYuv1960, CieYuv1960Values};
 use crate::observers::{StandardObserver};
 
@@ -156,10 +156,11 @@ where C: StandardObserver
 pub trait CctDuvCalc { // Illuminant?
 	type Observer: StandardObserver;
 
-	fn cct_duv<S>(&self, sd: S) -> CctDuv<Self::Observer>
+	fn cct_duv<U>(&self, uv: U) -> CctDuv<Self::Observer>
 	where
-		S: SpectralData,
-		Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
+		U: Into<CieYuv1960<Self::Observer>>,
+//		S: SpectralData,
+//		Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
 	;
 }
 
@@ -208,12 +209,13 @@ where C: StandardObserver {
 impl<C: StandardObserver> CctDuvCalc for Robertson<C> {
     type Observer = C;
 
-    fn cct_duv<S>(&self, sd: S) -> CctDuv<Self::Observer>
+    fn cct_duv<U>(&self, uv: U) -> CctDuv<Self::Observer>
 	where
-		S: SpectralData,
-		Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
+		U: Into<CieYuv1960<Self::Observer>>,
+	//	S: SpectralData,
+	//	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
 	 {
-		let yuvs = CieYuv1960::<C>::from(sd);
+		let yuvs : CieYuv1960<C> = uv.into();
 		let mut tdv: Vec<f64> = Vec::with_capacity(2 * yuvs.data.len());
 		for CieYuv1960Values { y: _, u, v } in yuvs {
 			let mut dm = 0f64;
@@ -476,15 +478,18 @@ const OHNO_CORR_1PCT_STEP: f64 = 0.99991; // the somewhat 'magical' correction f
 #[derive(Default)]
 pub struct Ohno2014<C:StandardObserver = DefaultObserver>(PhantomData::<*const C>);
 
-impl<C: StandardObserver> CctDuvCalc for Ohno2014<C>	 {
+impl<C> CctDuvCalc for Ohno2014<C>
+where C: StandardObserver
+{
     type Observer = C;
-    fn cct_duv<S>(&self, sd: S) -> CctDuv<Self::Observer>
+    fn cct_duv<U>(&self, uv: U) -> CctDuv<Self::Observer>
 	where
-		S: SpectralData,
-		Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
+		U: Into<CieYuv1960<Self::Observer>>,
+	//	S: SpectralData,
+	//	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
 	{
 		let pt = PlanckianTable::<C>::new(None);
-		let uvs_test: CieYuv1960<C> = sd.into();
+		let uvs_test: CieYuv1960<C> = uv.into();
 		let mut mv: Vec<f64> = Vec::with_capacity(uvs_test.data.len());
 		for CieYuv1960Values { y: _, u, v} in uvs_test {
 			let [t,d] = pt.ohno2014(u, v);
@@ -515,14 +520,18 @@ fn test_ohno_trait(){
 #[derive(Default)]
 pub struct Ohno2014Cascade<C:StandardObserver = DefaultObserver>(PhantomData::<*const C>);
 
-impl<C: StandardObserver> CctDuvCalc for Ohno2014Cascade<C>	 {
+impl<C> CctDuvCalc for Ohno2014Cascade<C>	
+where 
+	C: StandardObserver,
+{
 	type Observer = C;
-    fn cct_duv<S>(&self, sd: S) -> CctDuv<Self::Observer>
+    fn cct_duv<U>(&self, uv: U) -> CctDuv<Self::Observer>
 	where
-		S: SpectralData,
-		Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
+		U: Into<CieYuv1960<Self::Observer>>,
+	//	S: SpectralData,
+	//	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>
 	{
-		let uvs_test: CieYuv1960<C> = sd.into();
+		let uvs_test: CieYuv1960<C> = uv.into();
 		let mut mv: Vec<f64> = Vec::with_capacity(uvs_test.data.len());
 		for CieYuv1960Values { y: _, u, v} in uvs_test {
 			let [t,d] = cascade::<C>(u, v);
