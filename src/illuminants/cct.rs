@@ -23,8 +23,8 @@ Here the following methods are implemented:
 
 # Robertson
 
-This method is decribed by A.R. Robertson Robertson\[1968\], and was the defacto standard to calculate correlated color temperatures
-for spectral distributions for a long time. 
+This method is decribed by A.R. Robertson Robertson\[1968\], and was one of the first methods 
+to calculate correlated color temperatures for computer use.
 In comparison with the other methods in this library it is fast, especially if the Robertson table has already been calculated.
 Here this method can be used for any observer, including the CIE1931 standard observer, which is the one implemented by Robertson.
 
@@ -314,10 +314,10 @@ const ROBERTSON_MRD: [f64;31] = [
 
 #[test]
 fn robertson_normal_test(){
-	use crate::observers::{CieObs1931, CieObsF10};
+	use crate::observers::{CieObs1931, CieObs1931Classic, CieObsF10};
 	use crate::illuminants::{Robertson, FL, CctDuvCalc};
 
-	let r: Robertson<CieObs1931> = Robertson::new();
+	let r: Robertson<CieObs1931Classic> = Robertson::new();
 	println!("{:8.4}", r.0.transpose());
 
 
@@ -534,10 +534,25 @@ fn cascade<C: StandardObserver>(u: f64, v: f64) -> [f64;2] {
 	pt4.ohno2014(u, v) // correction here not needed, due to small step size
 }
 
+impl<C> Default for PlanckianTable<C>
+where 
+	C: StandardObserver 
+{
+    fn default() -> Self {
+        Self::new(None)
+    }
+}
+
 const OHNO_CORR_1PCT_STEP: f64 = 0.99991; // the somewhat 'magical' correction factor, as listed in Ohno's article for the 1% step table
 
 #[derive(Default)]
-pub struct Ohno2014<C:StandardObserver = DefaultObserver>(PhantomData::<*const C>);
+pub struct Ohno2014<C:StandardObserver = DefaultObserver>(PlanckianTable<C>);
+
+impl<C: StandardObserver> Ohno2014<C> {
+   pub fn new() -> Self {
+		Self::default()
+   } 
+}
 
 impl<C> CctDuvCalc for Ohno2014<C>
 where C: StandardObserver
@@ -547,11 +562,11 @@ where C: StandardObserver
 	where
 		U: Into<CieYuv1960<Self::Observer>>,
 	{
-		let pt = PlanckianTable::<C>::new(None);
+	//	let pt = PlanckianTable::<C>::new(None);
 		let uvs_test: CieYuv1960<C> = uv.into();
 		let mut mv: Vec<f64> = Vec::with_capacity(uvs_test.data.len());
 		for CieYuv1960Values { y: _, u, v} in uvs_test {
-			let [t,d] = pt.ohno2014(u, v);
+			let [t,d] = self.0.ohno2014(u, v);
 			mv.push(t * OHNO_CORR_1PCT_STEP);
 			if d.abs()<= 0.05 {mv.push(d)}
 			else {mv.push(f64::NAN)}; // out of range
@@ -576,8 +591,28 @@ fn test_ohno_trait(){
 	println!("{}", cct.0);
 }
 
-#[derive(Default)]
-pub struct Ohno2014Cascade<C:StandardObserver = DefaultObserver>(PhantomData::<*const C>);
+//#[derive(Default)]
+//pub struct Ohno2014Cascade<C:StandardObserver = DefaultObserver>(PhantomData::<*const C>);
+fn ohno_cascade_mul(i: i32) -> f64 {
+	1.0 + 15.0/10f64.powi(i+2)
+}
+pub struct Ohno2014Cascade<C:StandardObserver = DefaultObserver>(PlanckianTable<C>);
+
+impl<C: StandardObserver> Ohno2014Cascade<C> {
+   pub fn new() -> Self {
+		Self::default()
+   } 
+}
+
+impl<C> Default for Ohno2014Cascade<C> 
+where 
+	C: StandardObserver
+{
+    fn default() -> Self {
+		let pt = PlanckianTable::<C>::new(Some(CctLadder::new(1000.0, 32000.0, 1.0 + 0.15)));
+        Self(pt)
+    }
+}
 
 impl<C> CctDuvCalc for Ohno2014Cascade<C>	
 where 
@@ -591,7 +626,10 @@ where
 		let uvs_test: CieYuv1960<C> = uv.into();
 		let mut mv: Vec<f64> = Vec::with_capacity(uvs_test.data.len());
 		for CieYuv1960Values { y: _, u, v} in uvs_test {
-			let [t,d] = cascade::<C>(u, v);
+			let pt2 = PlanckianTable::<C>::new(Some(self.0.zoom(u, v, 1.0 + 0.015)));
+			let pt3 = PlanckianTable::<C>::new(Some(pt2.zoom(u, v, 1.0 + 0.0015)));
+			let pt4 = PlanckianTable::<C>::new(Some(pt3.zoom(u, v, 1.0 + 0.00015)));
+			let [t,d] = pt4.ohno2014(u, v); // correction here not needed, due to small step size
 			mv.push(t);
 			if d.abs()<= 0.05 {mv.push(d)}
 			else {mv.push(f64::NAN)}; // out of range
@@ -672,10 +710,14 @@ fn test_ohno_cascade(){
 		[6500.0, -0.045],
 		[6500.0, 0.001],
 		[6500.0, -0.001],
+		[13000.0, 0.045],
+		[13000.0, -0.045],
+		[13000.0, 0.001],
+		[13000.0, -0.001],
 	] {
 		let (u,v) = uv_from_cct_duv::<crate::observers::CieObs1931>(t, d);
 		let [tc,dc] = cascade::<crate::observers::CieObs1931>(u,v);
-	//	println!("{} {}", t, d);
+		println!("{} {}", tc, dc);
 		assert_abs_diff_eq!(t, tc, epsilon = 5E-3);
 		assert_abs_diff_eq!(d, dc, epsilon = 1E-6);
 	}
@@ -683,3 +725,24 @@ fn test_ohno_cascade(){
 }
 
 
+
+#[test]
+fn test_ohno_cascade_from_cctduv(){
+	use crate::observers::CieObs1931;
+	use crate::illuminants::{Ohno2014Cascade, CctDuvCalc};
+	use approx::assert_abs_diff_eq;
+
+	let oc: Ohno2014Cascade<CieObs1931> = Ohno2014Cascade::default();
+	
+	let tds : CctDuv<CieObs1931> = CctDuv::new(vec![
+		[13000.0,-0.001], [13000.0, 0.0495], [13000.0, -0.0495],
+		[6500.0,-0.001], [6500.0, 0.01], [6500.0, -0.0495],
+		[3000.0,-0.001], [3000.0, 0.01], [3000.0, -0.01],
+		[1500.0,-0.001], [1500.0, 0.04], [1500.0, -0.04],
+
+	]);
+	let yuv: CieYuv1960<_> = tds.clone().into();
+	
+	let td_calc = oc.cct_duv(yuv);
+	assert_abs_diff_eq!(tds, td_calc, epsilon = (5E-3, 1E-8));
+}

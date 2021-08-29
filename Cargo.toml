@@ -16,6 +16,7 @@ nalgebra = "0.27"
 num = "0.4.0"
 approx = "0.5"
 maplit = "1.0" # hashmap! macro
+criterion = "0.3"
 
 [features]
 default = ["cie_illuminants", "ies_tm30_illuminants"]
@@ -39,3 +40,7 @@ ies_tm30_fluorescent_illuminants = []
 ies_tm30_incandescent_illuminants = []
 ies_tm30_hid_illuminants = []
 ies_tm30_led_illuminants = []
+
+[[bench]]
+name = "cct"
+harness = false

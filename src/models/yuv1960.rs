@@ -6,7 +6,7 @@ use crate::{DefaultObserver, illuminants::{CctDuv, CctDuvValue, Planckian}, obse
 
 use super::{CieXYZ, XYZValues};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CieYuv1960<C: StandardObserver = DefaultObserver> {
 	pub data : Matrix3xX<f64>,
 	_cmf: PhantomData<*const C>, // only used through C::Default(), but needed to mark the type
@@ -16,6 +16,12 @@ impl<C: StandardObserver> CieYuv1960<C> {
 	pub fn new(data: Matrix3xX<f64>) -> Self {
 		Self { data, _cmf: PhantomData}
 	}
+}
+
+pub(crate) fn uv60(x: f64, y: f64, z: f64) -> [f64;3] {
+	let den = x + 15.0 * y + 3.0 * z;
+	[y, 4.0 * x / den, 6.0 * y / den]
+
 }
 
 impl<C, X> From<X> for CieYuv1960<C>
@@ -28,10 +34,11 @@ where
 
 		let mut v: Vec<f64> = Vec::with_capacity(m.data.len());
 		for XYZValues {x, y, z} in m {
-			let den = x + 15.0 * y + 3.0 * z;
-			v.push(y);
-			v.push(4.0 * x / den);
-			v.push(6.0 * y / den);
+		//	let den = x + 15.0 * y + 3.0 * z;
+		//	v.push(y);
+		//	v.push(4.0 * x / den);
+		//	v.push(6.0 * y / den);
+			uv60(x,y,z).iter().for_each(|a| v.push(*a));
 		}
 		Self::new(Matrix3xX::<f64>::from_vec(v))
 	}

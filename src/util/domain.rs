@@ -91,10 +91,10 @@ where
 	/**
 		Creates a new domain ranging from start to end, including end, and with a scale.
 	 */
-	pub fn new(start:i32, end:i32, scale: S) -> Self {
+	pub fn new(start:i32, end:i32, step: S) -> Self {
 		Self {
 			range: Range {start, end: end+1},  // this it the non-inclusive end range, so we're adding a 1. The InclusiveRange range has no support for i32!
-			step: scale
+			step
 		}
 	}
 
