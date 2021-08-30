@@ -20,7 +20,7 @@ pub use cie_f2::*;
 pub mod cie_f10;
 pub use cie_f10::*;
 
-use nalgebra::{DMatrix, Matrix3x1, Matrix3xX};
+use nalgebra::{DMatrix, Matrix3x1, Matrix3xX, MatrixSlice3xX,};
 use crate::{Domain, Meter, WavelengthStep, Step, Unit};
 
 
@@ -36,17 +36,22 @@ pub trait StandardObserver : Default
 {
 	const K: f64 = 683.0;
 	const NAME: &'static str;	
+//	const N: usize; 
+
+	fn cmf<'a>() -> MatrixSlice3xX<'a, f64>;
 
 	/**
 		Chromatic response mapped to a spectral domain, as a matrix with the x,y, and z color matching fuctions 
 		as row vectors, with their length being dynamic, and determined by the standard's wavelength domain.
 		The target domain does not have to use unit `Meter`, but needs be be able to be converted into a `Meter-unit.
 	*/
-	fn cmf<L>(&self, target: &Domain<L>) -> Matrix3xX<f64>
+	fn values<L>(&self, target: &Domain<L>) -> Matrix3xX<f64>
 		where 
 			L: Step,
 			Meter: From<<L>::UnitValueType>
 		;
+
+
 
 	/**
 		Calculate tri-stimulus values from spectral data, represented by a domain `d`,
@@ -64,7 +69,7 @@ pub trait StandardObserver : Default
 	//	&'a Self : Default
 	{
 		let c = <Self>::default();
-		c.cmf(&d) * m * Self::K * d.step.unitvalue(1).value()
+		c.values(&d) * m * Self::K * d.step.unitvalue(1).value()
 	}
 
 	/**
@@ -81,7 +86,7 @@ pub trait StandardObserver : Default
 		Meter: From<<L>::UnitValueType>,
 	{
 		assert!(l.nrows()==m.nrows());
-		let c = <Self>::default().cmf(&d);
+		let c = <Self>::default().values(&d);
 		let m: DMatrix<f64>  = DMatrix::from_fn(l.nrows(), m.ncols(), |i, j| l[(i,0)] * m[(i,j)]);
 		(
 			c.clone() * l.column(0) * Self::K * d.step.unitvalue(1).value(),

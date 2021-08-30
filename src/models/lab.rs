@@ -12,7 +12,7 @@ use crate::spectra::SpectralData;
 use crate::swatches::{Swatches};
 use crate::util::{Meter, Step};
 use crate::DefaultObserver;
-use nalgebra::{Matrix3x1, Matrix3xX, };
+use nalgebra::{Matrix3x1, Matrix3xX};
 
 use super::{CieXYZ, XYZValues};
 

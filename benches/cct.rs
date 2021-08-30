@@ -5,7 +5,7 @@ use colorado::illuminants::{CctDuv, CctDuvCalc, FL, Ohno2014, Ohno2014Cascade, R
 
 
 fn bench_fl1(){
-	let fl1: CieYuv1960<CieObs1931> = CieYuv1960::from(FL::<1>);
+	let _fl1: CieYuv1960<CieObs1931> = CieYuv1960::from(FL::<1>);
 }
 
 fn bench_robertson(rob: &Robertson<CieObs1931>){
@@ -28,7 +28,7 @@ fn criterion_benchmark(c: &mut Criterion) {
 	let ohno: Ohno2014<CieObs1931> = Ohno2014::new();
 	let ohno_cascade: Ohno2014Cascade<CieObs1931> = Ohno2014Cascade::new();
 	let tds : CctDuv<CieObs1931> = CctDuv::new(vec![[6500.0,-0.001], [6500.0, 0.0495], [6500.0, -0.0495], ]);
-	let yuv: CieYuv1960<_> = tds.clone().into();
+	let _yuv: CieYuv1960<_> = tds.clone().into();
     c.bench_function("fl1", |b| b.iter(|| bench_fl1()));
     c.bench_function("robertson", |b| b.iter(|| bench_robertson(black_box(&rob))));
     c.bench_function("ohno 2014", |b| b.iter(|| bench_ohno(black_box(&ohno))));

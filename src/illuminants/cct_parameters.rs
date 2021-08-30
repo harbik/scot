@@ -10,7 +10,7 @@ The correlated color temperature of a source is the physical temperature of a bl
 */
 
 
-use nalgebra::{MatrixXx2};
+use nalgebra::{DVector};
 
 /**
 A collection tmperature (in kelvin) and radiant exitance values (in watt per square meter), both qualified to be positive and greater than 0.0.
@@ -18,11 +18,11 @@ Used as input to create `Blackbody` and `CIEDaylight` collections.
 */
 #[derive(Debug,Clone)]
 pub struct CctParameters (
-	pub MatrixXx2<f64>
+	pub DVector<f64>
 );
 
 impl std::ops::Deref for CctParameters {
-    type Target = MatrixXx2<f64>;
+    type Target = DVector<f64>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -39,38 +39,18 @@ impl CctParameters {
 		# Examples
 		From a single temperature value, and using a default value for power of 1.0W:
 		```
-		use colorado::illuminants::CCTs;
+		use colorado::illuminants::CctParameters;
 
-		let ccts = CCTs::new(3000.0);
-		assert_eq!(ccts.0[(0,0)], 3000.0);
-		assert_eq!(ccts.0[(0,1)], 1.0);
+		let ccts = CctParameters::new(3000.0);
+		assert_eq!(ccts.0[0], 3000.0);
 		```
-		From an array of float values:
 		```
-		use colorado::illuminants::CCTs;
+		use colorado::illuminants::CctParameters;
 
-		let ccts = CCTs::new([3000.0, 4000.0, 5000.0]);
-		assert_eq!(ccts.0[(0,0)], 3000.0); assert_eq!(ccts.0[(0,1)], 1.0);
-		assert_eq!(ccts.0[(1,0)], 4000.0); assert_eq!(ccts.0[(1,1)], 1.0);
-		assert_eq!(ccts.0[(2,0)], 5000.0); assert_eq!(ccts.0[(2,1)], 1.0);
-		```
-		And here we create a CCTs collection from a two-dimensional array with temperature and radiant exitance values:
-		```
-		use colorado::illuminants::CCTs;
-
-		let ccts = CCTs::new([[3000.0, 3.0], [4000.0, 4.0], [5000.0, 5.0]]);
-		assert_eq!(ccts.0[(0,0)], 3000.0); assert_eq!(ccts.0[(0,1)], 3.0);
-		assert_eq!(ccts.0[(1,0)], 4000.0); assert_eq!(ccts.0[(1,1)], 4.0);
-		assert_eq!(ccts.0[(2,0)], 5000.0); assert_eq!(ccts.0[(2,1)], 5.0);
-		```
-		And this works for vectors of \[f64;2\] too:
-		```
-		use colorado::illuminants::CCTs;
-
-		let ccts = CCTs::new(vec![[3000.0, 3.0], [4000.0, 4.0], [5000.0, 5.0]]);
-		assert_eq!(ccts.0[(0,0)], 3000.0); assert_eq!(ccts.0[(0,1)], 3.0);
-		assert_eq!(ccts.0[(1,0)], 4000.0); assert_eq!(ccts.0[(1,1)], 4.0);
-		assert_eq!(ccts.0[(2,0)], 5000.0); assert_eq!(ccts.0[(2,1)], 5.0);
+		let ccts = CctParameters::new(vec![3000.0, 4000.0, 5000.0]);
+		assert_eq!(ccts.0[0], 3000.0);
+		assert_eq!(ccts.0[1], 4000.0);
+		assert_eq!(ccts.0[2], 5000.0);
 		```
 	*/
 
@@ -104,31 +84,31 @@ impl CctParameters {
 		```
 	*/
 	pub fn min(&self) -> f64 {
-		self.column(0).min()
+		self.0.min()
 	}
 
 	/**
 		The maximum value of temperatures in a CCT collection.
 		# Example
 		```
-		use colorado::illuminants::CCTs;
+		use colorado::illuminants::CctParameters;
 
-		let cct_max = CCTs::new([5000.0, 8000.0, 3000.0]).max();
+		let cct_max = CctParameters::new([5000.0, 8000.0, 3000.0]).max();
 		assert_eq!(cct_max, 8000.0);
 		```
 	*/
 	pub fn max(&self) -> f64 {
-		self.column(0).max()
+		self.0.max()
 	}
 
 	pub fn len(&self) -> usize {
-		self.0.nrows()
+		self.nrows()
 	}
 }
 
 
 impl<'a> IntoIterator for &'a CctParameters {
-    type Item = (f64, f64);
+    type Item = f64;
 
     type IntoIter = CctIterator<'a>;
 
@@ -142,19 +122,19 @@ impl<'a> IntoIterator for &'a CctParameters {
 }
 
 pub struct CctIterator<'a> {
-	ccts: &'a MatrixXx2<f64>,
+	ccts: &'a DVector<f64>,
 	i: usize,
 	end: usize,
 }
 
 impl<'a> Iterator for CctIterator<'a> {
-	type Item = (f64, f64);
+	type Item = f64;
 
 	fn next (&mut self) -> Option<Self::Item> {
 		let c = self.i;
 		if c< self.end {
 			self.i += 1;
-			Some((self.ccts[(c,0)], self.ccts[(c,1)]))
+			Some(self.ccts[c])
 		} else {
 			None
 		}
@@ -166,18 +146,15 @@ impl<'a> Iterator for CctIterator<'a> {
 
 #[test]
 fn test_cct_iterator(){
-	let ccts = CctParameters::new([[3000.0,1.0],[4000.0,2.0],[5000.0,3.0]]);
-	for (t,p) in &ccts {
-		println!("{:?} {:?}", t, p);
-	}
+	let ccts = CctParameters::new([3000.0, 4000.0, 5000.0]);
+	println!("{}", ccts.0);
 }
 
 impl From<Vec<f64>> for CctParameters {
 
 	/// Creates a CCTs array from a vector of temperatures, each with a power of 1W
 	fn from(t: Vec<f64>) -> Self {
-		let p = vec![1.0; t.len()];
-		Self(MatrixXx2::from_iterator(t.len(), t.into_iter().chain(p.into_iter())))
+		Self(DVector::from_vec(t))
 	}
 }
 
@@ -186,7 +163,7 @@ impl From<f64> for CctParameters {
 
 	/// CCTs array from a single temperature
 	fn from(t: f64) -> Self {
-		Self::new([[t, 1.0]])
+		Self::new([t])
 	}
 }
 
@@ -195,47 +172,14 @@ impl From<usize> for CctParameters {
 
 	/// CCTs array from a single temperature
 	fn from(t: usize) -> Self {
-		Self::new([[t as f64, 1.0]])
+		Self::new([t as f64])
 	}
 }
 
 // From array of temperature values
 impl <const N: usize> From<[f64; N]> for CctParameters {
 
-	fn from(t: [f64;N]) -> Self {
-		Self(MatrixXx2::from_fn(N,  |r, c| {
-			if c==0 {
-				assert!(t[r]>0.0, "Correlated color temperature should be >0.0K");
-				t[r]
-			} else {
-				1.0
-			}
-		}))
+	fn from(t:[f64;N]) -> Self {
+		CctParameters::from(t.to_vec())
 	}
 }
-
-// Array of 2 element temperature and power arrays
-impl <const N: usize> From<[[f64; 2];N]> for CctParameters {
-
-	fn from (t: [[f64;2];N]) -> Self {
-		Self(MatrixXx2::from_fn(N, |r, c| {
-			assert!(t[r][c]>0.0, "Correlated color temperature and radiant power should be >0.0K");
-			t[r][c]
-		}))
-	}
-
-}
-
-// Vector of 2 elemente temperature and power arrays
-impl From<Vec<[f64; 2]>> for CctParameters {
-
-	fn from (t: Vec<[f64;2]>) -> Self {
-		Self(MatrixXx2::from_fn(t.len(), |r, c| {
-			assert!(t[r][c]>0.0, "Correlated color temperature and radiant power should be >0.0K");
-			t[r][c]}
-		))
-	}
-}
-
-
-

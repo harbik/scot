@@ -314,7 +314,7 @@ const ROBERTSON_MRD: [f64;31] = [
 
 #[test]
 fn robertson_normal_test(){
-	use crate::observers::{CieObs1931, CieObs1931Classic, CieObsF10};
+	use crate::observers::{CieObs1931Classic, CieObsF10};
 	use crate::illuminants::{Robertson, FL, CctDuvCalc};
 
 	let r: Robertson<CieObs1931Classic> = Robertson::new();
@@ -526,6 +526,7 @@ where C: StandardObserver
 	}
 }
 
+/*
 fn cascade<C: StandardObserver>(u: f64, v: f64) -> [f64;2] {
 	let pt = PlanckianTable::<C>::new(Some(CctLadder::new(1000.0, 32000.0, 1.0 + 0.15)));
 	let pt2 = PlanckianTable::<C>::new(Some(pt.zoom(u, v, 1.0 + 0.015)));
@@ -533,6 +534,7 @@ fn cascade<C: StandardObserver>(u: f64, v: f64) -> [f64;2] {
 	let pt4 = PlanckianTable::<C>::new(Some(pt3.zoom(u, v, 1.0 + 0.00015)));
 	pt4.ohno2014(u, v) // correction here not needed, due to small step size
 }
+*/
 
 impl<C> Default for PlanckianTable<C>
 where 
@@ -591,11 +593,6 @@ fn test_ohno_trait(){
 	println!("{}", cct.0);
 }
 
-//#[derive(Default)]
-//pub struct Ohno2014Cascade<C:StandardObserver = DefaultObserver>(PhantomData::<*const C>);
-fn ohno_cascade_mul(i: i32) -> f64 {
-	1.0 + 15.0/10f64.powi(i+2)
-}
 pub struct Ohno2014Cascade<C:StandardObserver = DefaultObserver>(PlanckianTable<C>);
 
 impl<C: StandardObserver> Ohno2014Cascade<C> {
@@ -696,6 +693,8 @@ fn test_bounds(){
 
 
 #[test]
+/*
+
 fn test_ohno_cascade(){
 
 	use approx::assert_abs_diff_eq;
@@ -723,7 +722,7 @@ fn test_ohno_cascade(){
 	}
 	
 }
-
+*/
 
 
 #[test]

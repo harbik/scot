@@ -55,7 +55,7 @@ where
  {
 	fn from(sd: S) -> Self {
 		let xyz = 
-			<C>::default().cmf(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().step.unitvalue(1).value();
+			<C>::default().values(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().step.unitvalue(1).value();
 		//let xyz = C::xyz_from_dom_mat(sd.domain(), sd.values(&sd.domain()));
 		CieXYZ::<C>::new(xyz)
 	}

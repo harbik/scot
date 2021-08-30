@@ -15,7 +15,7 @@
 
 
 
-use nalgebra::{Const, Dynamic, MatrixSlice, VecStorage};
+use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice, MatrixSlice3xX, VecStorage};
 use nalgebra::{storage::Storage, DMatrix, Dim, Matrix,};
 
 use crate::util::Domain;
@@ -80,6 +80,23 @@ fn test_lin_row(){
 	let m = matrix_from_data_by_lin_row_int(&dfrom, &dto, &data);
 	//println!("{}", m);
 	assert_abs_diff_eq!(m, Matrix1xX::from_vec(vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]));
+}
+
+pub fn interp_lin_cmf<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nr: usize, mfr: MatrixSlice3xX<'a, f64>) -> Matrix3xX<f64>
+where
+    S1: Step + Clone + Copy,
+    S2: Step + Clone + Copy,
+    S1::UnitValueType: From<<S2>::UnitValueType>, 
+{
+	let mut mto = Matrix3xX::<f64>::zeros(to_domain.len());
+	for ip in from_domain.iter_interpolate(to_domain) {
+		match ip {
+			IterInterpolateType::Interpolate(j,i,h) => (0..nr).into_iter().for_each(|r|mto[(r,j)] = mfr[(r, i)]*(1.0-h)+mfr[(r, i+1)]*h),
+			IterInterpolateType::RangeEnd(j,i) => (0..nr).into_iter().for_each(|r|mto[(r,j)] = mfr[(r, i)]),
+			_ => () // extrapolation with 0.0 in this case, by default in mto
+		}
+	}
+	mto
 }
 
 

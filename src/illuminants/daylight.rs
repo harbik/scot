@@ -100,7 +100,7 @@ impl SpectralData for CieDaylight {
 
 
 		let mut mvec : Vec<f64> = Vec::with_capacity(3 * dom.len());
-		for (t,p) in &self.ccts {
+		for t in &self.ccts {
 			let cct = t.clamp(4000.0,25000.0);
 			let xd = match cct {
 				t if t<7000.0 => 0.244063 + 0.09911E3 / t + 2.9678E6 / t.powi(2) - 4.607E9 / t.powi(3),
@@ -110,11 +110,11 @@ impl SpectralData for CieDaylight {
 			let m = 0.0241 + 0.2562 * xd - 0.7341 * yd;
 			let m1 = (-1.3515 - 1.7703 * xd + 5.9114 * yd) / m;
 			let m2 = (0.03 - 31.4424 * xd + 30.0717 * yd) / m;
-			let sum_power = (8715.51 + m1 * 890.13 + m2 * 374.95) * 5.0;
-			let scale = p / sum_power;
-			mvec.push(scale);
-			mvec.push(m1 * scale);
-			mvec.push(m2 * scale);
+		//	let sum_power = (8715.51 + m1 * 890.13 + m2 * 374.95) * 5.0;
+		//	let scale = p / sum_power;
+			mvec.push(1.0);
+			mvec.push(m1);
+			mvec.push(m2);
 		}
 		let mmat = Matrix3xX::from_vec(mvec);
 		s_interpolated * mmat
