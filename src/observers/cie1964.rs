@@ -14,7 +14,7 @@ impl StandardObserver for CieObs1964Classic {
 	//const K: f64 = 683.0;
 	const NAME: &'static str = "CIE1964 10º Classic";
 
-	fn domain(&self) -> Domain<WavelengthStep> {
+	fn domain() -> Domain<WavelengthStep> {
 		Domain::new( 360/5, 830/5,  NM5)
 	}
 
@@ -22,14 +22,14 @@ impl StandardObserver for CieObs1964Classic {
 		MatrixSlice::from_slice_generic(&CIE1964NM5, Const::<3>, Dynamic::new(N) )
     }
 
-	fn values<L>(&self, target: &Domain<L>) -> Matrix3xX<f64>
+	fn values<L>(target: &Domain<L>) -> Matrix3xX<f64>
 	where
 		L: Step,
 		Meter: From<<L>::UnitValueType>
 	 {
 		//let data = SMatrix::from_data(ArrayStorage(CIE1964NM5));
 		//convert(sprague_rows(&self.domain(), &target, &data))
-		interp_lin_cmf(&self.domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
 	}
 }
 
@@ -52,16 +52,16 @@ impl StandardObserver for CieObs1964 {
 		MatrixSlice::from_slice_generic(&CIE1964NM1, Const::<3>, Dynamic::new(N2) )
     }
 
-	fn values<L>(&self, target: &Domain<L>) -> Matrix3xX<f64>
+	fn values<L>(target: &Domain<L>) -> Matrix3xX<f64>
 	where
 		L: Step,
 		Meter: From<<L>::UnitValueType>
 	 {
 		//matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE1964NM1)
-		interp_lin_cmf(&self.domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
 	}
 
-	fn domain(&self) -> Domain<WavelengthStep> {
+	fn domain() -> Domain<WavelengthStep> {
 		Domain::new( 380, 780,  NM)
 	}
 

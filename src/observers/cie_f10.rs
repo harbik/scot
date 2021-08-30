@@ -19,7 +19,7 @@ impl StandardObserver for CieObsF10 {
 	const K: f64 = 683.0;
 	const NAME: &'static str = "CIE F 10º Observer";
 
-	fn domain(&self) -> Domain<WavelengthStep> {
+	fn domain() -> Domain<WavelengthStep> {
 		Domain::new( 390, 830,  NM)
 	}
 
@@ -28,13 +28,13 @@ impl StandardObserver for CieObsF10 {
     }
 
 
-	fn values<L>(&self, target: &Domain<L>) -> Matrix3xX<f64>
+	fn values<L>(target: &Domain<L>) -> Matrix3xX<f64>
 	where
 		L: Step,
 		Meter: From<<L>::UnitValueType>
 	 {
 		//matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE_OBS_F10)
-		interp_lin_cmf(&self.domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
 	}
 
 }

@@ -45,12 +45,11 @@ pub trait StandardObserver : Default
 		as row vectors, with their length being dynamic, and determined by the standard's wavelength domain.
 		The target domain does not have to use unit `Meter`, but needs be be able to be converted into a `Meter-unit.
 	*/
-	fn values<L>(&self, target: &Domain<L>) -> Matrix3xX<f64>
+	fn values<L>(target: &Domain<L>) -> Matrix3xX<f64>
 		where 
 			L: Step,
 			Meter: From<<L>::UnitValueType>
 		;
-
 
 
 	/**
@@ -68,8 +67,7 @@ pub trait StandardObserver : Default
 		Meter: From<<L>::UnitValueType>,
 	//	&'a Self : Default
 	{
-		let c = <Self>::default();
-		c.values(&d) * m * Self::K * d.step.unitvalue(1).value()
+		Self::values(&d) * m * Self::K * d.step.unitvalue(1).value()
 	}
 
 	/**
@@ -86,17 +84,17 @@ pub trait StandardObserver : Default
 		Meter: From<<L>::UnitValueType>,
 	{
 		assert!(l.nrows()==m.nrows());
-		let c = <Self>::default().values(&d);
+		let c = Self::values(&d);
 		let m: DMatrix<f64>  = DMatrix::from_fn(l.nrows(), m.ncols(), |i, j| l[(i,0)] * m[(i,j)]);
 		(
-			c.clone() * l.column(0) * Self::K * d.step.unitvalue(1).value(),
+			&c * l.column(0) * Self::K * d.step.unitvalue(1).value(),
 			c * m * Self::K * d.step.unitvalue(1).value()
 		)
 	}
 
 	/// Domain associated with the data for the standard observer itself, as defined in their standard. 
 	/// These standards uses meter as domain unit.
-	fn domain(&self) -> Domain<WavelengthStep>;
+	fn domain() -> Domain<WavelengthStep>;
 
 	/*
 	fn planckian_locus(ctl: CctLadder) -> CieXYZ<Self> {

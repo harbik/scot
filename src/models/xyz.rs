@@ -2,7 +2,7 @@
 use std::{fmt::Display, marker::PhantomData};
 
 use nalgebra::{Matrix3xX};
-use crate::{DefaultObserver, Meter, SpectralData, Step, Unit, observers::StandardObserver};
+use crate::{DefaultObserver, Meter, SpectralData, SpectralFunction, Step, Unit, observers::StandardObserver};
 
 /**	
 	A collection of a tristimulus values, associated with a standard observer,
@@ -36,11 +36,11 @@ impl<C: StandardObserver> CieXYZ<C> {
 	# Examples
 	Calculate Tristimulus values for a Blackbody radiator
 	```
-	use colorado::illuminants::Blackbody;
-	use colorado::observers::Cie1931;
-	use colorado::cie::XYZ;
+	use colorado::illuminants::Planckian;
+	use colorado::observers::CieObs1931;
+	use colorado::models::CieXYZ;
 
-	let bb = XYZ::<Cie1931>::from(Blackbody::new(3000));
+	let bb = CieXYZ::<CieObs1931>::from(Planckianh::new(3000));
 	println!("{}",bb);
 	```
  */
@@ -48,18 +48,17 @@ impl<C: StandardObserver> CieXYZ<C> {
 impl<C, S> From<S> for CieXYZ<C>
 where 
 	C: StandardObserver,
-//	&'static C: Default,
 	S: SpectralData,
 	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>,
-//	<Matrix<f64, Const, Dynamic, VecStorage<f64, Const, Dynamic>> as Mul<<S as SpectralData>::MatrixType>>::Output
  {
 	fn from(sd: S) -> Self {
 		let xyz = 
-			<C>::default().values(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().step.unitvalue(1).value();
+			C::values(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().step.unitvalue(1).value();
 		//let xyz = C::xyz_from_dom_mat(sd.domain(), sd.values(&sd.domain()));
 		CieXYZ::<C>::new(xyz)
 	}
 }
+
 
 impl<C: StandardObserver> Display for CieXYZ<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -3,9 +3,9 @@
 
 use nalgebra::{DMatrix, DVector, };
 
-use crate::models::uv60;
+use crate::models::{CieXYZ, uv60};
 use crate::observers::StandardObserver;
-use crate::{C2, C2_IPTS_1948, C2_IPTS_1990, C2_NBS_1931, SpectralData, planck_c2, planck_prime_c2, stefan_boltzmann};
+use crate::{C2, C2_IPTS_1948, C2_IPTS_1990, C2_NBS_1931, SpectralData, SpectralFunction, planck_c2, planck_prime_c2, stefan_boltzmann};
 use crate::illuminants::{Illuminant};
 use crate::illuminants::cct_parameters::{CctParameters};
 use crate::util::{Domain, Meter, Step, Unit, WavelengthStep, };
@@ -115,7 +115,7 @@ impl Planckian {
 	}
 }
 
-impl SpectralData for Planckian {
+impl SpectralFunction for Planckian {
 
 	type StepType = WavelengthStep;
 
@@ -129,7 +129,7 @@ impl SpectralData for Planckian {
 	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
+		<<Self as SpectralFunction>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		let mut v : Vec<f64> = Vec::with_capacity(self.ccts.len() * dom.len());
 		for t in &self.ccts {
@@ -150,12 +150,18 @@ impl SpectralData for Planckian {
 	fn keys(&self) -> Option<Vec<String>> {
 		self.ccts.keys()
 	}
-
-	/// Domain which covering the visible part of the spectrum
-	fn domain(&self) -> Domain<Self::StepType> {
-		Domain::default()
-	}
 	
+}
+
+impl<C> From<Planckian> for CieXYZ<C> 
+where
+	C: StandardObserver,
+{
+    fn from(p: Planckian) -> Self {
+		let xyz = 
+			C::cmf() * p.values(&C::domain()) * C::K * C::domain().step.unitvalue(1).value();
+		CieXYZ::<C>::new(xyz)
+    }
 }
 
 /**
@@ -224,9 +230,9 @@ impl<const N: usize> SpectralData for BB1948<N> {
 
 
 pub fn planck_xyz<C:StandardObserver>(t: f64, c2: f64) -> [f64;3] {
-	let d = C::default().domain();
+	let d = C::domain();
 	let n = d.len();
-	let cmf = C::default().values(&d);
+	let cmf = C::values(&d);
 	let pl = DVector::<f64>::from_iterator(n, (&d).into_iter().map(|p|planck_c2(p.value(),t, c2)));
 	let xyz = cmf * pl;
 	[xyz.x, xyz.y, xyz.z]
@@ -235,9 +241,9 @@ pub fn planck_xyz<C:StandardObserver>(t: f64, c2: f64) -> [f64;3] {
 pub fn planck_xyz_dxyz<C:StandardObserver>(t: f64, c2: f64) -> [[f64;3];2]{
 //	let d = Domain::new(380, 780, NM);
 //	let d = Domain::new(360/5, 830/5, NM5);
-	let d = C::default().domain();
+	let d = C::domain();
 	let n = d.len();
-	let cmf = C::default().values(&d);
+	let cmf = C::values(&d);
 	let pl = DVector::<f64>::from_iterator(n, (&d).into_iter().map(|p|planck_c2(p.value(),t, c2)));
 	let pl_prime = DVector::<f64>::from_iterator(n, d.into_iter().map(|p|planck_prime_c2(p.value(),t, c2)));
 	let xyz = &cmf * pl;

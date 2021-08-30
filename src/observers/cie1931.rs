@@ -13,7 +13,7 @@ impl StandardObserver for CieObs1931Classic {
 	//const K: f64 = 683.0;
 	const NAME: &'static str = "CIE1931 2º";
 
-	fn domain(&self) -> Domain<WavelengthStep> {
+	fn domain() -> Domain<WavelengthStep> {
 		Domain::new( 360/5, 830/5,  NM5)
 	}
 
@@ -21,14 +21,14 @@ impl StandardObserver for CieObs1931Classic {
 		MatrixSlice::from_slice_generic(&CIE1931NM5SLICE, Const::<3>, Dynamic::new(N5) )
 	}
 
-	fn values<L>(&self, target: &Domain<L>) -> Matrix3xX<f64>
+	fn values<L>(target: &Domain<L>) -> Matrix3xX<f64>
 	where
 		L: Step,
 		Meter: From<<L>::UnitValueType>
 	 {
 //		calculate row interpolated values, and convert to Matrix3xX matrix... 
 //		let data = SMatrix::from_data(ArrayStorage(CIE1931NM5));
-		interp_lin_cmf(&self.domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
 //		convert(sprague_rows(&self.domain(), &target, &Self::cmf()))
 	}
 
@@ -47,7 +47,7 @@ impl StandardObserver for CieObs1931 {
 	const K: f64 = 683.0;
 	const NAME: &'static str = "CIE1931 2º (TM30)";
 
-	fn domain(&self) -> Domain<WavelengthStep> {
+	fn domain() -> Domain<WavelengthStep> {
 		Domain::new( 380, 780,  NM)
 	}
 
@@ -55,13 +55,13 @@ impl StandardObserver for CieObs1931 {
 		MatrixSlice::from_slice_generic(&CIE1931NM1, Const::<3>, Dynamic::new(N1) )
     }
 
-	fn values<L>(&self, target: &Domain<L>) -> Matrix3xX<f64>
+	fn values<L>(target: &Domain<L>) -> Matrix3xX<f64>
 	where
 		L: Step,
 		Meter: From<<L>::UnitValueType>
 	 {
 		//matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE1931NM1)
-		interp_lin_cmf(&self.domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
 	}
 
 }
