@@ -1,6 +1,6 @@
 use nalgebra::{DMatrix, };
 
-use crate::util::SpectralData;
+use crate::util::SpectralTable;
 use crate::util::{Domain, interp_cols};
 use crate::util::{WavelengthStep, Step, NM};
 
@@ -9,7 +9,7 @@ use crate::ALL;
 #[derive(Debug, Default)]
 pub struct IesTm30Hid<const I:usize>;
 
-impl<const I:usize> SpectralData for IesTm30Hid<I> {
+impl<const I:usize> SpectralTable for IesTm30Hid<I> {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>

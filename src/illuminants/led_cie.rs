@@ -3,7 +3,7 @@
 use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::ALL;
-use crate::spectra::{SpectralData};
+use crate::spectra::{SpectralTable};
 use crate::util::{Step, WavelengthStep, sprague_cols, Domain};
 
 
@@ -14,7 +14,7 @@ use crate::util::{Step, WavelengthStep, sprague_cols, Domain};
 #[derive(Debug, Default)]
 pub struct CieIllLed<const I:usize>;
 
-impl<const I:usize> SpectralData for CieIllLed<I> {
+impl<const I:usize> SpectralTable for CieIllLed<I> {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>

@@ -3,7 +3,7 @@
 use nalgebra::DMatrix;
 use num::ToPrimitive;
 
-use crate::{SpectralData, Meter, Step, Unit, WavelengthStep, led_ohno, simpson, Domain};
+use crate::{SpectralTable, Meter, Step, Unit, WavelengthStep, led_ohno, simpson, Domain};
 
 
 
@@ -68,7 +68,7 @@ impl LedOhno2005 {
 	}
 }
 
-impl SpectralData for LedOhno2005 {
+impl SpectralTable for LedOhno2005 {
 
 	type StepType = WavelengthStep;
 
@@ -79,7 +79,7 @@ impl SpectralData for LedOhno2005 {
 	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
+		<<Self as SpectralTable>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		let mut v : Vec<f64> = Vec::with_capacity(self.0.len() * dom.len());
 		for &LedParameters{peak, fwhm, power} in self.0.iter() {

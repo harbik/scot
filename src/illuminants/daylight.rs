@@ -2,7 +2,7 @@
 
 use nalgebra::{ArrayStorage, DMatrix, Matrix3xX, SMatrix, SVector};
 
-use crate::spectra::{SpectralData};
+use crate::spectra::{SpectralTable};
 use crate::illuminants::cct_parameters::{CctParameters};
 use crate::util::domain::Domain;
 use crate::util::{WavelengthStep, Step, NM5};
@@ -79,7 +79,7 @@ impl CieDaylight {
 	}
 }
 
-impl SpectralData for CieDaylight {
+impl SpectralTable for CieDaylight {
 
 	type StepType = WavelengthStep;
 
@@ -93,7 +93,7 @@ impl SpectralData for CieDaylight {
 	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
+		<<Self as SpectralTable>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 
 		let s_interpolated = sprague_cols(&self.domain(), &dom, &SMatrix::<f64,107,3>::from_data(ArrayStorage(S)));
@@ -141,7 +141,7 @@ impl SpectralData for CieDaylight {
 #[derive(Debug,Clone)]
 pub struct CieIllD50(SVector<f64, 97>);
 
-impl SpectralData for CieIllD50 {
+impl SpectralTable for CieIllD50 {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
@@ -187,7 +187,7 @@ fn test_d50(){
 #[derive(Debug,Clone)]
 pub struct CieIllD55(SVector<f64, 97>);
 
-impl SpectralData for CieIllD55 {
+impl SpectralTable for CieIllD55 {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
@@ -236,7 +236,7 @@ fn test_d55(){
 #[derive(Debug,Clone)]
 pub struct CieIllD65(SVector<f64, 97>);
 
-impl SpectralData for CieIllD65 {
+impl SpectralTable for CieIllD65 {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
@@ -288,7 +288,7 @@ fn test_d65(){
 #[derive(Debug,Clone)]
 pub struct CieIllD75(SVector<f64, 97>);
 
-impl SpectralData for CieIllD75 {
+impl SpectralTable for CieIllD75 {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>

@@ -12,10 +12,9 @@ pub trait Pixel {}
 	allowing further processing using this libary's matrix calculation methods. T
 */
 
-pub trait SpectralData {
+pub trait SpectralTable {
 
 	type StepType: Step;
-
 
 	/*
 
@@ -23,8 +22,8 @@ pub trait SpectralData {
 	where 
 		R: Dim,
 		C: Dim;
-		*/
 
+	*/
 	/**
 		Values for a set of spectral distributions.
 
@@ -36,7 +35,7 @@ pub trait SpectralData {
 	fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 		where
 			L: Step,
-			<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
+			<<Self as SpectralTable>::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 			// need to be able to map the target domain onto the native domain of the spectral data,
 			// or, in other words, need to be able to convert from the target domain's unit into the
 			// object's domain's unit.
@@ -54,7 +53,7 @@ pub trait SpectralData {
 
 }
 
-pub trait SpectralFunction {
+pub trait SpectralValues {
 
 	type StepType: Step;
 
@@ -69,7 +68,7 @@ pub trait SpectralFunction {
 	fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
 		where
 			L: Step,
-			<<Self as SpectralFunction>::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
+			<<Self as SpectralValues>::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
 			// need to be able to map the target domain onto the native domain of the spectral data,
 			// or, in other words, need to be able to convert from the target domain's unit into the
 			// object's domain's unit.

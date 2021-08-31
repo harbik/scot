@@ -16,7 +16,7 @@ Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 */
 use nalgebra::{DMatrix, };
 
-use crate::spectra::SpectralData;
+use crate::spectra::SpectralTable;
 use crate::util::{Domain, interp_cols};
 use crate::util::{WavelengthStep, Step, NM};
 use crate::ALL;
@@ -32,7 +32,7 @@ pub const IES_TM30_CES: IesTm30Ces::<ALL> = IesTm30Ces::<ALL>;
 #[derive(Default)]
 pub struct IesTm30Ces<const I:usize>;
 
-impl<const I:usize> SpectralData for IesTm30Ces<I> {
+impl<const I:usize> SpectralTable for IesTm30Ces<I> {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>

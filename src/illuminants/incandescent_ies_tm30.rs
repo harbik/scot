@@ -2,7 +2,7 @@
 use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::ALL;
-use crate::SpectralData;
+use crate::SpectralTable;
 use crate::{Domain, NM, Step, WavelengthStep, sprague_cols};
 
 /**
@@ -43,7 +43,7 @@ pub const IES_TM30_INCANDESCENT: IesTm30Incandescent::<ALL> = IesTm30Incandescen
 #[derive(Debug, Default)]
 pub struct IesTm30Incandescent<const I:usize>;
 
-impl<const I:usize> SpectralData for IesTm30Incandescent<I> {
+impl<const I:usize> SpectralTable for IesTm30Incandescent<I> {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>

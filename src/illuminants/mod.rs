@@ -3,7 +3,7 @@
 
 */
 
-use crate::SpectralData;
+use crate::SpectralTable;
 
 pub mod cct;
 pub use self::cct::*;
@@ -27,7 +27,7 @@ by using its default constructor, and getting its first, and single row vector.
 */
 
 pub trait Illuminant where
-	Self:  SpectralData + Default,
+	Self:  SpectralTable + Default,
 	{}
 
 /*

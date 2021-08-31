@@ -8,7 +8,7 @@ use std::{fmt::Display, marker::PhantomData};
 
 use crate::illuminants::{CieIllD65, Illuminant};
 use crate::observers::StandardObserver;
-use crate::spectra::SpectralData;
+use crate::spectra::SpectralTable;
 use crate::swatches::{Swatches};
 use crate::util::{Meter, Step};
 use crate::DefaultObserver;
@@ -50,7 +50,7 @@ impl<I, C> From<CieLab<I, C>> for CieXYZ<C>
 where
     I: Illuminant,
     C: StandardObserver,
-    Meter: From<<<I as SpectralData>::StepType as Step>::UnitValueType>,
+    Meter: From<<<I as SpectralTable>::StepType as Step>::UnitValueType>,
    // &'static C: Default,
 {
     fn from(lab: CieLab<I, C>) -> Self {
@@ -190,9 +190,9 @@ where
     C: StandardObserver,
    // &'a C: Default,
     I: Illuminant,
-    <<S as SpectralData>::StepType as Step>::UnitValueType:
-        From<<<I as SpectralData>::StepType as Step>::UnitValueType>,
-    Meter: From<<<I as SpectralData>::StepType as Step>::UnitValueType>,
+    <<S as SpectralTable>::StepType as Step>::UnitValueType:
+        From<<<I as SpectralTable>::StepType as Step>::UnitValueType>,
+    Meter: From<<<I as SpectralTable>::StepType as Step>::UnitValueType>,
 {
     fn from(swatch: S) -> Self {
         let ill = I::default(); // illuminant spectrum

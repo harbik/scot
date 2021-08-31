@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use colorado::{ALL, illuminants::CieIllLed, models::{CieYxy, YxyValues}};
 use maplit::hashmap;
-use colorado::spectra::SpectralData;
+use colorado::spectra::SpectralTable;
 
 fn led_illuminant_data() -> HashMap<&'static str, [f64;2]> {
 	hashmap!{

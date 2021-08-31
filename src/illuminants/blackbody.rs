@@ -5,7 +5,7 @@ use nalgebra::{DMatrix, DVector, };
 
 use crate::models::{CieXYZ, uv60};
 use crate::observers::StandardObserver;
-use crate::{C2, C2_IPTS_1948, C2_IPTS_1990, C2_NBS_1931, SpectralData, SpectralFunction, planck_c2, planck_prime_c2, stefan_boltzmann};
+use crate::{C2, C2_IPTS_1948, C2_IPTS_1990, C2_NBS_1931, SpectralTable, SpectralValues, planck_c2, planck_prime_c2, stefan_boltzmann};
 use crate::illuminants::{Illuminant};
 use crate::illuminants::cct_parameters::{CctParameters};
 use crate::util::{Domain, Meter, Step, Unit, WavelengthStep, };
@@ -115,7 +115,7 @@ impl Planckian {
 	}
 }
 
-impl SpectralFunction for Planckian {
+impl SpectralValues for Planckian {
 
 	type StepType = WavelengthStep;
 
@@ -129,7 +129,7 @@ impl SpectralFunction for Planckian {
 	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<<Self as SpectralFunction>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
+		<<Self as SpectralValues>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		let mut v : Vec<f64> = Vec::with_capacity(self.ccts.len() * dom.len());
 		for t in &self.ccts {
@@ -180,13 +180,13 @@ impl<const T: usize> Default for BB<T> {
 	}
 }
 
-impl<const N: usize> SpectralData for BB<N> {
+impl<const N: usize> SpectralTable for BB<N> {
 	type StepType = WavelengthStep;
 
 	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
+		<<Self as SpectralTable>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		 Planckian::new(N).values(dom)
 	 }
@@ -212,13 +212,13 @@ impl<const T: usize> Default for BB1948<T> {
 	}
 }
 
-impl<const N: usize> SpectralData for BB1948<N> {
+impl<const N: usize> SpectralTable for BB1948<N> {
 	type StepType = WavelengthStep;
 
 	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
 	where
 		L: Step,
-		<<Self as SpectralData>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
+		<<Self as SpectralTable>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
 	 {
 		 Planckian::new(N).set_c2(RadiantConstant::Ipts1948).values(dom)
 	 }

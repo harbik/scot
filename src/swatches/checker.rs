@@ -13,7 +13,7 @@ ColorChecker and X-Rite are Trademarks of X-Rite Incorporated.
 use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::ALL;
-use crate::spectra::SpectralData;
+use crate::spectra::SpectralTable;
 use crate::util::Domain;
 use crate::util::{WavelengthStep, Step, NM10};
 use crate::util::sprague_cols;
@@ -29,7 +29,7 @@ pub const COLOR_CHECKER: ColorChecker::<ALL> = ColorChecker::<ALL>;
 #[derive(Default)]
 pub struct ColorChecker<const I:usize>;
 
-impl<const I: usize> SpectralData for ColorChecker<I> {
+impl<const I: usize> SpectralTable for ColorChecker<I> {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>

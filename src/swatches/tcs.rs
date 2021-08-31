@@ -15,7 +15,7 @@ Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 
 */
 use nalgebra::{DMatrix, };
-use crate::{interp_cols, Domain, SpectralData, WavelengthStep, Step, NM5};
+use crate::{interp_cols, Domain, SpectralTable, WavelengthStep, Step, NM5};
 use super::Swatches;
 
 
@@ -25,7 +25,7 @@ const M: usize = 15; // number of spectra in the set, or the number of columns i
 #[derive(Default)]
 pub struct Tcs;
 
-impl SpectralData for Tcs {
+impl SpectralTable for Tcs {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>

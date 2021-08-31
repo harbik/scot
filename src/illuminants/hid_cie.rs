@@ -2,7 +2,7 @@
 
 use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
-use crate::spectra::SpectralData;
+use crate::spectra::SpectralTable;
 use crate::util::Domain;
 use crate::util::{WavelengthStep, Step, NM5};
 use crate::util::sprague_cols;
@@ -12,7 +12,7 @@ use crate::ALL;
 #[derive(Debug, Default)]
 pub struct HP<const I:usize>;
 
-impl<const I:usize> SpectralData for HP<I> {
+impl<const I:usize> SpectralTable for HP<I> {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>

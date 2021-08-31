@@ -6,7 +6,7 @@ use std::collections::{HashMap, };
 use maplit::hashmap;
 use nalgebra::{DMatrix, Dynamic, MatrixSlice};
 
-use crate::spectra::SpectralData;
+use crate::spectra::SpectralTable;
 use crate::util::domain::Domain;
 use crate::util::{WavelengthStep, Step, NM5};
 use crate::util::interpolate::{interp_cols};
@@ -22,7 +22,7 @@ pub const CIE_FLUORESCENT3: FL3::<ALL> = FL3::<ALL>; 	// as opposed to FL::<ALL>
 #[derive(Debug, Default)]
 pub struct FL<const I:usize>;
 
-impl<const I:usize> SpectralData for FL<I> {
+impl<const I:usize> SpectralTable for FL<I> {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
@@ -55,7 +55,7 @@ impl<const I:usize> SpectralData for FL<I> {
 #[derive(Debug, Default)]
 pub struct FL3<const I:usize>;
 
-impl<const I:usize> SpectralData for FL3<I> {
+impl<const I:usize> SpectralTable for FL3<I> {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>

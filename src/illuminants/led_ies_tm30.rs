@@ -2,7 +2,7 @@
 use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::ALL;
-use crate::SpectralData;
+use crate::SpectralTable;
 use crate::{Step, WavelengthStep, sprague_cols, Domain, NM};
 
 pub const IES_TM30_LED: IesTm30Led::<ALL> = IesTm30Led::<ALL>;
@@ -10,7 +10,7 @@ pub const IES_TM30_LED: IesTm30Led::<ALL> = IesTm30Led::<ALL>;
 #[derive(Debug, Default)]
 pub struct IesTm30Led<const I:usize>;
 
-impl<const I:usize> SpectralData for IesTm30Led<I> {
+impl<const I:usize> SpectralTable for IesTm30Led<I> {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>

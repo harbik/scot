@@ -2,7 +2,7 @@
 use std::{fmt::Display, marker::PhantomData};
 
 use nalgebra::{Matrix3xX};
-use crate::{DefaultObserver, Meter, SpectralData, SpectralFunction, Step, Unit, observers::StandardObserver};
+use crate::{DefaultObserver, Meter, SpectralTable, Step, Unit, observers::StandardObserver};
 
 /**	
 	A collection of a tristimulus values, associated with a standard observer,
@@ -48,8 +48,8 @@ impl<C: StandardObserver> CieXYZ<C> {
 impl<C, S> From<S> for CieXYZ<C>
 where 
 	C: StandardObserver,
-	S: SpectralData,
-	Meter: From<<<S as SpectralData>::StepType as Step>::UnitValueType>,
+	S: SpectralTable,
+	Meter: From<<<S as SpectralTable>::StepType as Step>::UnitValueType>,
  {
 	fn from(sd: S) -> Self {
 		let xyz = 

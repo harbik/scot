@@ -19,7 +19,7 @@ Currently, this library has the following collections:
 use nalgebra::{DMatrix};
 
 
-use crate::{spectra::SpectralData, util::{Domain, Step, WavelengthStep}};
+use crate::{spectra::SpectralTable, util::{Domain, Step, WavelengthStep}};
 
 pub mod checker;
 pub use self::checker::*;
@@ -30,7 +30,7 @@ pub use self::tcs::*;
 pub mod ces;
 pub use self::ces::*;
 
-pub trait Swatches: SpectralData {}
+pub trait Swatches: SpectralTable {}
 /// trait marker for swatch reflection spectra, 
 /// such as the Munsell color swatches.
 
@@ -38,7 +38,7 @@ pub trait Swatches: SpectralData {}
 #[derive(Default)]
 pub struct White;
 
-impl SpectralData for White {
+impl SpectralTable for White {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
@@ -75,7 +75,7 @@ impl Gray {
 		Gray(r)
 	}
 }
-impl SpectralData for Gray {
+impl SpectralTable for Gray {
     type StepType = WavelengthStep;
 
     fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
