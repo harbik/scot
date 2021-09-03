@@ -8,7 +8,6 @@ use std::{fmt::Display, marker::PhantomData};
 
 use crate::illuminants::{CieIllD65, Illuminant};
 use crate::observers::StandardObserver;
-use crate::spectra::SpectralTable;
 use crate::swatches::{Swatches};
 use crate::util::{Meter, Step};
 use crate::DefaultObserver;
@@ -17,13 +16,13 @@ use nalgebra::{Matrix3x1, Matrix3xX};
 use super::{CieXYZ, XYZValues};
 
 #[derive(Debug,Clone)]
-pub struct CieLab<I: Illuminant = CieIllD65, C: StandardObserver = DefaultObserver> {
+pub struct CieLab<I: Illuminant<C> = CieIllD65, C: StandardObserver = DefaultObserver> {
     pub data: Matrix3xX<f64>,
     cmf: PhantomData<*const C>, // only used through C::Default(), but needed to mark the type
     illuminant: PhantomData<*const I>, // only used through I:Default(), but needed to mark the type
 }
 
-impl<C: StandardObserver, I: Illuminant> CieLab<I, C>
+impl<C: StandardObserver, I: Illuminant<C>> CieLab<I, C>
 where
 //	Meter: From<<<I as SpectralData>::ScaleType as Scale>::UnitType>
 //	C: 'static:into();,
@@ -48,14 +47,15 @@ where
 
 impl<I, C> From<CieLab<I, C>> for CieXYZ<C>
 where
-    I: Illuminant,
+    I: Illuminant<C>,
     C: StandardObserver,
-    Meter: From<<<I as SpectralTable>::StepType as Step>::UnitValueType>,
+ //   Meter: From<<<I as SpectralTable>::StepType as Step>::UnitValueType>,
    // &'static C: Default,
 {
     fn from(lab: CieLab<I, C>) -> Self {
         let ill = I::default();
-        let XYZValues { x: xn, y: yn, z: zn, } = CieXYZ::<C>::from(ill).into_iter().next().unwrap();
+		let xyz: CieXYZ<C> = ill.into();
+        let XYZValues { x: xn, y: yn, z: zn, } = xyz.into_iter().next().unwrap();
 		let mut v: Vec<f64> = Vec::with_capacity(lab.data.len());
         for LabValues { l, a, b } in lab {
             let s = (l + 16f64) / 116f64;
@@ -79,17 +79,17 @@ fn test_lab_to_xyz(){
 
 }
 
-pub struct LabIter<I: Illuminant, C: StandardObserver> {
+pub struct LabIter<I: Illuminant<C>, C: StandardObserver> {
     lab: CieLab<I, C>,
     i: usize,
 }
 
-pub struct LabIterRef<'a, I: Illuminant, C: StandardObserver> {
+pub struct LabIterRef<'a, I: Illuminant<C>, C: StandardObserver> {
     lab: &'a CieLab<I, C>,
     i: usize,
 }
 
-impl<C: StandardObserver, I: Illuminant> Iterator for LabIter<I, C> {
+impl<C: StandardObserver, I: Illuminant<C>> Iterator for LabIter<I, C> {
     type Item = LabValues;
     fn next(&mut self) -> Option<Self::Item> {
         if self.i < self.lab.data.ncols() {
@@ -104,7 +104,7 @@ impl<C: StandardObserver, I: Illuminant> Iterator for LabIter<I, C> {
     }
 }
 
-impl<'a, C: StandardObserver, I: Illuminant> Iterator for LabIterRef<'a, I, C> {
+impl<'a, C: StandardObserver, I: Illuminant<C>> Iterator for LabIterRef<'a, I, C> {
     type Item = LabValues;
     fn next(&mut self) -> Option<Self::Item> {
         if self.i < self.lab.data.ncols() {
@@ -126,7 +126,7 @@ pub struct LabValues {
     pub b: f64,
 }
 
-impl<C: StandardObserver, I: Illuminant> IntoIterator for CieLab<I, C> {
+impl<C: StandardObserver, I: Illuminant<C>> IntoIterator for CieLab<I, C> {
     type Item = LabValues;
 
     type IntoIter = LabIter<I, C>;
@@ -136,7 +136,7 @@ impl<C: StandardObserver, I: Illuminant> IntoIterator for CieLab<I, C> {
     }
 }
 
-impl<'a, C: StandardObserver, I: Illuminant> IntoIterator for &'a CieLab<I, C> {
+impl<'a, C: StandardObserver, I: Illuminant<C>> IntoIterator for &'a CieLab<I, C> {
     type Item = LabValues;
 
     type IntoIter = LabIterRef<'a, I, C>;
@@ -189,17 +189,17 @@ where
     S: Swatches,
     C: StandardObserver,
    // &'a C: Default,
-    I: Illuminant,
-    <<S as SpectralTable>::StepType as Step>::UnitValueType:
-        From<<<I as SpectralTable>::StepType as Step>::UnitValueType>,
-    Meter: From<<<I as SpectralTable>::StepType as Step>::UnitValueType>,
+    I: Illuminant<C>,
+   // <<S as SpectralTable>::StepType as Step>::UnitValueType: From<<<I as SpectralTable>::StepType as Step>::UnitValueType>,
+   // Meter: From<<<I as SpectralTable>::StepType as Step>::UnitValueType>,
 {
     fn from(swatch: S) -> Self {
-        let ill = I::default(); // illuminant spectrum
-        let ill_dom = ill.domain();
-        let ill_data  = ill.values(&ill_dom);
-        let sw_data = swatch.values(&ill_dom);
+       // let ill = I::default(); // illuminant spectrum
+       // let ill_dom = ill.domain();
+       // let ill_data  = ill.values(&ill_dom);
+       // let sw_data = swatch.values(&ill_dom);
 
+	   /*
         let (xyz_n, xyz) = C::xyz_from_dom_ill_mat(ill_dom, ill_data, sw_data);
 
         CieLab {
@@ -207,10 +207,12 @@ where
             cmf: PhantomData,
             illuminant: PhantomData,
         }
+	   */
+	   todo!()
     }
 }
 
-impl<C: StandardObserver, I: Illuminant> Display for CieLab<I, C> {
+impl<C: StandardObserver, I: Illuminant<C>> Display for CieLab<I, C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Lab<{}>: {:.5}", C::NAME, self.data)
     }

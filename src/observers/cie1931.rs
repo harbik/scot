@@ -1,5 +1,7 @@
+use nalgebra::OMatrix;
 use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice, MatrixSlice3xX};
 use crate::interp_lin_cmf;
+use crate::interp_lin_cmf2;
 use crate::{observers::StandardObserver};
 use crate::util::{Domain};
 use crate::util::{NM5, NM, WavelengthStep, Meter, Step};
@@ -28,7 +30,8 @@ impl StandardObserver for CieObs1931Classic {
 	 {
 //		calculate row interpolated values, and convert to Matrix3xX matrix... 
 //		let data = SMatrix::from_data(ArrayStorage(CIE1931NM5));
-		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
+		//	interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
+		interp_lin_cmf2(&Self::domain(), &target,Self::cmf())
 //		convert(sprague_rows(&self.domain(), &target, &Self::cmf()))
 	}
 
@@ -55,13 +58,16 @@ impl StandardObserver for CieObs1931 {
 		MatrixSlice::from_slice_generic(&CIE1931NM1, Const::<3>, Dynamic::new(N1) )
     }
 
-	fn values<L>(target: &Domain<L>) -> Matrix3xX<f64>
+	//fn values<L>(target: &Domain<L>) -> Matrix3xX<f64>
+	fn values<L>(target: &Domain<L>) -> OMatrix<f64, Const::<3>, Dynamic>
 	where
 		L: Step,
 		Meter: From<<L>::UnitValueType>
 	 {
 		//matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE1931NM1)
-		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
+		//let m =  interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf());
+		let m =  interp_lin_cmf2(&Self::domain(), &target,Self::cmf());
+		m
 	}
 
 }

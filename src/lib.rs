@@ -76,7 +76,7 @@ All rights reserved.
 </p>
 */
 
-
+#![allow(unused_imports)]
 
 pub type DefaultObserver = self::observers::CieObs1931;
 
@@ -87,11 +87,11 @@ pub const ALL: usize = 0;
  */
 pub mod models;
 
-pub mod differences;
+//pub mod differences;
 
 pub mod illuminants;
 
-pub mod swatches;
+//pub mod swatches;
 
 pub mod util;
 pub use crate::util::*;

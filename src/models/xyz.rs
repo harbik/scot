@@ -1,7 +1,7 @@
 
 use std::{fmt::Display, marker::PhantomData};
 
-use nalgebra::{Matrix3xX};
+use nalgebra::{Const, DefaultAllocator, Dim, Matrix3xX, OMatrix, U3};
 use crate::{DefaultObserver, Meter, SpectralTable, Step, Unit, observers::StandardObserver};
 
 /**	
@@ -23,6 +23,19 @@ pub struct CieXYZ<C: StandardObserver = DefaultObserver> {
 impl<C: StandardObserver> CieXYZ<C> {
 	pub fn new(xyz: Matrix3xX<f64>) -> Self {
 		Self { data: xyz, cmf: PhantomData}
+	}
+}
+
+/**
+	Convert owned matrix to dynamic matrix
+*/
+impl<O: StandardObserver, C:Dim> From<OMatrix<f64, Const<3>, C>> for CieXYZ<O> 
+where 
+	DefaultAllocator: nalgebra::allocator::Allocator<f64, Const<3>, C>,
+	 {
+	fn from(xyz: OMatrix<f64, Const<3>, C>) -> Self {
+		let data = Matrix3xX::from_iterator(xyz.ncols(), xyz.into_iter().cloned());
+		Self { data, cmf: PhantomData}
 	}
 }
 

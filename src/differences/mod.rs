@@ -51,7 +51,7 @@ pub use self::ciede94::CieDE1994;
 
 pub trait DeltaEValues<I,C>
 where 
-	I: Illuminant,
+	I: Illuminant<C>,
 	C: StandardObserver,
 	Self: AsRef<DMatrix<f64>>
 {

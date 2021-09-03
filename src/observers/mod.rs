@@ -11,8 +11,8 @@ automatic transformations between the different mathematical representations of 
 pub mod cie1931;
 pub use cie1931::*;
 
-pub mod cie1964;
-pub use cie1964::*;
+//pub mod cie1964;
+//pub use cie1964::*;
 
 pub mod cie_f2;
 pub use cie_f2::*;
@@ -20,7 +20,7 @@ pub use cie_f2::*;
 pub mod cie_f10;
 pub use cie_f10::*;
 
-use nalgebra::{DMatrix, Matrix3x1, Matrix3xX, MatrixSlice3xX,};
+use nalgebra::{Const, DMatrix, Dynamic, Matrix3x1, Matrix3xX, MatrixSlice3xX, OMatrix};
 use crate::{Domain, Meter, WavelengthStep, Step, Unit};
 
 
@@ -45,7 +45,8 @@ pub trait StandardObserver : Default
 		as row vectors, with their length being dynamic, and determined by the standard's wavelength domain.
 		The target domain does not have to use unit `Meter`, but needs be be able to be converted into a `Meter-unit.
 	*/
-	fn values<L>(target: &Domain<L>) -> Matrix3xX<f64>
+	//fn values<L>(target: &Domain<L>) -> Matrix3xX<f64>
+	fn values<L>(target: &Domain<L>) -> OMatrix<f64, Const<3>, Dynamic>
 		where 
 			L: Step,
 			Meter: From<<L>::UnitValueType>

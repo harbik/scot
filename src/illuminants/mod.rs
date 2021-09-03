@@ -3,7 +3,20 @@
 
 */
 
-use crate::SpectralTable;
+use std::ops::Mul;
+
+use nalgebra::Const;
+use nalgebra::Dynamic;
+use nalgebra::Matrix;
+use nalgebra::Matrix3xX;
+use nalgebra::VecStorage;
+
+use crate::Meter;
+use crate::SpectralDistribution;
+use crate::Step;
+use crate::Unit;
+use crate::models::CieXYZ;
+use crate::observers::StandardObserver;
 
 pub mod cct;
 pub use self::cct::*;
@@ -26,9 +39,24 @@ Represents a type with a single spectral distrution, which values can be accesse
 by using its default constructor, and getting its first, and single row vector.
 */
 
-pub trait Illuminant where
-	Self:  SpectralTable + Default,
-	{}
+
+pub trait Illuminant<C> where
+	C: StandardObserver,
+	Self: SpectralDistribution,
+	Self: Into<CieXYZ<C>>,
+	Self: Default,
+	Meter: From<<<Self as SpectralDistribution>::StepType as Step>::UnitValueType>,
+	Matrix3xX<f64>: Mul<Self::MatrixType>,
+	<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output: Mul<f64>,
+	CieXYZ::<C>: From<<<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output as Mul<f64>>::Output>
+	{
+		fn xyz(&self) -> CieXYZ<C> {
+			let (d, s) = self.spd();
+			let xyz = (C::values(&d) * s) * (C::K * C::domain().step.unitvalue(1).value());
+			CieXYZ::<C>::from(xyz)
+		}
+	 }
+
 
 /*
 	Optional illuminant data libraries, which can be excluded by feature flags.

@@ -1,3 +1,4 @@
+use nalgebra::{Dim, Matrix, Matrix3xX, SMatrix, storage::Storage};
 use num::Float;
 
 /**

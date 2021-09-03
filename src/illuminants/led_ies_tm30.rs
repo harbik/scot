@@ -3,6 +3,7 @@ use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::ALL;
 use crate::SpectralTable;
+use crate::observers::StandardObserver;
 use crate::{Step, WavelengthStep, sprague_cols, Domain, NM};
 
 pub const IES_TM30_LED: IesTm30Led::<ALL> = IesTm30Led::<ALL>;
@@ -44,7 +45,7 @@ impl<const I:usize> SpectralTable for IesTm30Led<I> {
 	}
 }
 
-impl<const I: usize> super::Illuminant for IesTm30Led<I> {}
+//impl<C: StandardObserver, const I: usize> super::Illuminant<C> for IesTm30Led<I> {}
 /**
 	Commercial, measured, LED Spectra, from the IES TM30 library, V2.00, Aug 10, 2018.
 

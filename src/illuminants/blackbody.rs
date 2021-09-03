@@ -5,7 +5,7 @@ use nalgebra::{DMatrix, DVector, };
 
 use crate::models::{CieXYZ, uv60};
 use crate::observers::StandardObserver;
-use crate::{C2, C2_IPTS_1948, C2_IPTS_1990, C2_NBS_1931, SpectralTable, SpectralValues, planck_c2, planck_prime_c2, stefan_boltzmann};
+use crate::{C2, C2_IPTS_1948, C2_IPTS_1990, C2_NBS_1931, SpectralDistribution, planck_c2, planck_prime_c2, stefan_boltzmann};
 use crate::illuminants::{Illuminant};
 use crate::illuminants::cct_parameters::{CctParameters};
 use crate::util::{Domain, Meter, Step, Unit, WavelengthStep, };
@@ -87,8 +87,9 @@ impl Default for RadiantConstant {
 
 
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Planckian {
+	pub domain: Domain<WavelengthStep>,
 	pub ccts: CctParameters,
 	pub c2: RadiantConstant,
 }
@@ -99,15 +100,18 @@ impl Planckian {
 	{
 		Planckian {
 			ccts: parameters.into(),
-			c2: Default::default()
+			..Default::default()
 		}
 	}
 
-	pub fn set_c2(self, r: RadiantConstant) -> Self {
-		Self {
-			ccts: self.ccts,
-			c2: r,
-		}
+	pub fn set_c2(mut self, c2: RadiantConstant) -> Self {
+		self.c2 = c2;
+		self
+	}
+
+	pub fn set_domain(mut self, domain: Domain<WavelengthStep>) -> Self {
+		self.domain = domain;
+		self
 	}
 
 	pub fn radiant_emittance(&self) -> DVector<f64> {
@@ -115,86 +119,48 @@ impl Planckian {
 	}
 }
 
-impl SpectralValues for Planckian {
+impl SpectralDistribution for Planckian {
+	type MatrixType = DMatrix<f64>;
+    type StepType = WavelengthStep;
 
-	type StepType = WavelengthStep;
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		let d = self.domain.clone();
+		let m = Self::MatrixType::from_iterator(
+			d.len(),
+			self.ccts.len(),
+			self.ccts.iter().flat_map(|t|d.iter().map(move |l|planck_c2(l.value(), *t, self.c2.value())))
+		);
+		(d,m)
+    }
 
-	/**
-		Planckian Spectral values for multiple domain types.
-
-		Calculates planckian spectral values for a target domain.
-		This `UnitValue` item type of target domain's Unit doesn't have to be a `Meter` value, but needs to be
-		able to be converted into a `Meter` value, typically done by implementing a `From<X> for Meter` trait.
-	 */
-	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<<Self as SpectralValues>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
-	 {
-		let mut v : Vec<f64> = Vec::with_capacity(self.ccts.len() * dom.len());
-		for t in &self.ccts {
-			for i in dom.range.clone() {
-				let meter_value: Meter = dom.step.unitvalue(i).into();
-				v.push(planck_c2(meter_value.value(), t, self.c2.value()));
-			}
-		}
-		DMatrix::from_vec(dom.len(), self.ccts.len(), v)
-
-	}
-
-	fn description(&self) -> Option<String> {
-		Some("Planckian Sources".to_string())
+	fn len(&self) -> usize {
+		self.ccts.len()
 	}
 
 	/// String temperature values for each of the blackbody sources in the collection.
 	fn keys(&self) -> Option<Vec<String>> {
 		self.ccts.keys()
 	}
-	
+
+    fn description(&self) -> Option<String> { 
+		Some("Planckian Spectral Distribution".to_string())
+	}
 }
 
-impl<C> From<Planckian> for CieXYZ<C> 
-where
-	C: StandardObserver,
-{
-    fn from(p: Planckian) -> Self {
+impl<C: StandardObserver> Illuminant<C> for Planckian {
+	fn xyz(&self) -> CieXYZ<C> {
 		let xyz = 
-			C::cmf() * p.values(&C::domain()) * C::K * C::domain().step.unitvalue(1).value();
+			C::cmf() * self.values(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
 		CieXYZ::<C>::new(xyz)
+	}
+}
+
+impl<C: StandardObserver> From<Planckian> for CieXYZ<C> {
+    fn from(p: Planckian) -> Self {
+		p.xyz()
     }
 }
 
-/**
-	A generic constant blackbody illuminant type.
-	
-	To be used whenever a blackbody illuminant is required at compile time.
-	This uses the exact, absolute, temperature scale, which deviates from older definitions of correlated color temperature.
-*/
-pub struct BB <const T: usize>;
-
-impl<const N: usize> Illuminant for BB<N> {}
-
-impl<const T: usize> Default for BB<T> {
-	fn default() -> Self {
-		Self	
-	}
-}
-
-impl<const N: usize> SpectralTable for BB<N> {
-	type StepType = WavelengthStep;
-
-	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<<Self as SpectralTable>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
-	 {
-		 Planckian::new(N).values(dom)
-	 }
-	
-	fn domain(&self) -> Domain<Self::StepType> {
-		Domain::default()
-	}
-}
 
 /**
 	A generic constant blackbody illuminant type.
@@ -202,30 +168,42 @@ impl<const N: usize> SpectralTable for BB<N> {
 	To be used whenever a blackbody illuminant is required at compile time.
 	This uses the IPTS 1948 absolute temperature scale, as used in the CIE D illuminant.
 */
-pub struct BB1948 <const T: usize>;
+#[derive(Default)]
+pub struct BB <const T: usize>;
 
-impl<const N: usize> Illuminant for BB1948<N> {}
+impl<C: StandardObserver, const T: usize> Illuminant<C> for BB<T> {}
 
-impl<const T: usize> Default for BB1948<T> {
-	fn default() -> Self {
-		Self	
+impl<const T: usize> SpectralDistribution for BB<T> {
+    type MatrixType = DMatrix<f64>;
+    type StepType = WavelengthStep;
+
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		Planckian::new(T).set_c2(RadiantConstant::Ipts1948).spd()
+    }
+
+	fn len(&self) -> usize {
+		1
 	}
 }
 
-impl<const N: usize> SpectralTable for BB1948<N> {
-	type StepType = WavelengthStep;
+impl<C, const T: usize> From<BB<T>> for CieXYZ<C> 
+where
+	C: StandardObserver,
+{
+    fn from(_: BB<T>) -> Self {
+		Self::from(Planckian::new(T).set_c2(RadiantConstant::Ipts1948))
+    }
+}
 
-	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<<Self as SpectralTable>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
-	 {
-		 Planckian::new(N).set_c2(RadiantConstant::Ipts1948).values(dom)
-	 }
-	
-	fn domain(&self) -> Domain<Self::StepType> {
-		Domain::default()
-	}
+#[test]
+fn test_bb(){
+	use crate::models::CieYxy;
+	use crate::observers::CieObs1931;
+	use crate::models::YxyValues;
+	let pl_yxy = CieYxy::<CieObs1931>::from(BB::<2700>);
+	let YxyValues { l: _, x, y} = pl_yxy.into_iter().next().unwrap();
+	 println!("{} {}",x, y);
+
 }
 
 

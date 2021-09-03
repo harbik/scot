@@ -49,7 +49,7 @@ pub struct CieDE1976<I = D65,C = CieObs1931>(pub DMatrix<f64>, PhantomData<*cons
 
 impl<I, C> CieDE1976<I, C>
 where
-	I: Illuminant,
+	I: Illuminant<C>,
 	C: StandardObserver,
 {
    pub fn new<L1,L2>(l1: L1, l2: L2) -> Self
@@ -63,7 +63,7 @@ where
 }
 
 
-impl<I: Illuminant, C: StandardObserver> DeltaEValues<I,C> for CieDE1976<I,C>{}
+impl<I: Illuminant<C>, C: StandardObserver> DeltaEValues<I,C> for CieDE1976<I,C>{}
 /* 
 	See AsRef<DMatrix<f64>> implementation, which represent the error values.
 	Using default methods only.
@@ -78,7 +78,7 @@ impl<L1, L2, I, C> From<(L1, L2)> for CieDE1976<I,C>
 where
 	L1: Into::<CieLab<I,C>>,
 	L2: Into::<CieLab<I,C>>,
-	I: Illuminant,
+	I: Illuminant<C>,
 	C: StandardObserver,
 
 {
@@ -101,13 +101,13 @@ where
 
 }
 
-impl<I: Illuminant, C: StandardObserver> AsRef<DMatrix<f64>> for CieDE1976<I,C> {
+impl<I: Illuminant<C>, C: StandardObserver> AsRef<DMatrix<f64>> for CieDE1976<I,C> {
     fn as_ref(&self) -> &DMatrix<f64> {
         &self.0
     }
 }
 
-impl<C: StandardObserver, I: Illuminant> Debug for CieDE1976<I,C> {
+impl<C: StandardObserver, I: Illuminant<C>> Debug for CieDE1976<I,C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
        Debug::fmt(&self.0, f) 
     }
@@ -115,7 +115,7 @@ impl<C: StandardObserver, I: Illuminant> Debug for CieDE1976<I,C> {
 
 impl<I,C> std::fmt::Display for CieDE1976<I,C>
 where 
-	I: Illuminant,
+	I: Illuminant<C>,
 	C: StandardObserver
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

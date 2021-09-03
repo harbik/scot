@@ -1,7 +1,6 @@
 use std::collections::HashMap;
-use colorado::{ALL, illuminants::CieIllLed, models::{CieYxy, YxyValues}};
+use colorado::{illuminants::CieIllLed, models::{CieYxy, YxyValues}};
 use maplit::hashmap;
-use colorado::spectra::SpectralTable;
 
 fn led_illuminant_data() -> HashMap<&'static str, [f64;2]> {
 	hashmap!{
@@ -21,9 +20,10 @@ fn led_illuminant_data() -> HashMap<&'static str, [f64;2]> {
 #[test]
 fn test_xy(){
 	use approx::assert_abs_diff_eq;
-	let y_xy: CieYxy = CieIllLed::<ALL>.into();
+	use colorado::SpectralDistribution;
+	let y_xy: CieYxy = CieIllLed::default().into();
 	let testdata=led_illuminant_data();
-	let testkeys = CieIllLed::<ALL>.keys().unwrap();
+	let testkeys = CieIllLed::default().keys().unwrap();
 	for (i, YxyValues {l: _,x,y}) in y_xy.into_iter().enumerate(){
 		let [xr,yr] = testdata[testkeys[i].as_str()];
 		assert_abs_diff_eq!(x,xr,epsilon=5E-5); // precision of test data

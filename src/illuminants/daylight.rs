@@ -1,7 +1,11 @@
 
 
-use nalgebra::{ArrayStorage, DMatrix, Matrix3xX, SMatrix, SVector};
+use nalgebra::storage::RStride;
+use nalgebra::{ArrayStorage, Const, DMatrix, Dynamic, Matrix, Matrix3xX, MatrixSlice, MatrixSliceXx1, SMatrix, SVector, SliceStorage, U1, U97, VecStorage};
 
+use crate::{SpectralDistribution, Unit};
+use crate::models::CieXYZ;
+use crate::observers::StandardObserver;
 use crate::spectra::{SpectralTable};
 use crate::illuminants::cct_parameters::{CctParameters};
 use crate::util::domain::Domain;
@@ -10,10 +14,10 @@ use crate::util::interpolate::{sprague_cols};
 
 use super::Illuminant;
 
-pub type D50 = CieIllD50;
-pub type D55 = CieIllD55;
-pub type D65 = CieIllD65;
-pub type D75 = CieIllD75;
+pub type D50<'a> = CieIllD50<'a>;
+pub type D55<'a> = CieIllD55<'a>;
+pub type D65<'a> = CieIllD65<'a>;
+pub type D75<'a> = CieIllD75<'a>;
 pub type CieD = CieDaylight;
 
 
@@ -79,27 +83,19 @@ impl CieDaylight {
 	}
 }
 
-impl SpectralTable for CieDaylight {
+const N: usize = 107;
 
-	type StepType = WavelengthStep;
+impl SpectralDistribution for CieDaylight {
+	type MatrixType = Matrix<f64, Const<N>, Dynamic, VecStorage<f64, Const<N>, Dynamic>>;
+    type StepType =  WavelengthStep;
 
-	/**
-		Spectral values for the CIE D illuminant.
+	fn len(&self) -> usize {
+		self.ccts.len()
+	}
 
-		Calculates CIE Daylight spectral values for a target domain.
-		This `UnitValue` item type of target domain's Unit doesn't have to be a `Meter` value, but needs to be
-		able to be converted into a `Meter` value, typically done by implementing a `From<X> for Meter` trait.
-	 */
-	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<<Self as SpectralTable>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
-	 {
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
 
-		let s_interpolated = sprague_cols(&self.domain(), &dom, &SMatrix::<f64,107,3>::from_data(ArrayStorage(S)));
-
-
-		let mut mvec : Vec<f64> = Vec::with_capacity(3 * dom.len());
+		let mut mvec : Vec<f64> = Vec::with_capacity(3 * N);
 		for t in &self.ccts {
 			let cct = t.clamp(4000.0,25000.0);
 			let xd = match cct {
@@ -110,68 +106,149 @@ impl SpectralTable for CieDaylight {
 			let m = 0.0241 + 0.2562 * xd - 0.7341 * yd;
 			let m1 = (-1.3515 - 1.7703 * xd + 5.9114 * yd) / m;
 			let m2 = (0.03 - 31.4424 * xd + 30.0717 * yd) / m;
-		//	let sum_power = (8715.51 + m1 * 890.13 + m2 * 374.95) * 5.0;
-		//	let scale = p / sum_power;
 			mvec.push(1.0);
 			mvec.push(m1);
 			mvec.push(m2);
 		}
 		let mmat = Matrix3xX::from_vec(mvec);
-		s_interpolated * mmat
-	//	DMatrix::from_vec(dom.len(), self.ccts.len(), v)
-
-	}
-
-	fn description(&self) -> Option<String> {
-		Some("Daylight Illuminants".to_string())
-	}
-
-	/// String temperature values for each of the blackbody sources in the collection.
-	fn keys(&self) -> Option<Vec<String>> {
-		self.ccts.keys()
-	}
-
-	/// Domain which covering the visible part of the spectrum
-	fn domain(&self) -> Domain<Self::StepType> {
-		Domain::new(60, 166, NM5)
-	}
-	
+		(
+			Domain::new(60, 166, NM5),
+			SMatrix::<f64,107,3>::from_data(ArrayStorage(S)) * mmat
+		)
+    }
 }
 
-#[derive(Debug,Clone)]
-pub struct CieIllD50(SVector<f64, 97>);
 
-impl SpectralTable for CieIllD50 {
+#[derive(Default)]
+pub struct D <const T: usize>;
+
+impl<C: StandardObserver, const T: usize> Illuminant<C> for D<T> {}
+
+impl<const T: usize> SpectralDistribution for D<T> {
+    type MatrixType = Matrix<f64, Const<N>, Dynamic, VecStorage<f64, Const<N>, Dynamic>>;
     type StepType = WavelengthStep;
 
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		sprague_cols(&self.domain(), &domain, &self.0)
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		CieDaylight::new(T*100).spd()
     }
 
-    fn domain(&self) -> Domain<Self::StepType> {
-		Domain::new(60, 156, NM5)
+	fn len(&self) -> usize {
+		1
+	}
+}
+
+impl<C, const T: usize> From<D<T>> for CieXYZ<C> 
+where
+	C: StandardObserver,
+{
+    fn from(d: D<T>) -> Self {
+		d.xyz()
+    }
+}
+const NDATA:usize = 97;
+
+/**
+	CIE D65 illuminant, provied by the CIE as a data table.
+
+	Data is listed at the end of this file, and presented here as a matrix slice, to avoid data copying.
+ */
+#[derive(Debug,Clone)]
+pub struct CieIllD65<'a>(Domain<<Self as SpectralDistribution>::StepType>, <Self as SpectralDistribution>::MatrixType);
+
+impl<'a> Default for  CieIllD65<'a> {
+    fn default() -> Self {
+		Self (
+			Domain::new(60, 156, NM5),
+			MatrixSliceXx1::from_slice(&D65_DATA, NDATA)
+		) 
+    }
+}
+
+impl<'a> SpectralDistribution for CieIllD65<'a> {
+	type MatrixType = MatrixSliceXx1<'a, f64>;
+    type StepType = WavelengthStep;
+
+	fn len(&self) -> usize {
+		1usize
+	}
+
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		(
+			self.0.clone(),
+			self.1
+		)
     }
 
-    fn keys(&self) -> Option<Vec<String>> { 
-		Some(vec!["D50".to_string()])
-	 }
+    fn description(&self) -> Option<String> { 
+		Some("CIE D65 Standard Illuminant".to_string())
+	}
+}
+
+impl<'a, C: StandardObserver> From<CieIllD65<'a>> for CieXYZ<C> {
+    fn from(d65: CieIllD65<'a>) -> Self {
+		d65.xyz()
+    }
+}
+
+impl<'a, C: StandardObserver> Illuminant<C> for CieIllD65<'a>{}
+
+
+
+#[test]
+fn test_d65(){
+	use crate::observers::CieObs1931;
+	use crate::models;
+	use approx::assert_abs_diff_eq;
+
+	let yxy: models::CieYxy<CieObs1931> = CieIllD65::default().into();
+	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 x value
+	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 y value
+
+	let yxy: models::CieYxy<CieObs1931> = D::<65>.into();
+	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 x value
+	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 y value
+} 
+
+#[derive(Debug,Clone)]
+pub struct CieIllD50<'a>(Domain<<Self as SpectralDistribution>::StepType>, <Self as SpectralDistribution>::MatrixType);
+
+impl<'a> Default for  CieIllD50<'a> {
+    fn default() -> Self {
+		Self (
+			Domain::new(60, 156, NM5),
+			MatrixSliceXx1::from_slice(&D50_DATA, NDATA)
+		) 
+    }
+}
+
+impl<'a> SpectralDistribution for CieIllD50<'a> {
+	type MatrixType = MatrixSliceXx1<'a, f64>;
+    type StepType = WavelengthStep;
+
+	fn len(&self) -> usize {
+		1usize
+	}
+
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		(
+			self.0.clone(),
+			self.1
+		)
+    }
 
     fn description(&self) -> Option<String> { 
 		Some("CIE D50 Standard Illuminant".to_string())
 	}
 }
 
-impl Default for CieIllD50 {
-    fn default() -> Self {
-		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D50_DATA)))
+impl<'a, C: StandardObserver> From<CieIllD50<'a>> for CieXYZ<C> {
+    fn from(d50: CieIllD50<'a>) -> Self {
+		d50.xyz()
     }
 }
 
-impl Illuminant for CieIllD50 {}
+impl<'a, C: StandardObserver> Illuminant<C> for CieIllD50<'a>{}
+
 
 #[test]
 fn test_d50(){
@@ -184,40 +261,47 @@ fn test_d50(){
 	assert_abs_diff_eq!(d50xyz.data.column(0).y, 0.34567 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 x value
 	assert_abs_diff_eq!(d50xyz.data.column(0).z, 0.35851 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 y value - there is a slight deviation here... 50 vs 51
 } 
-#[derive(Debug,Clone)]
-pub struct CieIllD55(SVector<f64, 97>);
 
-impl SpectralTable for CieIllD55 {
+#[derive(Debug,Clone)]
+pub struct CieIllD55<'a>(Domain<<Self as SpectralDistribution>::StepType>, <Self as SpectralDistribution>::MatrixType);
+
+impl<'a> Default for  CieIllD55<'a> {
+    fn default() -> Self {
+		Self (
+			Domain::new(60, 156, NM5),
+			MatrixSliceXx1::from_slice(&D55_DATA, NDATA)
+		) 
+    }
+}
+
+impl<'a> SpectralDistribution for CieIllD55<'a> {
+	type MatrixType = MatrixSliceXx1<'a, f64>;
     type StepType = WavelengthStep;
 
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		sprague_cols(&self.domain(), &domain, &self.0)
-    }
+	fn len(&self) -> usize {
+		1usize
+	}
 
-    fn domain(&self) -> Domain<Self::StepType> {
-		Domain::new(60, 156, NM5)
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		(
+			self.0.clone(),
+			self.1
+		)
     }
-
-    fn keys(&self) -> Option<Vec<String>> { 
-		Some(vec!["D55".to_string()])
-	 }
 
     fn description(&self) -> Option<String> { 
 		Some("CIE D55 Standard Illuminant".to_string())
 	}
 }
 
-impl Default for CieIllD55 {
-    fn default() -> Self {
-		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D55_DATA)))
+impl<'a, C: StandardObserver> From<CieIllD55<'a>> for CieXYZ<C> {
+    fn from(d55: CieIllD55<'a>) -> Self {
+		d55.xyz()
     }
 }
 
-impl Illuminant for CieIllD55 {}
+impl<'a, C: StandardObserver> Illuminant<C> for CieIllD55<'a>{}
+
 
 #[test]
 fn test_d55(){
@@ -225,99 +309,50 @@ fn test_d55(){
 	use crate::models;
 	use approx::assert_abs_diff_eq;
 
-	let c: models::CieXYZ<CieObs1931> = CieIllD55::default().into();
-	println!("{}", c);
-
 	let d: models::CieYxy<CieObs1931> = CieIllD55::default().into();
 	assert_abs_diff_eq!(d.data.column(0).y, 0.33243 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 x value
 	assert_abs_diff_eq!(d.data.column(0).z, 0.34744 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 y value - there is a slight deviation here... 50 vs 51
 } 
 
 #[derive(Debug,Clone)]
-pub struct CieIllD65(SVector<f64, 97>);
+pub struct CieIllD75<'a>(Domain<<Self as SpectralDistribution>::StepType>, <Self as SpectralDistribution>::MatrixType);
 
-impl SpectralTable for CieIllD65 {
-    type StepType = WavelengthStep;
-
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		sprague_cols(&self.domain(), &domain, &self.0)
-    }
-
-    fn domain(&self) -> Domain<Self::StepType> {
-		Domain::new(60, 156, NM5)
-    }
-
-    fn keys(&self) -> Option<Vec<String>> { 
-		Some(vec!["D65".to_string()])
-	 }
-
-    fn description(&self) -> Option<String> { 
-		Some("CIE D65 Standard Illuminant".to_string())
-	}
-}
-
-impl Default for CieIllD65 {
+impl<'a> Default for  CieIllD75<'a> {
     fn default() -> Self {
-		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D65_DATA)))
+		Self (
+			Domain::new(60, 156, NM5),
+			MatrixSliceXx1::from_slice(&D75_DATA, NDATA)
+		) 
     }
 }
 
-impl Illuminant for CieIllD65 {}
-
-#[test]
-fn test_d65(){
-	use crate::observers::CieObs1931;
-	use crate::models;
-	use approx::assert_abs_diff_eq;
-
-
-	let xyz: models::CieXYZ<CieObs1931> = CieIllD65::default().into();
-	assert_abs_diff_eq!(xyz.data.column(0).x, 6.859677E-3 , epsilon = 1E-6);  //  CIE 15:2004 Tables, calculated in Excel
-	assert_abs_diff_eq!(xyz.data.column(0).y, 7.217449E-3, epsilon = 1E-6);  // 
-	assert_abs_diff_eq!(xyz.data.column(0).z, 7.858362E-3, epsilon = 1E-6);  // 
-
-	let yxy: models::CieYxy<CieObs1931> = CieIllD65::default().into();
-	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 x value
-	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 y value
-} 
-
-#[derive(Debug,Clone)]
-pub struct CieIllD75(SVector<f64, 97>);
-
-impl SpectralTable for CieIllD75 {
+impl<'a> SpectralDistribution for CieIllD75<'a> {
+	type MatrixType = MatrixSliceXx1<'a, f64>;
     type StepType = WavelengthStep;
 
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		sprague_cols(&self.domain(), &domain, &self.0)
-    }
+	fn len(&self) -> usize {
+		1usize
+	}
 
-    fn domain(&self) -> Domain<Self::StepType> {
-		Domain::new(60, 156, NM5)
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		(
+			self.0.clone(),
+			self.1
+		)
     }
-
-    fn keys(&self) -> Option<Vec<String>> { 
-		Some(vec!["D75".to_string()])
-	 }
 
     fn description(&self) -> Option<String> { 
 		Some("CIE D75 Standard Illuminant".to_string())
 	}
 }
 
-impl Default for CieIllD75 {
-    fn default() -> Self {
-		Self(SVector::<f64, 97>::from_data(ArrayStorage::<f64,97,1>(D75_DATA)))
+impl<'a, C: StandardObserver> From<CieIllD75<'a>> for CieXYZ<C> {
+    fn from(d75: CieIllD75<'a>) -> Self {
+		d75.xyz()
     }
 }
-impl Illuminant for CieIllD75 {}
+
+impl<'a, C: StandardObserver> Illuminant<C> for CieIllD75<'a>{}
 
 #[test]
 fn test_d75(){
@@ -362,7 +397,7 @@ const S : [[f64; 107]; 3] = [
 	]
 ];
 
-const D50_DATA: [[f64; 97];1] = [[
+static D50_DATA: [f64; 97] = [
 	0.019, 1.035, 2.051, 4.914, 7.778, 11.263, 14.748, 16.348, 17.948, 19.479, 21.010, 22.476, 23.942, 25.451, 26.961,
 	25.724, 24.488, 27.179, 29.871, 39.589, 49.308, 52.910, 56.513, 58.273, 60.034, 58.926, 57.818, 66.321, 74.825,
 	81.036, 87.247, 88.930, 90.612, 90.990, 91.368, 93.238, 95.109, 93.536, 91.963, 93.843, 95.724, 96.169, 96.613,
@@ -370,9 +405,9 @@ const D50_DATA: [[f64; 97];1] = [[
 	98.918, 96.208, 93.499, 95.593, 97.688, 98.478, 99.269, 99.155, 99.042, 97.382, 95.722, 97.290, 98.857, 97.262,
 	95.667, 96.929, 98.190, 100.597, 103.003, 101.068, 99.133, 93.257, 87.381, 89.492, 91.604, 92.246, 92.889, 84.872,
 	76.854, 81.683, 86.511, 89.546, 92.580, 85.405, 78.230, 67.961, 57.692, 70.307, 82.923, 80.599, 78.274
-]];
+];
 
-const D55_DATA: [[f64; 97];1] = [[
+static D55_DATA: [f64; 97] = [
 	0.024, 1.048, 2.072, 6.648, 11.224, 15.936, 20.647, 22.266, 23.885, 25.851, 27.817, 29.219, 30.621, 32.464, 34.308,
 	33.446, 32.584, 35.335, 38.087, 49.518, 60.949, 64.751, 68.554, 70.065, 71.577, 69.746, 67.914, 76.760, 85.605, 91.799,
 	97.993, 99.228, 100.463, 100.188, 99.913, 101.326, 102.739, 100.409, 98.078, 99.379, 100.680, 100.688, 100.695, 100.341,
@@ -380,9 +415,9 @@ const D55_DATA: [[f64; 97];1] = [[
 	91.432, 92.926, 94.419, 94.780, 95.140, 94.680, 94.220, 92.334, 90.448, 91.389, 92.330, 90.592, 88.854, 89.586, 90.317,
 	92.133, 93.950, 91.953, 89.956, 84.817, 79.677, 81.258, 82.840, 83.842, 84.844, 77.539, 70.235, 74.768, 79.301, 82.147,
 	84.993, 78.437, 71.880, 62.337, 52.793, 64.360, 75.927, 73.872, 71.818
-]];
+];
 
-const D65_DATA: [[f64; 97];1] = [[
+static D65_DATA: [f64; NDATA]= [
 	0.034100, 1.664300, 3.294500, 11.765200, 20.236000, 28.644700, 37.053500, 38.501100, 39.948800, 42.430200, 44.911700, 45.775000, 46.638300, 49.363700,
 	52.089100, 51.032300, 49.975500, 52.311800, 54.648200, 68.701500, 82.754900, 87.120400, 91.486000, 92.458900, 93.431800, 90.057000, 86.682300, 95.773600,
 	104.865000, 110.936000, 117.008000, 117.410000, 117.812000, 116.336000, 114.861000, 115.392000, 115.923000, 112.367000, 108.811000, 109.082000,
@@ -392,9 +427,9 @@ const D65_DATA: [[f64; 97];1] = [[
 	71.609100, 72.979000, 74.349000, 67.976500, 61.604000, 65.744800, 69.885600, 72.486300, 75.087000, 69.339800, 63.592700, 55.005400, 46.418200, 56.611800,
 	66.805400, 65.094100, 63.382800
 	
-]];
+];
 
-const D75_DATA: [[f64; 97];1] = [[
+static D75_DATA: [f64; 97] = [
 	0.043, 2.588, 5.133, 17.470, 29.808, 42.369, 54.930, 56.095, 57.259, 60.000, 62.740, 62.861, 62.982, 66.647, 70.312,
 	68.507, 66.703, 68.333, 69.963, 85.946, 101.929, 106.911, 111.894, 112.346, 112.798, 107.945, 103.092, 112.145, 121.198,
 	127.104, 133.010, 132.682, 132.355, 129.838, 127.322, 127.061, 126.800, 122.291, 117.783, 117.186, 116.589, 115.146,
@@ -402,4 +437,4 @@ const D75_DATA: [[f64; 97];1] = [[
 	94.914, 94.213, 90.605, 86.997, 87.112, 87.227, 86.684, 86.140, 84.861, 83.581, 81.164, 78.747, 78.587, 78.428, 76.614,
 	74.801, 74.562, 74.324, 74.873, 75.422, 73.499, 71.576, 67.714, 63.852, 64.464, 65.076, 66.573, 68.070, 62.256, 56.443,
 	60.343, 64.242, 66.697, 69.151, 63.890, 58.629, 50.623, 42.617, 51.985, 61.352, 59.838, 58.324
-]];
+];

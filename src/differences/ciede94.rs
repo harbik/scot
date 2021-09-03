@@ -52,7 +52,7 @@ pub struct CieDE1994<I = CieIllD65, A = GraphicArts, C = CieObs1931 >(
 	PhantomData<*const A>
 );
 
-impl<C: StandardObserver, I: Illuminant, A: Application> CieDE1994<I,A,C> 
+impl<C: StandardObserver, I: Illuminant<C>, A: Application> CieDE1994<I,A,C> 
 {
 
     pub fn new<L1, L2>(l1: L1 , l2: L2) -> Self
@@ -64,15 +64,15 @@ impl<C: StandardObserver, I: Illuminant, A: Application> CieDE1994<I,A,C>
 	}
 }
 
-impl<I: Illuminant, A: Application, C: StandardObserver> DeltaEValues<I,C> for CieDE1994<I,A,C>{}
+impl<I: Illuminant<C>, A: Application, C: StandardObserver> DeltaEValues<I,C> for CieDE1994<I,A,C>{}
 
-impl<I: Illuminant, A: Application, C: StandardObserver> AsRef<DMatrix<f64>> for CieDE1994<I,A, C> {
+impl<I: Illuminant<C>, A: Application, C: StandardObserver> AsRef<DMatrix<f64>> for CieDE1994<I,A, C> {
     fn as_ref(&self) -> &DMatrix<f64> {
         &self.0
     }
 }
 
-impl<C: StandardObserver, I: Illuminant, A: Application> Debug for CieDE1994<C,I,A> {
+impl<C: StandardObserver, I: Illuminant<C>, A: Application> Debug for CieDE1994<C,I,A> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
        self.0.fmt(f) 
     }
@@ -82,7 +82,7 @@ impl<L1,L2,I,C,A> From<(L1, L2)> for CieDE1994<I,A,C>
 where
 	L1: Into::<CieLab<I,C>>,
 	L2: Into::<CieLab<I,C>>,
-	I: Illuminant,
+	I: Illuminant<C>,
 	C: StandardObserver,
 	A: Application
 {

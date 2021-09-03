@@ -21,6 +21,12 @@ pub struct CctParameters (
 	pub DVector<f64>
 );
 
+impl Default for CctParameters {
+	fn default() -> Self {
+		CctParameters::new(3000.0)
+	}
+}
+
 impl std::ops::Deref for CctParameters {
     type Target = DVector<f64>;
 

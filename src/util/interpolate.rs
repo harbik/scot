@@ -15,7 +15,9 @@
 
 
 
-use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice, MatrixSlice3xX, VecStorage};
+use std::ops::Index;
+
+use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice, MatrixSlice3xX, OMatrix, VecStorage};
 use nalgebra::{storage::Storage, DMatrix, Dim, Matrix,};
 
 use crate::util::Domain;
@@ -99,6 +101,22 @@ where
 	mto
 }
 
+pub fn interp_lin_cmf2<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, mfr: MatrixSlice3xX<'a, f64>) -> OMatrix<f64, Const<3>, Dynamic>
+where
+    S1: Step + Clone + Copy,
+    S2: Step + Clone + Copy,
+    S1::UnitValueType: From<<S2>::UnitValueType>, 
+{
+		let mut mto = OMatrix::<f64, Const<3>, Dynamic>::zeros(to_domain.len());
+		for ip in from_domain.iter_interpolate(to_domain) {
+			match ip {
+				IterInterpolateType::Interpolate(j,i,h) => (0..3).into_iter().for_each(|r|mto[(r,j)] = mfr[(r, i)]*(1.0-h)+mfr[(r, i+1)]*h),
+				IterInterpolateType::RangeEnd(j,i) => (0..3).into_iter().for_each(|r|mto[(r,j)] = mfr[(r, i)]),
+				_ => () // extrapolation with 0.0 in this case, by default in mto
+			}
+		}
+		mto
+}
 
 pub fn interp_cols<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nc: usize, data: &'a [f64]  ) -> DMatrix<f64>
 where
@@ -301,6 +319,49 @@ where
     }
     DMatrix::from_vec(n, to_domain.len(), values).transpose()
 }
+
+pub fn sprague_cols_index_based<S1, S2, Id>(
+    from_domain: &Domain<S1>,
+    to_domain: &Domain<S2>,
+    data: Id,
+	n: usize,
+) -> DMatrix<f64>
+where
+    S1: Step + Clone + Copy /*+ Eq + PartialEq*/,
+    S2: Step + Clone + Copy /*+ Eq + PartialEq*/,
+    S1::UnitValueType: From<<S2>::UnitValueType>, // need to be able to express a value in domain S2, as a value in domain S1
+	Id: Index<(usize, usize), Output = f64>
+{
+    //let n = data.ncols(); // nr of vectors in the column matrix
+
+    let mut values = Vec::<f64>::with_capacity(to_domain.len() * n);
+
+    let start = from_domain.step.unitvalue(from_domain.range.start).value();
+    let div = from_domain.step.unitvalue(1).value();
+    let m = from_domain.len() - 1;
+
+    for ut in to_domain {
+        let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
+        let index = from_domain_interval.floor() as isize;
+        let undex = index as usize; // saturating cast since rust 1.45
+        let frac = from_domain_interval.fract();
+        for c in 0..n {
+            // number of vectors
+            values.push(match (index, undex, frac) {
+                (_, u, h) if u >= 2 && u <= m - 3 => sprague( h, [ data[(u - 2, c)], data[(u - 1, c)], data[(u, c)], data[(u + 1, c)], data[(u + 2, c)], data[(u + 3, c)], ],), // most frequent condition
+                (i, _, _) if i < 0 => 0.0,
+                (_, 0, h) => sprague( h, [ data[(0, c)], data[(0, c)], data[(0, c)], data[(1, c)], data[(2, c)], data[(3, c)], ],),
+                (_, 1, h) => sprague( h, [ data[(0, c)], data[(0, c)], data[(1, c)], data[(2, c)], data[(3, c)], data[(4, c)], ],),
+                (_, u, h) if u == m - 2 => sprague( h, [ data[(m - 4, c)], data[(m - 3, c)], data[(m - 2, c)], data[(m - 1, c)], data[(m, c)], data[(m, c)], ],),
+                (_, u, h) if u == m - 1 => sprague( h, [ data[(m - 3, c)], data[(m - 2, c)], data[(m - 1, c)], data[(m, c)], data[(m, c)], data[(m, c)], ],),
+                (_, u, h) if u == m && h.abs() < FRAC_EPS => data[(m, c)],
+                _ => 0.0,
+            })
+        }
+    }
+    DMatrix::from_vec(n, to_domain.len(), values).transpose()
+}
+
 
 #[test]
 fn test_sprague_cols() {
