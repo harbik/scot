@@ -1,7 +1,51 @@
+/*!
+
+# CIE Standard Daylight Illuminants
+
+When representing daylight in colorimetric calculations, CIE recommends using the D65 standard illuminant, 
+or, if another daylight at another temperature has to be used, the D50, D55, or D75 standard illuminants.
+
+If these can not be used either, CIE provides data and an algorithm to calculate daylight spectral distributions
+for any correlated color temperature in the range from 4000 to 25000K.
+This generic daylight illuminant, called the CIE D standard illuminant, is used in various other colorimetric standards,
+such as the CIE Color Rendering Index recommendation.
+
+## CIE D50, D55, D65, and D75 Standard Illuminants
+
+The D50, D55, D65, D75 illuminants – defined in the 1960s – represent daylight at correlated color temperatures at
+5000K, 5500K, 6500K, and 7500K respectively, in the international Kelvin scale valid at that point of time.
+They are defined by the CIE by spectral tables.
+
+In 1968 the definition of the absolute temperature scale was slightly changed, affecting the definition of temperatures of these 
+daylight illuminants, as described by CIE\[2004\] in note 4:
+> The correlated colour temperatures are affected by the numerical value of the radiation constant C2. 
+> In accordance with the <i>International Practical Temperature Scale, 1948, amended 1960</i> which was in use at the time when the procedure for
+> calculating daylight illuminants was adopted by the CIE, the value of C2 was equal to 1,4380 x 10- m-K. 
+> With this value, the correlated colour temperature of illuminant d65 is approximately equal to 6500 K. 
+> The change of C2 to the value of 1,4388 x 10-2 m·K (International Practical Temperature Scale, 1968) increases the correlated colour 
+> temperatures of illuminant 065 by the factor 1,4388/1,4380.
+> Thus the correlated colour temperature increases by approximately 4 K.
+
+Here the CIE D50, D55, D65, and D75 illuminants are defined as spectral distribution tables, as opposed to using the generic
+CIE D illumiant algorithm. To recreate the values as originally defined, the following method can be use (ref. CIE\[2004\], note 5):
+> The method required to calculate the values for the relative spectral power distributions of illuminants D50, D55, D65,
+> and D75, in Table T.1 is as follows
+> 1. Multiply the nominal correlated colour temperature (5000 K, 5500 K, 6500 K or 7500 K) by 1,4388/1,4380.
+> 2. Calculate x<sub>D</sub> and y<sub>D</sub> using the equations given in the text.
+> 3. Calculate M<sub>1</sub> and M<sub>2</sub> using the equations given in the text.
+> 4. Round M<sub>1</sub> and M<sub>2</sub> to three decimal places.
+> 5. Calculate S(&lambda;) every 10 nm by S(&lambda;) = S<sub>0</sub>(&lambda;) + M<sub>1</sub> S<sub>1</sub>(&lambda;) + M<sub>2</sub>·S<sub>2</sub>(&lambda;) 
+> using values of S<sub>O</sub>(&lambda;), S<sub>1</sub>(&lambda;) and S<sub>2</sub>(&lambda;) from Table T.2.
+> 6. Interpolate the 10 nm values of S(&lambda;) linearly to obtain values at intermediate wavelengths.
+
+# CIE D Illuminant, for aribitrary CCTs in the range from 4000 to 25_000 Kelvin.
+
+ */
+
 
 
 use nalgebra::storage::RStride;
-use nalgebra::{ArrayStorage, Const, DMatrix, Dynamic, Matrix, Matrix3xX, MatrixSlice, MatrixSliceXx1, SMatrix, SVector, SliceStorage, U1, U97, VecStorage};
+use nalgebra::{ArrayStorage, Const, DMatrix, Dynamic, Matrix, Matrix3xX, MatrixSlice, MatrixSliceXx1, SMatrix, SMatrixSlice, SVector, SliceStorage, U1, U97, VecStorage};
 
 use crate::{SpectralDistribution, Unit};
 use crate::models::CieXYZ;
@@ -14,59 +58,12 @@ use crate::util::interpolate::{sprague_cols};
 
 use super::Illuminant;
 
-pub type D50<'a> = CieIllD50<'a>;
-pub type D55<'a> = CieIllD55<'a>;
-pub type D65<'a> = CieIllD65<'a>;
-pub type D75<'a> = CieIllD75<'a>;
+pub type D50 = CieIllD50;
+pub type D55 = CieIllD55;
+pub type D65 = CieIllD65;
+pub type D75 = CieIllD75;
 pub type CieD = CieDaylight;
 
-
-/**
-	Spectral distributions of one or multiple generic blackbody illuminants.
-	
-	Each of the blackbody sources is characterized by a temperature, in units of Kelvin, and radiant exitance
-	with unit W/m<sup>2</sup>. Through a `CCTs` helper class, it accepts multiple ways to specify the 
-	temperatures and exitance you want &mdash; see this class for examples.
-
-	The spectral power distribution for blackbody radiators is calculated using Planck's law.
-	The `values` method of the `SpectralDistribution` trait produces spectral radiant exitance values
-	over the range of the input domain, and at equidistant spacing. Besides the usual wavelength domains,
-	you can also use other domains with units which implement the Wavelength trait
-
-	# Examples
-	A blackbody radiator, with a temperature of 3000K, and a irradiance of 1W/m<sup>2</sup>.
-	Here a single integer valued argument is used to specify a blackbody's temperature.
-
-	```
-	use colorado::illuminants::Blackbody;
-	use colorado::observers::CieObs1931;
-	use colorado::cie::XYZ;
-	use approx::assert_abs_diff_eq;
-
-	let bb = Blackbody::new(3000);
-	let xyz = XYZ::<Cie1931>::from(bb);
-	```
-
-	# Examples
-	Y
-	A blackbody radiator, with a temperature of 3000K, and an illuminance of 0.1W/m<sup>2</sup>.
-	Here a single integer valued argument is used to specify a blackbody's temperature.
-
-	```
-	use colorado::illuminants::Blackbody;
-	use colorado::observers::CieObs1931;
-	use colorado::util::domain::Domain;
-	use colorado::spectra::SpectralDistribution;
-	use colorado::cie::XYZ;
-	use colorado::util::DEV; // dEv 
-	use approx::assert_abs_diff_eq;
-
-	let sdbb = Blackbody::new([[6500.0,0.1]]);
-	let v = sdbb.values(Domain::new(15, 33, DEV)); // values for blackbody radiator from 1.5 (826.56nm) to 3.3 eV (375.709)
-	let val : Vec<f64> = v.into_iter().cloned().collect();
-	assert_eq!(val, vec![]);
-	```
- */
 
 #[derive(Debug,Clone)]
 pub struct CieDaylight {
@@ -80,6 +77,12 @@ impl CieDaylight {
 		CieDaylight {
 			ccts: parameters.into(),
 		}
+	}
+}
+
+impl Default for CieDaylight {
+	fn default() -> Self {
+		Self::new(6503.5)
 	}
 }
 
@@ -113,9 +116,16 @@ impl SpectralDistribution for CieDaylight {
 		let mmat = Matrix3xX::from_vec(mvec);
 		(
 			Domain::new(60, 166, NM5),
-			SMatrix::<f64,107,3>::from_data(ArrayStorage(S)) * mmat
+			SMatrixSlice::<f64,NS,MS>::from_slice(&S) * mmat
 		)
     }
+}
+
+impl<C: StandardObserver> Illuminant<C> for CieDaylight {}
+
+impl<C:  StandardObserver> From<CieDaylight> for CieXYZ<C> 
+{
+    fn from(d: CieDaylight) -> Self { d.xyz() }
 }
 
 
@@ -129,7 +139,7 @@ impl<const T: usize> SpectralDistribution for D<T> {
     type StepType = WavelengthStep;
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-		CieDaylight::new(T*100).spd()
+		CieDaylight::new(T).spd()
     }
 
 	fn len(&self) -> usize {
@@ -137,45 +147,30 @@ impl<const T: usize> SpectralDistribution for D<T> {
 	}
 }
 
-impl<C, const T: usize> From<D<T>> for CieXYZ<C> 
-where
-	C: StandardObserver,
+impl<C:  StandardObserver, const T: usize> From<D<T>> for CieXYZ<C> 
 {
-    fn from(d: D<T>) -> Self {
-		d.xyz()
-    }
+    fn from(d: D<T>) -> Self { d.xyz() }
 }
-const NDATA:usize = 97;
+
 
 /**
 	CIE D65 illuminant, provied by the CIE as a data table.
 
 	Data is listed at the end of this file, and presented here as a matrix slice, to avoid data copying.
  */
-#[derive(Debug,Clone)]
-pub struct CieIllD65<'a>(Domain<<Self as SpectralDistribution>::StepType>, <Self as SpectralDistribution>::MatrixType);
+#[derive(Debug,Clone, Default)]
+pub struct CieIllD65;
 
-impl<'a> Default for  CieIllD65<'a> {
-    fn default() -> Self {
-		Self (
-			Domain::new(60, 156, NM5),
-			MatrixSliceXx1::from_slice(&D65_DATA, NDATA)
-		) 
-    }
-}
-
-impl<'a> SpectralDistribution for CieIllD65<'a> {
-	type MatrixType = MatrixSliceXx1<'a, f64>;
+impl SpectralDistribution for CieIllD65 {
+	type MatrixType = MatrixSliceXx1<'static, f64>;
     type StepType = WavelengthStep;
 
-	fn len(&self) -> usize {
-		1usize
-	}
+	fn len(&self) -> usize { 1usize }
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
 		(
-			self.0.clone(),
-			self.1
+			Domain::new(60, 156, NM5),
+			MatrixSliceXx1::from_slice(&D65_DATA, NDATA)
 		)
     }
 
@@ -184,45 +179,40 @@ impl<'a> SpectralDistribution for CieIllD65<'a> {
 	}
 }
 
-impl<'a, C: StandardObserver> From<CieIllD65<'a>> for CieXYZ<C> {
-    fn from(d65: CieIllD65<'a>) -> Self {
+impl<C: StandardObserver> From<CieIllD65> for CieXYZ<C> {
+    fn from(d65: CieIllD65) -> Self {
 		d65.xyz()
     }
 }
 
-impl<'a, C: StandardObserver> Illuminant<C> for CieIllD65<'a>{}
-
+impl<C: StandardObserver> Illuminant<C> for CieIllD65{}
 
 
 #[test]
 fn test_d65(){
 	use crate::observers::CieObs1931;
-	use crate::models;
+	use crate::models::{self, YxyValues, CieYxy};
 	use approx::assert_abs_diff_eq;
 
-	let yxy: models::CieYxy<CieObs1931> = CieIllD65::default().into();
+	let yxy: models::CieYxy = CieIllD65.into();
 	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 x value
 	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 y value
 
-	let yxy: models::CieYxy<CieObs1931> = D::<65>.into();
-	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 x value
-	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D65 y value
+	let YxyValues{l: _, x, y} = CieYxy::<CieObs1931>::from(D::<6504>).into_iter().next().unwrap();
+	assert_abs_diff_eq!(x, 0.31272 , epsilon = 2E-5);  // CIE 15:2004, Table T.3. D65 x value
+	assert_abs_diff_eq!(y, 0.32903 , epsilon = 2E-5);  // CIE 15:2004, Table T.3. D65 y value
+
+	let YxyValues{l: _, x, y} = CieYxy::<CieObs1931>::from(CieDaylight::default()).into_iter().next().unwrap();
+	println!("{} {}", x, y);
+	assert_abs_diff_eq!(x, 0.31272 , epsilon = 1E-5);  // CIE 15:2004, Table T.3. D65 x value
+	assert_abs_diff_eq!(y, 0.32903 , epsilon = 1E-5);  // CIE 15:2004, Table T.3. D65 y value
 } 
 
-#[derive(Debug,Clone)]
-pub struct CieIllD50<'a>(Domain<<Self as SpectralDistribution>::StepType>, <Self as SpectralDistribution>::MatrixType);
+#[derive(Debug,Clone, Default)]
+pub struct CieIllD50;
 
-impl<'a> Default for  CieIllD50<'a> {
-    fn default() -> Self {
-		Self (
-			Domain::new(60, 156, NM5),
-			MatrixSliceXx1::from_slice(&D50_DATA, NDATA)
-		) 
-    }
-}
-
-impl<'a> SpectralDistribution for CieIllD50<'a> {
-	type MatrixType = MatrixSliceXx1<'a, f64>;
+impl<'a> SpectralDistribution for CieIllD50 {
+	type MatrixType = MatrixSliceXx1<'static, f64>;
     type StepType = WavelengthStep;
 
 	fn len(&self) -> usize {
@@ -231,8 +221,8 @@ impl<'a> SpectralDistribution for CieIllD50<'a> {
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
 		(
-			self.0.clone(),
-			self.1
+			Domain::new(60, 156, NM5),
+			MatrixSliceXx1::from_slice(&D50_DATA, NDATA)
 		)
     }
 
@@ -241,13 +231,13 @@ impl<'a> SpectralDistribution for CieIllD50<'a> {
 	}
 }
 
-impl<'a, C: StandardObserver> From<CieIllD50<'a>> for CieXYZ<C> {
-    fn from(d50: CieIllD50<'a>) -> Self {
+impl<'a, C: StandardObserver> From<CieIllD50> for CieXYZ<C> {
+    fn from(d50: CieIllD50) -> Self {
 		d50.xyz()
     }
 }
 
-impl<'a, C: StandardObserver> Illuminant<C> for CieIllD50<'a>{}
+impl<'a, C: StandardObserver> Illuminant<C> for CieIllD50{}
 
 
 #[test]
@@ -262,20 +252,12 @@ fn test_d50(){
 	assert_abs_diff_eq!(d50xyz.data.column(0).z, 0.35851 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 y value - there is a slight deviation here... 50 vs 51
 } 
 
-#[derive(Debug,Clone)]
-pub struct CieIllD55<'a>(Domain<<Self as SpectralDistribution>::StepType>, <Self as SpectralDistribution>::MatrixType);
+#[derive(Debug,Clone, Default)]
+pub struct CieIllD55;
 
-impl<'a> Default for  CieIllD55<'a> {
-    fn default() -> Self {
-		Self (
-			Domain::new(60, 156, NM5),
-			MatrixSliceXx1::from_slice(&D55_DATA, NDATA)
-		) 
-    }
-}
 
-impl<'a> SpectralDistribution for CieIllD55<'a> {
-	type MatrixType = MatrixSliceXx1<'a, f64>;
+impl SpectralDistribution for CieIllD55 {
+	type MatrixType = MatrixSliceXx1<'static, f64>;
     type StepType = WavelengthStep;
 
 	fn len(&self) -> usize {
@@ -284,8 +266,8 @@ impl<'a> SpectralDistribution for CieIllD55<'a> {
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
 		(
-			self.0.clone(),
-			self.1
+			Domain::new(60, 156, NM5),
+			MatrixSliceXx1::from_slice(&D55_DATA, NDATA)
 		)
     }
 
@@ -294,13 +276,13 @@ impl<'a> SpectralDistribution for CieIllD55<'a> {
 	}
 }
 
-impl<'a, C: StandardObserver> From<CieIllD55<'a>> for CieXYZ<C> {
-    fn from(d55: CieIllD55<'a>) -> Self {
+impl<C: StandardObserver> From<CieIllD55> for CieXYZ<C> {
+    fn from(d55: CieIllD55) -> Self {
 		d55.xyz()
     }
 }
 
-impl<'a, C: StandardObserver> Illuminant<C> for CieIllD55<'a>{}
+impl<'a, C: StandardObserver> Illuminant<C> for CieIllD55{}
 
 
 #[test]
@@ -314,30 +296,19 @@ fn test_d55(){
 	assert_abs_diff_eq!(d.data.column(0).z, 0.34744 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 y value - there is a slight deviation here... 50 vs 51
 } 
 
-#[derive(Debug,Clone)]
-pub struct CieIllD75<'a>(Domain<<Self as SpectralDistribution>::StepType>, <Self as SpectralDistribution>::MatrixType);
+#[derive(Debug,Clone, Default)]
+pub struct CieIllD75;
 
-impl<'a> Default for  CieIllD75<'a> {
-    fn default() -> Self {
-		Self (
-			Domain::new(60, 156, NM5),
-			MatrixSliceXx1::from_slice(&D75_DATA, NDATA)
-		) 
-    }
-}
-
-impl<'a> SpectralDistribution for CieIllD75<'a> {
-	type MatrixType = MatrixSliceXx1<'a, f64>;
+impl SpectralDistribution for CieIllD75 {
+	type MatrixType = MatrixSliceXx1<'static, f64>;
     type StepType = WavelengthStep;
 
-	fn len(&self) -> usize {
-		1usize
-	}
+	fn len(&self) -> usize { 1usize }
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
 		(
-			self.0.clone(),
-			self.1
+			Domain::new(60, 156, NM5),
+			MatrixSliceXx1::from_slice(&D75_DATA, NDATA)
 		)
     }
 
@@ -346,13 +317,13 @@ impl<'a> SpectralDistribution for CieIllD75<'a> {
 	}
 }
 
-impl<'a, C: StandardObserver> From<CieIllD75<'a>> for CieXYZ<C> {
-    fn from(d75: CieIllD75<'a>) -> Self {
+impl<C: StandardObserver> From<CieIllD75> for CieXYZ<C> {
+    fn from(d75: CieIllD75) -> Self {
 		d75.xyz()
     }
 }
 
-impl<'a, C: StandardObserver> Illuminant<C> for CieIllD75<'a>{}
+impl<'a, C: StandardObserver> Illuminant<C> for CieIllD75{}
 
 #[test]
 fn test_d75(){
@@ -370,34 +341,37 @@ fn test_d75(){
 /**
 	Data below from CIE 15:2004 Excel tables.
  */
-const S : [[f64; 107]; 3] = [
-	 [
-		 0.04, 3.02, 6.0, 17.8, 29.6, 42.45, 55.3, 56.3, 57.3, 59.55, 61.8, 61.65, 61.5, 65.15, 68.8, 66.1, 63.4, 64.6,
+const NS: usize = 107;
+const MS: usize = 3;
+const S : [f64; NS * MS ] = [
+	 
+		// S0
+		0.04, 3.02, 6.0, 17.8, 29.6, 42.45, 55.3, 56.3, 57.3, 59.55, 61.8, 61.65, 61.5, 65.15, 68.8, 66.1, 63.4, 64.6,
 		65.8, 80.3, 94.8, 99.8, 104.8, 105.35, 105.9, 101.35, 96.8, 105.35, 113.9, 119.75, 125.6, 125.55, 125.5, 123.4,
 		121.3, 121.3, 121.3, 117.4, 113.5, 113.3, 113.1, 111.95, 110.8, 108.65, 106.5, 107.65, 108.8, 107.05, 105.3,
 		104.85, 104.4, 102.2, 100.0, 98.0, 96.0, 95.55, 95.1, 92.1, 89.1, 89.8, 90.5, 90.4, 90.3, 89.35, 88.4, 86.2, 84.0,
 		84.55, 85.1, 83.5, 81.9, 82.25, 82.6, 83.75, 84.9, 83.1, 81.3, 76.6, 71.9, 73.1, 74.3, 75.35, 76.4, 69.85, 63.3,
 		67.5, 71.7, 74.35, 77.0, 71.1, 65.2, 56.45, 47.7, 58.15, 68.6, 66.8, 65.0, 65.5, 66.0, 63.5, 61.0, 57.15, 53.3,
-		56.1, 58.9, 60.4, 61.9
-	 ],[
+		56.1, 58.9, 60.4, 61.9,
+		// S1
 		 0.02, 2.26, 4.5, 13.45, 22.4, 32.2, 42.0, 41.3, 40.6, 41.1, 41.6, 39.8, 38.0, 40.2, 42.4, 40.45, 38.5, 36.75,
 		 35.0, 39.2, 43.4, 44.85, 46.3, 45.1, 43.9, 40.5, 37.1, 36.9, 36.7, 36.3, 35.9, 34.25, 32.6, 30.25, 27.9, 26.1,
 		 24.3, 22.2, 20.1, 18.15, 16.2, 14.7, 13.2, 10.9, 8.6, 7.35, 6.1, 5.15, 4.2, 3.05, 1.9, 0.95, 0.0, -0.8, -1.6,
 		 -2.55, -3.5, -3.5, -3.5, -4.65, -5.8, -6.5, -7.2, -7.9, -8.6, -9.05, -9.5, -10.2, -10.9, -10.8, -10.7, -11.35,
 		 -12.0, -13.0, -14.0, -13.8, -13.6, -12.8, -12.0, -12.65, -13.3, -13.1, -12.9, -11.75, -10.6, -11.1, -11.6,
 		 -11.9, -12.2, -11.2, -10.2, -9.0, -7.8, -9.5, -11.2, -10.8, -10.4, -10.5, -10.6, -10.15, -9.7, -9.0, -8.3,
-		 -8.8, -9.3, -9.55, -9.8
-	 ],[
+		 -8.8, -9.3, -9.55, -9.8,
+		 // S2
 		 0.0, 1.0, 2.0, 3.0, 4.0, 6.25, 8.5, 8.15, 7.8, 7.25, 6.7, 6.0, 5.3, 5.7, 6.1, 4.55, 3.0, 2.1, 1.2, 0.05, -1.1,
 		 -0.8, -0.5, -0.6, -0.7, -0.95, -1.2, -1.9, -2.6, -2.75, -2.9, -2.85, -2.8, -2.7, -2.6, -2.6, -2.6, -2.2, -1.8,
 		 -1.65, -1.5, -1.4, -1.3, -1.25, -1.2, -1.1, -1.0, -0.75, -0.5, -0.4, -0.3, -0.15, 0.0, 0.1, 0.2, 0.35, 0.5,
 		 1.3, 2.1, 2.65, 3.2, 3.65, 4.1, 4.4, 4.7, 4.9, 5.1, 5.9, 6.7, 7.0, 7.3, 7.95, 8.6, 9.2, 9.8, 10.0, 10.2, 9.25,
 		 8.3, 8.95, 9.6, 9.05, 8.5, 7.75, 7.0, 7.3, 7.6, 7.8, 8.0, 7.35, 6.7, 5.95, 5.2, 6.3, 7.4, 7.1, 6.8, 6.9, 7.0,
 		 6.7, 6.4, 5.95, 5.5, 5.8, 6.1, 6.3, 6.5
-	]
 ];
 
-static D50_DATA: [f64; 97] = [
+const NDATA:usize = 97;
+static D50_DATA: [f64; NDATA] = [
 	0.019, 1.035, 2.051, 4.914, 7.778, 11.263, 14.748, 16.348, 17.948, 19.479, 21.010, 22.476, 23.942, 25.451, 26.961,
 	25.724, 24.488, 27.179, 29.871, 39.589, 49.308, 52.910, 56.513, 58.273, 60.034, 58.926, 57.818, 66.321, 74.825,
 	81.036, 87.247, 88.930, 90.612, 90.990, 91.368, 93.238, 95.109, 93.536, 91.963, 93.843, 95.724, 96.169, 96.613,
@@ -407,7 +381,7 @@ static D50_DATA: [f64; 97] = [
 	76.854, 81.683, 86.511, 89.546, 92.580, 85.405, 78.230, 67.961, 57.692, 70.307, 82.923, 80.599, 78.274
 ];
 
-static D55_DATA: [f64; 97] = [
+static D55_DATA: [f64; NDATA] = [
 	0.024, 1.048, 2.072, 6.648, 11.224, 15.936, 20.647, 22.266, 23.885, 25.851, 27.817, 29.219, 30.621, 32.464, 34.308,
 	33.446, 32.584, 35.335, 38.087, 49.518, 60.949, 64.751, 68.554, 70.065, 71.577, 69.746, 67.914, 76.760, 85.605, 91.799,
 	97.993, 99.228, 100.463, 100.188, 99.913, 101.326, 102.739, 100.409, 98.078, 99.379, 100.680, 100.688, 100.695, 100.341,
@@ -429,7 +403,7 @@ static D65_DATA: [f64; NDATA]= [
 	
 ];
 
-static D75_DATA: [f64; 97] = [
+static D75_DATA: [f64; NDATA] = [
 	0.043, 2.588, 5.133, 17.470, 29.808, 42.369, 54.930, 56.095, 57.259, 60.000, 62.740, 62.861, 62.982, 66.647, 70.312,
 	68.507, 66.703, 68.333, 69.963, 85.946, 101.929, 106.911, 111.894, 112.346, 112.798, 107.945, 103.092, 112.145, 121.198,
 	127.104, 133.010, 132.682, 132.355, 129.838, 127.322, 127.061, 126.800, 122.291, 117.783, 117.186, 116.589, 115.146,

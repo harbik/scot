@@ -169,7 +169,7 @@ impl From<f64> for CctParameters {
 
 	/// CCTs array from a single temperature
 	fn from(t: f64) -> Self {
-		Self::new([t])
+		Self::new(vec![t])
 	}
 }
 
@@ -178,7 +178,7 @@ impl From<usize> for CctParameters {
 
 	/// CCTs array from a single temperature
 	fn from(t: usize) -> Self {
-		Self::new([t as f64])
+		Self::new(vec![t as f64])
 	}
 }
 
