@@ -40,7 +40,8 @@ by using its default constructor, and getting its first, and single row vector.
 */
 
 
-pub trait Illuminant<C> where
+pub trait Illuminant<C> 
+where
 	C: StandardObserver,
 	Self: SpectralDistribution,
 	Self: Into<CieXYZ<C>>,
@@ -49,14 +50,49 @@ pub trait Illuminant<C> where
 	Matrix3xX<f64>: Mul<Self::MatrixType>,
 	<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output: Mul<f64>,
 	CieXYZ::<C>: From<<<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output as Mul<f64>>::Output>
-	{
-		fn xyz(&self) -> CieXYZ<C> {
-			let (d, s) = self.spd();
-			let xyz = (C::values(&d) * s) * (C::K * C::domain().step.unitvalue(1).value());
-			CieXYZ::<C>::from(xyz)
-		}
-	 }
+{
+	fn xyz(&self) -> CieXYZ<C> {
+		let (d, s) = self.spd();
+		let xyz = (C::values(&d) * s) * (C::K * C::domain().step.unitvalue(1).value());
+		CieXYZ::<C>::from(xyz)
+	}
+	}
 
+#[allow(unused_macros)]
+macro_rules! illuminant_from_static_slice {
+	($ILL:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident) => {
+		#[derive(Debug, Default)]
+		pub struct $ILL<const I:usize>;
+
+		impl<const I:usize> SpectralDistribution for $ILL<I> {
+			type MatrixType = SMatrixSlice<'static, f64, $N, 1>;
+			type StepType = WavelengthStep;
+
+			fn len(&self) -> usize {1}
+
+			fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+				assert!(I>0&&I<=$M);
+				(
+					$DOMAIN,
+					<Self as SpectralDistribution>::MatrixType::from_slice(&$DATA[(I-1)*N..I*N]),
+				)
+			}
+			
+			fn description(&self) -> Option<String> {
+				Some(format!($DESC, I))
+			}
+		}
+
+		impl<C: StandardObserver, const I:usize> super::Illuminant<C> for $ILL<I> {}
+
+		impl<C:StandardObserver, const I:usize> From<$ILL<I>> for CieXYZ<C> {
+			fn from(ill: $ILL<I>) -> Self {
+				ill.xyz()
+			}
+		}
+			
+	};
+}
 
 /*
 	Optional illuminant data libraries, which can be excluded by feature flags.

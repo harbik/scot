@@ -140,6 +140,24 @@ where
 	}
 }
 
+pub fn interp_cols2<S1, S2, I>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nc: usize, data: I  ) -> OMatrix<f64, Dynamic, Dynamic>
+where
+    S1: Step + Clone + Copy,
+    S2: Step + Clone + Copy,
+    S1::UnitValueType: From<<S2>::UnitValueType>, 
+	I: Index<(usize, usize), Output = f64>,
+{
+	let mut mto = OMatrix::<f64, Dynamic, Dynamic>::zeros(to_domain.len(), nc);
+	for ip in from_domain.iter_interpolate(to_domain) {
+		match ip {
+			IterInterpolateType::Interpolate(j,i,h) => (0..nc).into_iter().for_each(|c|mto[(j,c)] = data[(i, c)]*(1.0-h)+data[(i+1,c)]*h),
+			IterInterpolateType::RangeEnd(j,i) => (0..nc).into_iter().for_each(|c|mto[(j,c)] = data[(i, c)]),
+			_ => () // extrapolation with 0.0 in this case, by default in mto
+		}
+	}
+	mto
+}
+
 #[test]
 fn test_interp_col(){
 	use super::{NONE5, NONE};

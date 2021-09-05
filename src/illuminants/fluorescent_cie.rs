@@ -4,142 +4,135 @@
 use std::collections::{HashMap, };
 
 use maplit::hashmap;
-use nalgebra::{DMatrix, Dynamic, MatrixSlice};
+use nalgebra::{DMatrix, Dynamic, MatrixSlice, SMatrixSlice};
 
+use crate::models::CieXYZ;
+use crate::observers::StandardObserver;
 use crate::spectra::SpectralTable;
 use crate::util::domain::Domain;
 use crate::util::{WavelengthStep, Step, NM5};
 use crate::util::interpolate::{interp_cols};
+use crate::illuminants::Illuminant;
 
-use crate::ALL;
+use crate::{ALL, SpectralDistribution};
 
+const N: usize = 81;
 const M: usize = 12;
 const M3: usize = 15;
 
-pub const CIE_FLUORESCENT: FL::<ALL> = FL::<ALL>;  	// need to use CieFluorescent::default() if this alias is used
-pub const CIE_FLUORESCENT3: FL3::<ALL> = FL3::<ALL>; 	// as opposed to FL::<ALL>, which can be used without explicit default constructor
 
+/*
 #[derive(Debug, Default)]
 pub struct FL<const I:usize>;
 
-impl<const I:usize> SpectralTable for FL<I> {
+impl<const I:usize> SpectralDistribution for FL<I> {
+	type MatrixType = SMatrixSlice<'static, f64, N, 1>;
     type StepType = WavelengthStep;
 
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		match I {
-			ALL => {
-				interp_cols(&self.domain(), &domain, 12, &CIE_FL_DATA)
-			}
-			i@1..=M => {
-				let n = self.domain().len();
-				interp_cols(&self.domain(), &domain, 1, &CIE_FL_DATA[(i-1)*n..i*n])
-			}
-			_ => panic!("Illegal Index in Fluorescent Illuminant")
-		}
-    }
+	fn len(&self) -> usize {1}
 
-    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
-        Domain::new(380/5, 780/5, NM5)
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		assert!(I>0&&I<=M);
+		(
+			Domain::new(380/5, 780/5, NM5),
+			<Self as SpectralDistribution>::MatrixType::from_slice(&CIE_FL_DATA[(I-1)*N..I*N]),
+		)
     }
+	
 
 	fn description(&self) -> Option<String> {
-		Some("CIE F Standard Illuminants".to_string())
+		Some(format!("CIE F{} Standard Illuminant", I))
 	}
 }
 
+impl<C: StandardObserver, const I:usize> super::Illuminant<C> for FL<I> {}
+
+impl<C:StandardObserver, const I:usize> From<FL<I>> for CieXYZ<C> {
+    fn from(fl: FL<I>) -> Self {
+		fl.xyz()
+    }
+}
+ */
+
+illuminant_from_static_slice!(FL, N, M, "CIE F{}", Domain::new(380/5, 780/5, NM5), CIE_FL_DATA);
+illuminant_from_static_slice!(FL3, N, M3, "CIE F3.{}", Domain::new(380/5, 780/5, NM5), CIE_FL3_DATA);
+
+/*
 
 #[derive(Debug, Default)]
 pub struct FL3<const I:usize>;
 
-impl<const I:usize> SpectralTable for FL3<I> {
+
+impl<const I:usize> SpectralDistribution for FL3<I> {
+	type MatrixType = SMatrixSlice<'static, f64, N, 1>;
     type StepType = WavelengthStep;
 
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		match I {
-			ALL => {
-		//		let data = SMatrix::from_data(ArrayStorage(FL3DATA));
-		//		sprague_cols(&self.domain(), &domain, &data)
-				interp_cols(&self.domain(), &domain, 15, &FL3DATA)
-			}
-			i@1..=M3 => {
-				//let data = SVectorSlice::<f64, N>::from_slice(&FL3DATA[i-1]);
-				//sprague_cols(&self.domain(), &domain, &data)
-				let n = self.domain().len();
-				interp_cols(&self.domain(), &domain, 1, &FL3DATA[(i-1)*n..i*n])
-			}
-			_ => panic!("Illegal Index in New Fluorescent Illuminant")
-		}
-    }
+	fn len(&self) -> usize {1}
 
-    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
-        Domain::new(380/5, 780/5, NM5)
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		assert!(I>0&&I<=M3);
+		(
+			Domain::new(380/5, 780/5, NM5),
+			<Self as SpectralDistribution>::MatrixType::from_slice(&CIE_FL3_DATA[(I-1)*N..I*N]),
+		)
     }
+	
 
 	fn description(&self) -> Option<String> {
-		Some("CIE F3 Standard Illuminants".to_string())
+		Some(format!("CIE F3.{} Standard Illuminant", I))
 	}
 }
 
+impl<C: StandardObserver, const I:usize> super::Illuminant<C> for FL3<I> {}
+
+impl<C:StandardObserver, const I:usize> From<FL3<I>> for CieXYZ<C> {
+    fn from(fl: FL3<I>) -> Self {
+		fl.xyz()
+    }
+}
+*/
 
 
 #[test]
 fn test_f(){
 	use crate::observers::CieObs1931;
+	use crate::models::{YxyValues, CieYxy};
 	use approx::assert_abs_diff_eq;
 	use nalgebra::{SMatrix, ArrayStorage};
 
-	let f = crate::models::CieYxy::<CieObs1931>::from(FL::<1>);
-	// println!("{}", f);
-	let [_, x, y] = f.yxy(0);
-	assert_abs_diff_eq!(x, 0.3131, epsilon=0.0005); // CIE.15.2004 table 8
-	assert_abs_diff_eq!(y, 0.3371, epsilon=0.0005);
+	let cie_fl_test = SMatrix::from_data(ArrayStorage(FLTEST)).transpose();
+	let cie_fl3_test = SMatrix::from_data(ArrayStorage(FL3TEST)).transpose();
 
-//	let fall = crate::models::CieYxy::<CieObs1931>::from(FL::<ALL>);
-	let fall = crate::models::CieYxy::<CieObs1931>::from(CIE_FLUORESCENT);
+	macro_rules! ftest {
+		($ ($I:literal), *) => {
+			$(
+				let YxyValues { l: _, x, y } = CieYxy::<CieObs1931>::from(FL::<$I>).into_iter().next().unwrap();
+				print!("{:6.5} {:6.5}", x, y);
+				println!("\t{}", FL::<$I>::default().description().unwrap());
+				assert_abs_diff_eq!(x, cie_fl_test[($I-1,0)], epsilon=0.0005); // CIE.15.2004 table 8
+				assert_abs_diff_eq!(y, cie_fl_test[($I-1,1)], epsilon=0.0005); // CIE.15.2004 table 8
+			)*
+		};
 
-	let cie_fl_test = SMatrix::from_data(ArrayStorage(FLTEST));
-	let cie_fl_data = cie_fl_test.slice_range(..2, ..);
-	
-	let fall_data = fall.data.slice_range(1.., ..);
-	
-	//println!("{:.5}", fall_data);
-	//println!("{:.5}", cie_fl_data);
+	}
+	ftest!(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
 
-	assert_abs_diff_eq!(
-		SMatrix::<f64, 2, 12>::from_iterator(fall_data.iter().cloned()), 
-		SMatrix::<f64, 2, 12>::from_iterator(cie_fl_data.iter().cloned()),
-		epsilon = 5E-5 // reference data's precision
-	);
+	macro_rules! f3test {
+		($ ($I:literal), *) => {
+			$(
+				let YxyValues { l: _, x, y } = CieYxy::<CieObs1931>::from(FL3::<$I>).into_iter().next().unwrap();
+				print!("{:6.5} {:6.5}", x, y);
+				println!("\t{}", FL3::<$I>::default().description().unwrap());
+				assert_abs_diff_eq!(x, cie_fl3_test[($I-1,0)], epsilon=0.0005); // CIE.15.2004 table 8
+				assert_abs_diff_eq!(y, cie_fl3_test[($I-1,1)], epsilon=0.0005); // CIE.15.2004 table 8
+			)*
+		};
 
-	let cie_fl3_test = SMatrix::from_data(ArrayStorage(FL3TEST));
-	let f3all = crate::models::CieYxy::<CieObs1931>::from(FL3::<ALL>);
-	// println!("{:.5}", f3all.data.slice_range(1..3,..));
-	// println!("{:.5}", cie_fl3_test.slice_range(0..2,..));
-	//	SMatrix::<f64, 12, 2>::from_iterator(fall_data.iter().cloned()), 
-	//	SMatrix::<f64, 12, 2>::from_iterator(cie_fl_data.iter().cloned()),
-	assert_abs_diff_eq!(
-		SMatrix::<f64, 15, 2>::from_iterator(f3all.data.slice_range(1..3,..).iter().cloned()),
-		SMatrix::<f64, 15, 2>::from_iterator(cie_fl3_test.slice_range(0..2,..).iter().cloned()),
-		epsilon = 7E-5 // reference data's precision
-	);
-
-//		let fies = crate::models::CieYxy::<CieObs1931>::from(IesTm30Fluorescent::<ALL>);
-//	println!("{:.5}", fies.data.slice_range(1..3,..).transpose());
-	// println!("{:.5}", cie_fl3_test.slice_range(0..2,..));
-	//	SMatrix::<f64, 12, 2>::from_iterator(fall_data.iter().cloned()), 
-	//	SMatrix::<f64, 12, 2>::from_iterator(cie_fl_data.iter().cloned()),
-
-
+	}
+	f3test!(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
 
 }
+
 pub static FLTEST : [[f64;4];12] = [
 		[0.3131, 0.3371, 6430.0, 76.0], // x, y, CCT, CRI
 		[0.3721, 0.3751, 4230.0, 64.0],
@@ -218,7 +211,7 @@ fn test_spectral_data_slice(){
 
 
 
-pub static CIE_FL_DATA : [f64; 12 * 81] = [
+pub static CIE_FL_DATA : [f64; N * M] = [
 
 /* 1 */ 
 	1.87, 2.36, 2.94, 3.47, 5.17, 19.49, 6.13, 6.24, 7.01, 7.79, 8.56, 43.67, 16.94, 10.72, 11.35, 11.89, 12.37, 12.75,
@@ -296,7 +289,7 @@ pub static CIE_FL_DATA : [f64; 12 * 81] = [
 
 
 
-static FL3DATA: [f64; 15*81] = [
+static CIE_FL3_DATA: [f64; N*M3] = [
 /* 1 */	
 	2.39, 2.93, 3.82, 4.23, 4.97, 86.3, 11.65, 7.09, 7.84, 8.59, 9.44, 196.54, 10.94, 11.38, 11.89, 12.37, 12.81, 13.15,
 	13.39, 13.56, 13.59, 13.56, 14.07, 13.39, 13.29, 13.25, 13.53, 14.24, 15.74, 18.26, 22.28, 27.97, 35.7, 148.98,

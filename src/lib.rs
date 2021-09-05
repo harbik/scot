@@ -89,6 +89,7 @@ pub mod models;
 
 //pub mod differences;
 
+#[macro_use]
 pub mod illuminants;
 
 //pub mod swatches;
