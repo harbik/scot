@@ -5,7 +5,6 @@ use nalgebra::{ArrayStorage, Const, DMatrix, DVector, MatrixSlice, OMatrix, SMat
 use crate::models::CieXYZ;
 use crate::{ALL, SpectralDistribution};
 use crate::observers::StandardObserver;
-use crate::spectra::{SpectralTable};
 use crate::util::{Step, WavelengthStep, sprague_cols, Domain};
 
 use super::Illuminant;
@@ -58,49 +57,11 @@ impl<'a> SpectralDistribution for CieIllLed<'a> {
 	}
 }
 
-pub struct LED<'a, const I:usize>(
-	Domain<<Self as SpectralDistribution>::StepType>,
-	<Self as SpectralDistribution>::MatrixType
-);
-
-impl<'a, const I:usize> Default for  LED<'a, I> {
-    fn default() -> Self {
-		assert!(I>0 && I<=M);
-		Self(
-			Domain::new(380/5, 780/5, crate::util::NM5),
-			<Self as SpectralDistribution>::MatrixType::from_slice(&CIE_LED_ILL_DATA[(I-1)*N..I*N])
-		)
-    }
-}
-
-impl<'a, const I: usize> SpectralDistribution for LED<'a, I> {
-    type MatrixType = SVectorSlice<'a, f64, M>;
-    type StepType = WavelengthStep;
-
-	fn len(&self) -> usize {
-		1usize
-	}
-
-    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-		(
-			self.0.clone(),
-			self.1
-		)
-    }
-
-	fn keys(&self) -> Option<Vec<String>> {
-		Some(vec![CIE_LED_ILL_DATA[I-1].to_string()])
-	}
-
-	fn description(&self) -> Option<String> {
-		Some("CIE LED Illuminant".to_string())
-	}
-}
-
-
 
 const N:usize = 81;
 const M:usize = 9;
+
+an_illuminant_from_static_slice!(LED, N, M, "CIE L{}", Domain::new(380/5, 780/5, crate::util::NM5), CIE_LED_ILL_DATA);
 
 static CIE_LED_ILL_KEYS: [&str;9] = [
     "LED-B1",

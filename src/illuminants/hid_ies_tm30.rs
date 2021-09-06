@@ -1,56 +1,15 @@
 use nalgebra::{DMatrix, };
 
-use crate::util::SpectralTable;
 use crate::util::{Domain, interp_cols};
 use crate::util::{WavelengthStep, Step, NM};
-
-use crate::ALL;
-
-#[derive(Debug, Default)]
-pub struct IesTm30Hid<const I:usize>;
-
-impl<const I:usize> SpectralTable for IesTm30Hid<I> {
-    type StepType = WavelengthStep;
-
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		match I {
-			ALL => {
-				//let data = SMatrix::from_data(ArrayStorage(HID_IES_DATA));
-				interp_cols(&self.domain(), &domain, M, &HID_IES_DATA)
-				//sprague_cols(&self.domain(), &domain, &data)
-			}
-			i@1..=M => {
-				//	let data = SVectorSlice::<f64, M>::from_slice(&HID_IES_DATA[i-1]);
-				// sprague_cols(&self.domain(), &domain, &data)
-				let n = self.domain().len();
-				interp_cols(&self.domain(), &domain, 1, &HID_IES_DATA[(i-1)*n..i*n])
-			}
-			_ => panic!("Illegal Index in IES Fluorescent Data")
-		}
-    }
-
-    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
-        Domain::new(380, 780, NM)
-    }
-
-	fn keys(&self) -> Option<Vec<String>> {
-		Some(HID_IES_KEYS.iter().map(|s| s.to_string()).collect())
-	}
-
-	fn description(&self) -> Option<String> {
-		Some("IES TM30 Example HID Illuminants".to_string())
-	}
-}
 
 
 const N: usize = 401;
 const M: usize = 20;
 
-static HID_IES_KEYS: [&str; M] = [
+an_illuminant_from_static_slice!(IesTm30Hid, N, M, "IES/TM30 HID{}", Domain::new(380, 780, NM), HID_IES_DATA);
+
+pub static HID_IES_KEYS: [&str; M] = [
 	"C100S54 (1) - HPS Standard", "C100S54 (2) - HPS Standard", "C100S54C (1) - HPS Deluxe", "C100S54C (2) - HPS Deluxe", 
 	"SDW-T 100W/LV - Super HPS", "SDW-T 100W/LV - Super HPS", "CDM 830 (1) - Metal Halide", "CDM 830 (2) - Metal Halide", 
 	"CDM 830 (3) - Metal Halide", "CDM 940 (1) - Metal Halide", "CDM 940 (2) - Metal Halide", "MH100W - Metal Halide", 

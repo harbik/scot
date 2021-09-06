@@ -2,7 +2,7 @@
 use std::{fmt::Display, marker::PhantomData};
 
 use nalgebra::{Const, DefaultAllocator, Dim, Matrix3xX, OMatrix, U3};
-use crate::{DefaultObserver, Meter, SpectralTable, Step, Unit, observers::StandardObserver};
+use crate::{DefaultObserver, Meter, Step, Unit, observers::StandardObserver};
 
 /**	
 	A collection of a tristimulus values, associated with a standard observer,
@@ -58,6 +58,7 @@ where
 	```
  */
 
+ /*
 impl<C, S> From<S> for CieXYZ<C>
 where 
 	C: StandardObserver,
@@ -71,6 +72,7 @@ where
 		CieXYZ::<C>::new(xyz)
 	}
 }
+ */
 
 
 impl<C: StandardObserver> Display for CieXYZ<C> {
@@ -116,16 +118,6 @@ impl<C: StandardObserver> IntoIterator for CieXYZ<C> {
 			xyz: self,
 			i: 0,
 		}
-	}
-}
-
-#[test]
-fn test_lab_iter(){
-	use crate::observers::CieObs1931;
-	use crate::illuminants::IesTm30Fluorescent;
-	use crate::ALL;
-	for XYZValues {x, y, z}  in CieXYZ::<CieObs1931>::from(IesTm30Fluorescent::<ALL>){
-		println!("{}, {}, {}", x, y, z);
 	}
 }
 
@@ -212,12 +204,3 @@ impl<C: StandardObserver> IntoIterator for CieYxy<C> {
 	}
 }
 
-#[test]
-fn test_yxy_iter(){
-	use crate::observers::CieObs1931;
-	use crate::illuminants::IesTm30Fluorescent;
-	use crate::ALL;
-	for YxyValues {l, x	, y}  in CieYxy::<CieObs1931>::from(IesTm30Fluorescent::<ALL>){
-		println!("{}, {}, {}", l, x, y);
-	}
-}

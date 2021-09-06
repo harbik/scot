@@ -56,16 +56,16 @@ where
 		let xyz = (C::values(&d) * s) * (C::K * C::domain().step.unitvalue(1).value());
 		CieXYZ::<C>::from(xyz)
 	}
-	}
+}
 
-#[allow(unused_macros)]
-macro_rules! illuminant_from_static_slice {
+macro_rules! an_illuminant_from_static_slice {
 	($ILL:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident) => {
+
 		#[derive(Debug, Default)]
 		pub struct $ILL<const I:usize>;
 
-		impl<const I:usize> SpectralDistribution for $ILL<I> {
-			type MatrixType = SMatrixSlice<'static, f64, $N, 1>;
+		impl<const I:usize> crate::SpectralDistribution for $ILL<I> {
+			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, 1>;
 			type StepType = WavelengthStep;
 
 			fn len(&self) -> usize {1}
@@ -74,7 +74,7 @@ macro_rules! illuminant_from_static_slice {
 				assert!(I>0&&I<=$M);
 				(
 					$DOMAIN,
-					<Self as SpectralDistribution>::MatrixType::from_slice(&$DATA[(I-1)*N..I*N]),
+					<Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA[(I-1)*N..I*N]),
 				)
 			}
 			
@@ -83,16 +83,59 @@ macro_rules! illuminant_from_static_slice {
 			}
 		}
 
-		impl<C: StandardObserver, const I:usize> super::Illuminant<C> for $ILL<I> {}
+		impl<C: crate::observers::StandardObserver, const I:usize> crate::illuminants::Illuminant<C> for $ILL<I> {}
 
-		impl<C:StandardObserver, const I:usize> From<$ILL<I>> for CieXYZ<C> {
+		impl<C: crate::observers::StandardObserver, const I:usize> From<$ILL<I>> for crate::models::CieXYZ<C> {
 			fn from(ill: $ILL<I>) -> Self {
+				use crate::illuminants::Illuminant;
 				ill.xyz()
 			}
 		}
 			
 	};
 }
+
+macro_rules! all_illuminants_from_static_slice {
+	($ILL:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident) => {
+
+		#[derive(Debug, Default)]
+		pub struct $ILL;
+
+		impl crate::SpectralDistribution for $ILL {
+			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, $M>;
+			type StepType = WavelengthStep;
+
+			fn len(&self) -> usize {$M}
+
+			fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+				(
+					$DOMAIN,
+					<Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA),
+				)
+			}
+			/*
+	fn keys(&self) -> Option<Vec<String>> {
+		Some(HID_IES_KEYS.iter().map(|s| s.to_string()).collect())
+	}
+			*/
+			
+			fn description(&self) -> Option<String> {
+				Some(format!($DESC))
+			}
+		}
+
+		impl<C: crate::observers::StandardObserver> crate::illuminants::Illuminant<C> for $ILL {}
+
+		impl<C: crate::observers::StandardObserver> From<$ILL> for crate::models::CieXYZ<C> {
+			fn from(ill: $ILL) -> Self {
+				use crate::illuminants::Illuminant;
+				ill.xyz()
+			}
+		}
+			
+	};
+}
+
 
 /*
 	Optional illuminant data libraries, which can be excluded by feature flags.

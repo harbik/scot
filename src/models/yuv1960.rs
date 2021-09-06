@@ -155,12 +155,3 @@ impl<'a, C: StandardObserver> IntoIterator for &'a CieYuv1960<C> {
 	}
 }
 
-#[test]
-fn test_lab_iter(){
-	use crate::observers::CieObs1931;
-	use crate::illuminants::IesTm30Fluorescent;
-	use crate::ALL;
-	for CieYuv1960Values {y, u, v}  in CieYuv1960::<CieObs1931>::from(IesTm30Fluorescent::<ALL>){
-		println!("{}, {}, {}", y, u, v);
-	}
-}

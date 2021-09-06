@@ -50,7 +50,6 @@ use nalgebra::{ArrayStorage, Const, DMatrix, Dynamic, Matrix, Matrix3xX, MatrixS
 use crate::{SpectralDistribution, Unit};
 use crate::models::CieXYZ;
 use crate::observers::StandardObserver;
-use crate::spectra::{SpectralTable};
 use crate::illuminants::cct_parameters::{CctParameters};
 use crate::util::domain::Domain;
 use crate::util::{WavelengthStep, Step, NM5};

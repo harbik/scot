@@ -1,9 +1,11 @@
 
 
-use nalgebra::DMatrix;
+use nalgebra::{DMatrix, Dynamic, OMatrix};
 use num::ToPrimitive;
 
-use crate::{SpectralTable, Meter, Step, Unit, WavelengthStep, led_ohno, simpson, Domain};
+use crate::{Domain, Meter, NM, SpectralDistribution, Step, Unit, WavelengthStep, led_ohno, models::CieXYZ, observers::StandardObserver, simpson};
+
+use super::Illuminant;
 
 
 
@@ -20,10 +22,18 @@ use crate::{SpectralTable, Meter, Step, Unit, WavelengthStep, led_ohno, simpson,
 */
 
 #[derive(Debug, Clone, Copy)]
-pub struct LedParameters {
-	pub peak: f64,
-	pub fwhm: f64,
-	pub power: f64,
+pub struct LedPar {
+	pub peak_wavelength: f64,
+	pub fwhm: f64, // full width at half maximum
+}
+
+impl Default for LedPar {
+	fn default() -> Self {
+		Self {
+			peak_wavelength: 550.0,
+			fwhm: 50.0,
+		}
+	}
 }
 
 /**
@@ -32,21 +42,62 @@ Ohno LED Model
 LED Model as published in "Spectral design considerations for white LED color rendering", Yoshi Ohno, in Optical
 Engineering 44(11), 111302 (November 2005).
  */
-pub struct LedOhno2005(pub Vec<LedParameters>);
+ #[derive(Debug)]
+pub struct LedOhno2005{
+	pub parameters: Vec<LedPar>,
+	pub domain: Domain<WavelengthStep>
+}
+
+impl LedOhno2005 {
+	pub fn new(lp: impl Into<Vec<LedPar>>) -> Self
+	{
+		Self{
+			parameters: lp.into(),
+			..Default::default()
+		} 
+	}
+
+	pub fn set_domain(mut self, domain: Domain<WavelengthStep>) -> Self {
+		self.domain = domain;
+		self
+	}
+
+	pub fn keys(&self) -> Option<Vec<String>> {
+		let mut v: Vec<String> = Vec::with_capacity(self.len());
+		for LedPar { peak_wavelength: center , fwhm} in &self.parameters {
+			v.push(format!("Ohno LED Model {:.1}/{:.1}",center, fwhm));
+		}
+		Some(v)
+	}
+
+}
+
+impl Default for LedOhno2005 {
+	fn default() -> Self {
+		Self {
+			parameters: vec![LedPar::default()],
+			..Default::default()
+		}
+	}
+}
 
 impl<T: ToPrimitive> From<[T;2]> for LedOhno2005 {
     fn from([c,w]: [T;2]) -> Self {
-		let mut peak = c.to_f64().unwrap();	
+		let mut peak_wavelength = c.to_f64().unwrap();	
 		let mut fwhm = w.to_f64().unwrap();
-		if peak>1.0 {  // assume parameters are in nm
-			peak *= 1E-9;
+		if peak_wavelength>1.0 {  // assume parameters are in nm
+			peak_wavelength *= 1E-9;
 			fwhm *= 1E-9;
 		}
-        LedOhno2005 (
-			vec![
-				LedParameters{peak, fwhm, power: 0.0}
-			]
-		)
+		let uval = NM.unitvalue(1).value();
+        LedOhno2005 {
+			parameters: vec![ LedPar{peak_wavelength, fwhm} ],
+			domain: Domain::new(
+				((peak_wavelength - 3.0 * fwhm)/uval) as i32, 
+				((peak_wavelength + 3.0 * fwhm)/uval) as i32, 
+				NM
+			)
+		}
     }
 }
 
@@ -55,65 +106,52 @@ pub fn test_from_array(){
 	use crate::models::CieYxy;
 
 	let led = LedOhno2005::from([630,25]);
+	println!("{:?}", led);
 	let y_xy : CieYxy =  led.into();
 	println!("{}", y_xy);
 }
 
-
-impl LedOhno2005 {
-
-	pub fn new(parameters: impl Into<Vec<LedParameters>>) -> Self
-	{
-		Self(parameters.into()) 
-	}
-}
-
-impl SpectralTable for LedOhno2005 {
+impl SpectralDistribution for LedOhno2005 {
 
 	type StepType = WavelengthStep;
+	type MatrixType = OMatrix<f64, Dynamic, Dynamic>;
 
-	/**
-		Spectral values for Ohno Model LEDs.
+	fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		(self.domain.clone(), self.values(self.domain.clone()))
+	}
 
-	 */
-	fn values<L: Step>(&self, dom: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<<Self as SpectralTable>::StepType as Step>::UnitValueType: From<<L>::UnitValueType>
-	 {
-		let mut v : Vec<f64> = Vec::with_capacity(self.0.len() * dom.len());
-		for &LedParameters{peak, fwhm, power} in self.0.iter() {
-			let scale = if power>0.0 {
-				power / simpson(|l|led_ohno(l,peak, fwhm), peak - 3.0 * fwhm, peak + 3.0 * fwhm, 100)
-			} else {
-				1.0
-			};
-			for i in dom.range.clone() {
-				let meter_value: Meter = dom.step.unitvalue(i).into();
-				v.push(scale * led_ohno(meter_value.value(), peak, fwhm));
-			}
+	fn len(&self) -> usize {
+		self.parameters.len()	
 		}
-		DMatrix::from_vec(dom.len(), self.0.len(), v)
 
+	fn values<S2:Step>(&self, dto: Domain<S2>) -> OMatrix<f64, Dynamic, Dynamic>
+	where 
+		<<Self as SpectralDistribution>::StepType as Step>::UnitValueType: From<<S2 as Step>::UnitValueType>,
+	 {
+		let m = Self::MatrixType::from_iterator(
+			dto.len(),
+			self.len(),
+			self.parameters.iter().flat_map(|lp|dto.iter().map(move |l|led_ohno(l.value(), lp.peak_wavelength, lp.fwhm)))
+		);
+		m
 	}
 
 	fn description(&self) -> Option<String> {
 		Some("Ohno 2005 LED model spectra ".to_string())
 	}
+}
 
-	/// String temperature values for each of the blackbody sources in the collection.
-	fn keys(&self) -> Option<Vec<String>> {
-		let mut v: Vec<String> = Vec::with_capacity(self.0.len());
-		for LedParameters { peak: center , fwhm, power: _ } in &self.0 {
-			v.push(format!("Ohno LED Model {:.1}/{:.1}",center, fwhm));
-		}
-		Some(v)
+impl<C: StandardObserver> Illuminant<C> for LedOhno2005 {
+	fn xyz(&self) -> CieXYZ<C> {
+		let xyz = 
+			C::cmf() * self.values(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
+		CieXYZ::<C>::new(xyz)
 	}
+}
 
-	/// Domain covering the visible part of the spectrum
-	fn domain(&self) -> Domain<Self::StepType> {
-		Domain::default()
-	}
-	
+impl<C: StandardObserver> From<LedOhno2005> for CieXYZ<C> {
+    fn from(l: LedOhno2005) -> Self {
+		l.xyz()
+    }
 }
 

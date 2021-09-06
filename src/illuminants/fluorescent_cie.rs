@@ -8,7 +8,6 @@ use nalgebra::{DMatrix, Dynamic, MatrixSlice, SMatrixSlice};
 
 use crate::models::CieXYZ;
 use crate::observers::StandardObserver;
-use crate::spectra::SpectralTable;
 use crate::util::domain::Domain;
 use crate::util::{WavelengthStep, Step, NM5};
 use crate::util::interpolate::{interp_cols};
@@ -21,77 +20,10 @@ const M: usize = 12;
 const M3: usize = 15;
 
 
-/*
-#[derive(Debug, Default)]
-pub struct FL<const I:usize>;
-
-impl<const I:usize> SpectralDistribution for FL<I> {
-	type MatrixType = SMatrixSlice<'static, f64, N, 1>;
-    type StepType = WavelengthStep;
-
-	fn len(&self) -> usize {1}
-
-    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-		assert!(I>0&&I<=M);
-		(
-			Domain::new(380/5, 780/5, NM5),
-			<Self as SpectralDistribution>::MatrixType::from_slice(&CIE_FL_DATA[(I-1)*N..I*N]),
-		)
-    }
-	
-
-	fn description(&self) -> Option<String> {
-		Some(format!("CIE F{} Standard Illuminant", I))
-	}
-}
-
-impl<C: StandardObserver, const I:usize> super::Illuminant<C> for FL<I> {}
-
-impl<C:StandardObserver, const I:usize> From<FL<I>> for CieXYZ<C> {
-    fn from(fl: FL<I>) -> Self {
-		fl.xyz()
-    }
-}
- */
-
-illuminant_from_static_slice!(FL, N, M, "CIE F{}", Domain::new(380/5, 780/5, NM5), CIE_FL_DATA);
-illuminant_from_static_slice!(FL3, N, M3, "CIE F3.{}", Domain::new(380/5, 780/5, NM5), CIE_FL3_DATA);
-
-/*
-
-#[derive(Debug, Default)]
-pub struct FL3<const I:usize>;
-
-
-impl<const I:usize> SpectralDistribution for FL3<I> {
-	type MatrixType = SMatrixSlice<'static, f64, N, 1>;
-    type StepType = WavelengthStep;
-
-	fn len(&self) -> usize {1}
-
-    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-		assert!(I>0&&I<=M3);
-		(
-			Domain::new(380/5, 780/5, NM5),
-			<Self as SpectralDistribution>::MatrixType::from_slice(&CIE_FL3_DATA[(I-1)*N..I*N]),
-		)
-    }
-	
-
-	fn description(&self) -> Option<String> {
-		Some(format!("CIE F3.{} Standard Illuminant", I))
-	}
-}
-
-impl<C: StandardObserver, const I:usize> super::Illuminant<C> for FL3<I> {}
-
-impl<C:StandardObserver, const I:usize> From<FL3<I>> for CieXYZ<C> {
-    fn from(fl: FL3<I>) -> Self {
-		fl.xyz()
-    }
-}
-*/
-
+an_illuminant_from_static_slice!(FL, N, M, "CIE F{}", Domain::new(380/5, 780/5, NM5), CIE_FL_DATA);
+all_illuminants_from_static_slice!(FLAll, N, M, "CIE F", Domain::new(380/5, 780/5, NM5), CIE_FL_DATA);
+an_illuminant_from_static_slice!(FL3, N, M3, "CIE F3.{}", Domain::new(380/5, 780/5, NM5), CIE_FL3_DATA);
+all_illuminants_from_static_slice!(FL3All, N, M3, "CIE F3", Domain::new(380/5, 780/5, NM5), CIE_FL3_DATA);
 
 #[test]
 fn test_f(){
