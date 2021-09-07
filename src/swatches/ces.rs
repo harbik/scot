@@ -16,12 +16,11 @@ Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 */
 use nalgebra::{DMatrix, };
 
-use crate::spectra::SpectralTable;
-use crate::util::{Domain, interp_cols};
+use crate::util::{Domain, };
 use crate::util::{WavelengthStep, Step, NM};
 use crate::ALL;
 
-use super::Swatches;
+use super::Swatch;
 
 
 const N: usize = 401; // number of points in a spectral distributions, and the number of rows in the column major spectral matrix
@@ -60,7 +59,7 @@ impl<const I:usize> SpectralTable for IesTm30Ces<I> {
 	}
 }
 
-impl<const I:usize> Swatches for IesTm30Ces<I> {}
+impl<const I:usize> Swatch for IesTm30Ces<I> {}
 
 
 #[test]

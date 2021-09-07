@@ -1,9 +1,9 @@
 
 
-use nalgebra::{DMatrix, Dynamic, OMatrix};
+use nalgebra::{Dynamic, OMatrix};
 use num::ToPrimitive;
 
-use crate::{Domain, Meter, NM, SpectralDistribution, Step, Unit, WavelengthStep, led_ohno, models::CieXYZ, observers::StandardObserver, simpson};
+use crate::{Domain, NM, SpectralDistribution, Step, Unit, WavelengthStep, led_ohno, models::CieXYZ, observers::StandardObserver, };
 
 use super::Illuminant;
 
@@ -117,14 +117,14 @@ impl SpectralDistribution for LedOhno2005 {
 	type MatrixType = OMatrix<f64, Dynamic, Dynamic>;
 
 	fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-		(self.domain.clone(), self.values(self.domain.clone()))
+		(self.domain.clone(), self.map_domain(self.domain.clone()))
 	}
 
 	fn len(&self) -> usize {
 		self.parameters.len()	
 		}
 
-	fn values<S2:Step>(&self, dto: Domain<S2>) -> OMatrix<f64, Dynamic, Dynamic>
+	fn map_domain<S2:Step>(&self, dto: Domain<S2>) -> OMatrix<f64, Dynamic, Dynamic>
 	where 
 		<<Self as SpectralDistribution>::StepType as Step>::UnitValueType: From<<S2 as Step>::UnitValueType>,
 	 {
@@ -141,10 +141,13 @@ impl SpectralDistribution for LedOhno2005 {
 	}
 }
 
-impl<C: StandardObserver> Illuminant<C> for LedOhno2005 {
-	fn xyz(&self) -> CieXYZ<C> {
+impl Illuminant for LedOhno2005 {
+	fn xyz<C>(&self) -> CieXYZ<C>
+	where 
+		C: StandardObserver
+	{
 		let xyz = 
-			C::cmf() * self.values(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
+			C::cmf() * self.map_domain(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
 		CieXYZ::<C>::new(xyz)
 	}
 }

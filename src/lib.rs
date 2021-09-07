@@ -76,7 +76,7 @@ All rights reserved.
 </p>
 */
 
-#![allow(unused_imports)]
+//#![allow(unused_imports)]
 
 pub type DefaultObserver = self::observers::CieObs1931;
 
@@ -92,7 +92,8 @@ pub mod models;
 #[macro_use]
 pub mod illuminants;
 
-//pub mod swatches;
+#[macro_use]
+pub mod swatches;
 
 pub mod util;
 pub use crate::util::*;
@@ -101,13 +102,3 @@ pub use crate::util::*;
 CIE Standard Observers
  */
 pub mod observers; 
-
-
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}

@@ -1,11 +1,11 @@
 
 
-use nalgebra::{ArrayStorage, Const, DMatrix, DVector, MatrixSlice, OMatrix, SMatrix, SMatrixSlice, SVectorSlice};
+use nalgebra::{SMatrixSlice, };
 
 use crate::models::CieXYZ;
-use crate::{ALL, SpectralDistribution};
+use crate::SpectralDistribution;
 use crate::observers::StandardObserver;
-use crate::util::{Step, WavelengthStep, sprague_cols, Domain};
+use crate::util::{WavelengthStep, Domain};
 
 use super::Illuminant;
 
@@ -20,7 +20,7 @@ pub struct CieIllLed<'a>(
 	<Self as SpectralDistribution>::MatrixType
 );
 
-impl<'a, C: StandardObserver> super::Illuminant<C> for CieIllLed<'a> {}
+impl<'a> super::Illuminant for CieIllLed<'a> {}
 
 impl<'a, C:StandardObserver> From<CieIllLed<'a>> for CieXYZ<C> {
     fn from(led: CieIllLed<'a>) -> Self {
@@ -61,7 +61,7 @@ impl<'a> SpectralDistribution for CieIllLed<'a> {
 const N:usize = 81;
 const M:usize = 9;
 
-an_illuminant_from_static_slice!(LED, N, M, "CIE L{}", Domain::new(380/5, 780/5, crate::util::NM5), CIE_LED_ILL_DATA);
+illuminant!(LED, N, M, "CIE L{}", Domain::new(380/5, 780/5, crate::util::NM5), CIE_LED_ILL_DATA);
 
 static CIE_LED_ILL_KEYS: [&str;9] = [
     "LED-B1",

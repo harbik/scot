@@ -16,25 +16,141 @@ Currently, this library has the following collections:
 
 //use std::{marker::PhantomData, vec::from_elem};
 
-use nalgebra::{DMatrix};
 
 
-use crate::{spectra::SpectralTable, util::{Domain, Step, WavelengthStep}};
 
-pub mod checker;
-pub use self::checker::*;
+use nalgebra::DMatrix;
 
-pub mod tcs;
-pub use self::tcs::*;
+use crate::observers::StandardObserver;
+use crate::{Meter, SpectralDistribution, Step, Unit};
+use crate::models::{CieLab,  cielab};
 
-pub mod ces;
-pub use self::ces::*;
+/**
+	Traits for swatches, libraries or models for color samples, to get their spectral distributions
+	and, with a specified illuminant, their color appearance coordinates.
+*/
+pub trait Swatch
+where
+	Self: SpectralDistribution,
+	Self: Default,
 
-pub trait Swatches: SpectralTable {}
-/// trait marker for swatch reflection spectra, 
-/// such as the Munsell color swatches.
+{
+	fn lab<I,C>(&self) -> CieLab<I,C> 
+	where
+		C: StandardObserver,
+		//I: Into::<CieXYZ<C>>,
+		I: Default,
+		I: SpectralDistribution,
+		Meter: From<<<Self as SpectralDistribution>::StepType as Step>::UnitValueType>,
+//		I: <I::StepType = Self::StepType>,
+		<<I as SpectralDistribution>::StepType as Step>::UnitValueType: From<<<Self as SpectralDistribution>::StepType as Step>::UnitValueType>,
+	{
+
+		let (d, s) = self.spd();
+		let c = C::values(&d);
+		let l = I::default().map_domain(d.clone());
+		let m: DMatrix<f64>  = DMatrix::from_fn(l.nrows(), self.len(), |i, j| l[(i,0)] * s[(i,j)]);
+		let xyzn = &c * l.column(0) * C::K * d.step.unitvalue(1).value();
+		let xyz = c * m * C::K * d.step.unitvalue(1).value();
+		CieLab::new(cielab(xyzn, xyz)) 
+
+	}
+}
+/**
+	Macro to define a a swatch library from static data, and implement its `Swatch` traits.
+
+	Examples of these swatch libaries defined as static data are the color checker 
+	color samples, and the color samples used in various color quality standards, such as the
+	CIE CRI and IES TM30.
+
+*/
+
+#[allow(unused_macros)]
+macro_rules! swatch {
+	// a single illuminant from static slice column
+	($SWATCH:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident) => {
+
+		#[derive(Debug, Default)]
+		pub struct $SWATCH<const J:usize>;
+
+		impl<const J:usize> crate::SpectralDistribution for $SWATCH<J> {
+			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, 1>;
+			type StepType = crate::WavelengthStep;
+
+			fn len(&self) -> usize {1}
+
+			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
+				assert!(J>0&&J<=$M);
+				(
+					$DOMAIN,
+					<Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA[(J-1)*N..J*N]),
+				)
+			}
+			
+			fn description(&self) -> Option<String> {
+				Some(format!($DESC, J))
+			}
+		}
+
+		impl<const J:usize> crate::swatches::Swatch for $SWATCH<J> {}
+
+		impl<I: crate::illuminants::Illuminant, C: crate::observers::StandardObserver, const J:usize> From<$SWATCH<J>> for crate::models::CieLab<I,C> 
+		where
+			<<I as crate::SpectralDistribution>::StepType as crate::Step>::UnitValueType: From<crate::Meter>	
+		{
+			fn from(sw: $SWATCH<J>) -> Self {
+				use crate::swatches::Swatch;
+				sw.lab()
+			}
+		}
+	};
+	// all swatches as array with keys
+	($SWATCH:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident, $KEYS:ident) => {
+
+		#[derive(Debug, Default)]
+		pub struct $SWATCH;
+
+		impl crate::SpectralDistribution for $SWATCH {
+			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, $M>;
+			type StepType = crate::WavelengthStep;
+
+			fn len(&self) -> usize {$M}
+
+			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
+				(
+					$DOMAIN,
+					<Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA),
+				)
+			}
+
+			fn keys(&self) -> Option<Vec<String>> {
+				Some($KEYS.iter().map(|s| s.to_string()).collect())
+			}
+			
+			fn description(&self) -> Option<String> {
+				Some(format!($DESC))
+			}
+		}
+
+		impl crate::swatches::Swatch for $SWATCH {}
+
+		impl<I:crate::illuminants::Illuminant, C: crate::observers::StandardObserver> From<$SWATCH> for crate::models::CieLab<I,C>
+		where
+			<<I as crate::SpectralDistribution>::StepType as crate::Step>::UnitValueType: From<crate::Meter>
+		{
+			fn from(sw: $SWATCH) -> Self {
+				use crate::swatches::Swatch;
+				sw.lab()
+			}
+		}
+			
+	};
+			
+}
 
 
+
+/*
 #[derive(Default)]
 pub struct White;
 
@@ -54,7 +170,7 @@ impl SpectralTable for White {
     }
 }
 
-impl Swatches for White {}
+impl Swatch for White {}
 
 pub struct Gray (pub f64);
 
@@ -97,7 +213,7 @@ impl Default for Gray {
     }
 }
 
-impl Swatches for Gray {}
+impl Swatch for Gray {}
 
 pub type Grey = Gray;
 
@@ -120,6 +236,7 @@ pub type Grey = Gray;
 	```
 
 	
+*/
 */
 /*
 pub struct SwatchView<'a, I,S> {
@@ -164,3 +281,12 @@ where
     }
 }
  */
+
+pub mod checker;
+pub use self::checker::*;
+
+//pub mod tcs;
+//pub use self::tcs::*;
+
+//pub mod ces;
+//pub use self::ces::*;

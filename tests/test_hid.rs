@@ -1,5 +1,5 @@
 use approx::assert_abs_diff_eq;
-use colorado::{self, ALL, illuminants::HP, models::CieYxy, models::YxyValues, observers::CieObs1931};
+use colorado::{self, illuminants::HPAll, models::CieYxy, models::YxyValues, observers::CieObs1931};
 
 // x,y, cct, R1..R14, Ra
 const HID_TEST_DATA: [[f64;18];5] = [
@@ -12,7 +12,7 @@ const HID_TEST_DATA: [[f64;18];5] = [
 
 #[test]
 fn test_yxy(){
-	for (YxyValues {l: _, x, y}, [xr,yr,..]) in CieYxy::<CieObs1931>::from(HP::<ALL>).into_iter().zip(HID_TEST_DATA.iter()) {
+	for (YxyValues {l: _, x, y}, [xr,yr,..]) in CieYxy::<CieObs1931>::from(HPAll).into_iter().zip(HID_TEST_DATA.iter()) {
 		assert_abs_diff_eq!(x, xr, epsilon=5E-5); // 4 decimal precision for x,y values given in reference table
 		assert_abs_diff_eq!(y, yr, epsilon=5E-5);
 		//println!("{} {} {} {}", x,y, xr, yr );

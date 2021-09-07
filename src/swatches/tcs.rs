@@ -16,7 +16,7 @@ Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 */
 use nalgebra::{DMatrix, };
 use crate::{interp_cols, Domain, SpectralTable, WavelengthStep, Step, NM5};
-use super::Swatches;
+use super::Swatch;
 
 
 const N: usize = 95; // number of points in a spectral distributions, and the number of rows in the column major spectral matrix
@@ -65,7 +65,7 @@ impl SpectralTable for Tcs {
 	}
 }
 
-impl Swatches for Tcs {}
+impl Swatch for Tcs {}
  
 
 const TCS: [f64;N*M] = [

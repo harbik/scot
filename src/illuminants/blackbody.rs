@@ -8,7 +8,7 @@ use crate::observers::StandardObserver;
 use crate::{C2, C2_IPTS_1948, C2_IPTS_1990, C2_NBS_1931, SpectralDistribution, planck_c2, planck_prime_c2, stefan_boltzmann};
 use crate::illuminants::{Illuminant};
 use crate::illuminants::cct_parameters::{CctParameters};
-use crate::util::{Domain, Meter, Step, Unit, WavelengthStep, };
+use crate::util::{Domain, Step, Unit, WavelengthStep, };
 
 
 
@@ -147,10 +147,13 @@ impl SpectralDistribution for Planckian {
 	}
 }
 
-impl<C: StandardObserver> Illuminant<C> for Planckian {
-	fn xyz(&self) -> CieXYZ<C> {
+impl Illuminant for Planckian {
+	fn xyz<C>(&self) -> CieXYZ<C> 
+	where
+		C: StandardObserver
+	{
 		let xyz = 
-			C::cmf() * self.values(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
+			C::cmf() * self.map_domain(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
 		CieXYZ::<C>::new(xyz)
 	}
 }
@@ -166,19 +169,19 @@ impl<C: StandardObserver> From<Planckian> for CieXYZ<C> {
 	A generic constant blackbody illuminant type.
 	
 	To be used whenever a blackbody illuminant is required at compile time.
-	This uses the IPTS 1948 absolute temperature scale, as used in the CIE D illuminant.
 */
 #[derive(Default)]
 pub struct BB <const T: usize>;
 
-impl<C: StandardObserver, const T: usize> Illuminant<C> for BB<T> {}
+impl<const T: usize> Illuminant for BB<T> {}
 
 impl<const T: usize> SpectralDistribution for BB<T> {
     type MatrixType = DMatrix<f64>;
     type StepType = WavelengthStep;
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-		Planckian::new(T).set_c2(RadiantConstant::Ipts1948).spd()
+	//	Planckian::new(T).set_c2(RadiantConstant::Ipts1948).spd()
+		Planckian::new(T).spd()
     }
 
 	fn len(&self) -> usize {
@@ -191,7 +194,7 @@ where
 	C: StandardObserver,
 {
     fn from(_: BB<T>) -> Self {
-		Self::from(Planckian::new(T).set_c2(RadiantConstant::Ipts1948))
+		Self::from(Planckian::new(T))
     }
 }
 

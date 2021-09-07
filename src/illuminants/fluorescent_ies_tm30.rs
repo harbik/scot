@@ -1,15 +1,13 @@
 
-use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
 use crate::util::domain::Domain;
-use crate::util::{WavelengthStep, Step, NM};
-use crate::util::interpolate::sprague_cols;
+use crate::util::{NM};
 
 
 const N: usize = 401;
 const M: usize = 43;
-an_illuminant_from_static_slice!(IesTm30Fluorescent, N, M, "IES/TM30 FL{}", Domain::new(380, 780, NM), IES_TM30_FL_DATA);
-all_illuminants_from_static_slice!(IesTm30AllFluorescents, N, M, "IES/TM30 FL", Domain::new(380, 780, NM), IES_TM30_FL_DATA);
+illuminant!(IesTm30Fluorescent, N, M, "IES/TM30 FL{}", Domain::new(380, 780, NM), IES_TM30_FL_DATA);
+illuminant!(IesTm30AllFluorescents, N, M, "IES/TM30 All Fluorescents", Domain::new(380, 780, NM), IES_TM30_FL_DATA, FL_IES_KEYS);
 
 
 

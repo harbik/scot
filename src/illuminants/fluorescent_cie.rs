@@ -4,26 +4,18 @@
 use std::collections::{HashMap, };
 
 use maplit::hashmap;
-use nalgebra::{DMatrix, Dynamic, MatrixSlice, SMatrixSlice};
 
-use crate::models::CieXYZ;
-use crate::observers::StandardObserver;
 use crate::util::domain::Domain;
-use crate::util::{WavelengthStep, Step, NM5};
-use crate::util::interpolate::{interp_cols};
-use crate::illuminants::Illuminant;
+use crate::util::{NM5};
 
-use crate::{ALL, SpectralDistribution};
 
 const N: usize = 81;
 const M: usize = 12;
 const M3: usize = 15;
 
 
-an_illuminant_from_static_slice!(FL, N, M, "CIE F{}", Domain::new(380/5, 780/5, NM5), CIE_FL_DATA);
-all_illuminants_from_static_slice!(FLAll, N, M, "CIE F", Domain::new(380/5, 780/5, NM5), CIE_FL_DATA);
-an_illuminant_from_static_slice!(FL3, N, M3, "CIE F3.{}", Domain::new(380/5, 780/5, NM5), CIE_FL3_DATA);
-all_illuminants_from_static_slice!(FL3All, N, M3, "CIE F3", Domain::new(380/5, 780/5, NM5), CIE_FL3_DATA);
+illuminant!(FL, N, M, "CIE F{}", Domain::new(380/5, 780/5, NM5), CIE_FL_DATA);
+illuminant!(FL3, N, M3, "CIE F3.{}", Domain::new(380/5, 780/5, NM5), CIE_FL3_DATA);
 
 #[test]
 fn test_f(){
@@ -31,6 +23,7 @@ fn test_f(){
 	use crate::models::{YxyValues, CieYxy};
 	use approx::assert_abs_diff_eq;
 	use nalgebra::{SMatrix, ArrayStorage};
+	use crate::SpectralDistribution;
 
 	let cie_fl_test = SMatrix::from_data(ArrayStorage(FLTEST)).transpose();
 	let cie_fl3_test = SMatrix::from_data(ArrayStorage(FL3TEST)).transpose();
@@ -119,27 +112,6 @@ pub static FL3TEST : [[f64;18];15] = [
 	[0.3447, 0.3609, 5045.0, 95.0, 93.0, 94.0, 97.0, 94.0, 94.0, 93.0, 97.0, 97.0, 93.0, 91.0, 95.0, 85.0, 92.0, 97.0],
 	[0.3127, 0.3288, 6509.0, 98.0, 99.0, 99.0, 96.0, 98.0, 99.0, 100.0, 98.0, 98.0, 96.0, 99.0, 100.0, 95.0, 98.0, 98.0]
 ];
-
-
-struct SpectralDataSlice<'a, const R: usize, const C: usize> (&'a [f64]);
-
-
-impl<'a, const R: usize, const C: usize> From<SpectralDataSlice<'a, R, C>> 
-	for MatrixSlice<'a, f64, Dynamic, Dynamic>
- {
-    fn from(sds: SpectralDataSlice<'a, R, C>) -> Self {
-
-        MatrixSlice::from_slice_generic(sds.0, Dynamic::new(R), Dynamic::new(C))
-    }
-}
-
-#[test]
-fn test_spectral_data_slice(){
-	use crate::util::{NM5, interp_cols};
-//	let m = MatrixSlice::from_slice_generic(&CIE_FL_DATA, Dynamic::new(81), Const::<12>);
-	let d = Domain::new(380/5, 780/5, NM5);
-	println!("{}", interp_cols(&d, &d, 12, &CIE_FL_DATA));
-}
 
 
 

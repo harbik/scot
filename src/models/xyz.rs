@@ -1,8 +1,8 @@
 
 use std::{fmt::Display, marker::PhantomData};
 
-use nalgebra::{Const, DefaultAllocator, Dim, Matrix3xX, OMatrix, U3};
-use crate::{DefaultObserver, Meter, Step, Unit, observers::StandardObserver};
+use nalgebra::{Const, DefaultAllocator, Dim, Matrix3xX, OMatrix, };
+use crate::{DefaultObserver, observers::StandardObserver};
 
 /**	
 	A collection of a tristimulus values, associated with a standard observer,
@@ -57,23 +57,6 @@ where
 	println!("{}",bb);
 	```
  */
-
- /*
-impl<C, S> From<S> for CieXYZ<C>
-where 
-	C: StandardObserver,
-	S: SpectralTable,
-	Meter: From<<<S as SpectralTable>::StepType as Step>::UnitValueType>,
- {
-	fn from(sd: S) -> Self {
-		let xyz = 
-			C::values(&sd.domain()) * sd.values(&sd.domain()) * C::K * sd.domain().step.unitvalue(1).value();
-		//let xyz = C::xyz_from_dom_mat(sd.domain(), sd.values(&sd.domain()));
-		CieXYZ::<C>::new(xyz)
-	}
-}
- */
-
 
 impl<C: StandardObserver> Display for CieXYZ<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

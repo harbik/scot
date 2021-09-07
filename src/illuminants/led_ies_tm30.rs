@@ -1,9 +1,5 @@
 
-use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
-
-use crate::ALL;
-use crate::observers::StandardObserver;
-use crate::{Step, WavelengthStep, sprague_cols, Domain, NM};
+use crate::{Domain, NM};
 
 /**
 	Commercial, measured, LED Spectra, from the IES TM30 library, V2.00, Aug 10, 2018.
@@ -12,7 +8,7 @@ use crate::{Step, WavelengthStep, sprague_cols, Domain, NM};
 */
 const N: usize = 401;
 const M: usize = 138;
-an_illuminant_from_static_slice!(IesTm30LED, N, M, "IES/TM30 LED{}", Domain::new(380, 780, NM), IES_TM30_LED_DATA);
+illuminant!(IesTm30LED, N, M, "IES/TM30 LED{}", Domain::new(380, 780, NM), IES_TM30_LED_DATA);
 
 pub static IES_LED_COM_KEYS: [&str; 138] = [
 	/* 1 */ "LED Hybrid Blue Pump (1)",

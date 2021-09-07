@@ -44,16 +44,14 @@ CIE D illumiant algorithm. To recreate the values as originally defined, the fol
 
 
 
-use nalgebra::storage::RStride;
-use nalgebra::{ArrayStorage, Const, DMatrix, Dynamic, Matrix, Matrix3xX, MatrixSlice, MatrixSliceXx1, SMatrix, SMatrixSlice, SVector, SliceStorage, U1, U97, VecStorage};
+use nalgebra::{Const, Dynamic, Matrix, Matrix3xX, MatrixSliceXx1, SMatrixSlice, VecStorage};
 
-use crate::{SpectralDistribution, Unit};
+use crate::{SpectralDistribution, };
 use crate::models::CieXYZ;
 use crate::observers::StandardObserver;
 use crate::illuminants::cct_parameters::{CctParameters};
 use crate::util::domain::Domain;
-use crate::util::{WavelengthStep, Step, NM5};
-use crate::util::interpolate::{sprague_cols};
+use crate::util::{WavelengthStep, NM5};
 
 use super::Illuminant;
 
@@ -120,7 +118,7 @@ impl SpectralDistribution for CieDaylight {
     }
 }
 
-impl<C: StandardObserver> Illuminant<C> for CieDaylight {}
+impl Illuminant for CieDaylight {}
 
 impl<C:  StandardObserver> From<CieDaylight> for CieXYZ<C> 
 {
@@ -131,7 +129,7 @@ impl<C:  StandardObserver> From<CieDaylight> for CieXYZ<C>
 #[derive(Default)]
 pub struct D <const T: usize>;
 
-impl<C: StandardObserver, const T: usize> Illuminant<C> for D<T> {}
+impl<const T: usize> Illuminant for D<T> {}
 
 impl<const T: usize> SpectralDistribution for D<T> {
     type MatrixType = Matrix<f64, Const<N>, Dynamic, VecStorage<f64, Const<N>, Dynamic>>;
@@ -184,7 +182,7 @@ impl<C: StandardObserver> From<CieIllD65> for CieXYZ<C> {
     }
 }
 
-impl<C: StandardObserver> Illuminant<C> for CieIllD65{}
+impl Illuminant for CieIllD65{}
 
 
 #[test]
@@ -236,7 +234,7 @@ impl<'a, C: StandardObserver> From<CieIllD50> for CieXYZ<C> {
     }
 }
 
-impl<'a, C: StandardObserver> Illuminant<C> for CieIllD50{}
+impl<'a> Illuminant for CieIllD50{}
 
 
 #[test]
@@ -281,7 +279,7 @@ impl<C: StandardObserver> From<CieIllD55> for CieXYZ<C> {
     }
 }
 
-impl<'a, C: StandardObserver> Illuminant<C> for CieIllD55{}
+impl<'a> Illuminant for CieIllD55{}
 
 
 #[test]
@@ -322,7 +320,7 @@ impl<C: StandardObserver> From<CieIllD75> for CieXYZ<C> {
     }
 }
 
-impl<'a, C: StandardObserver> Illuminant<C> for CieIllD75{}
+impl<'a> Illuminant for CieIllD75{}
 
 #[test]
 fn test_d75(){

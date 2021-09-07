@@ -17,7 +17,7 @@
 
 use std::ops::Index;
 
-use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice, MatrixSlice3xX, OMatrix, VecStorage};
+use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice3xX, OMatrix, VecStorage, };
 use nalgebra::{storage::Storage, DMatrix, Dim, Matrix,};
 
 use crate::util::Domain;
@@ -118,6 +118,7 @@ where
 		mto
 }
 
+/*
 pub fn interp_cols<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nc: usize, data: &'a [f64]  ) -> DMatrix<f64>
 where
     S1: Step + Clone + Copy,
@@ -139,8 +140,9 @@ where
 		mto
 	}
 }
+*/
 
-pub fn interp_cols2<S1, S2, I>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nc: usize, data: I  ) -> OMatrix<f64, Dynamic, Dynamic>
+pub fn lin_interp_mat_col<S1, S2, I>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nc: usize, data: I  ) -> OMatrix<f64, Dynamic, Dynamic>
 where
     S1: Step + Clone + Copy,
     S2: Step + Clone + Copy,
@@ -158,15 +160,18 @@ where
 	mto
 }
 
+
 #[test]
 fn test_interp_col(){
 	use super::{NONE5, NONE};
 	use approx::assert_abs_diff_eq;
+	use nalgebra::dvector;
+	
 	let dfrom = Domain::new(0,2, NONE5);
 	let dto = Domain::new(0,10, NONE);
-	let data = [0.0, 5.0, 10.0]; // column major array in nalgebra
-	let m = interp_cols(&dfrom, &dto, 1, &data);
-	println!("{}", m);
+	let min = dvector![0.0, 5.0, 10.0];
+	let m = lin_interp_mat_col(&dfrom, &dto, 1, min);
+//	println!("{}", m);
 	assert_abs_diff_eq!(m, DMatrix::<f64>::from_vec(11, 1, vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]));
 }
 
@@ -174,11 +179,16 @@ fn test_interp_col(){
 fn test_interp_col2(){
 	use super::{NONE5, NONE};
 	use approx::assert_abs_diff_eq;
+	use nalgebra::dmatrix;
 	let dfrom = Domain::new(0,2, NONE5);
 	let dto = Domain::new(0,10, NONE);
-	let data = [0.0, 5.0, 10.0, 0.0, 50.0, 100.0]; // column major array in nalgebra
-	let m = interp_cols(&dfrom, &dto, 2, &data);
-	println!("{}", m);
+	let data = dmatrix![
+		0.0, 0.0; 
+		5.0, 50.0;  
+		10.0, 100.0;
+	];
+	let m = lin_interp_mat_col(&dfrom, &dto, 2, data);
+	//println!("{}", m);
 	assert_abs_diff_eq!(m, DMatrix::<f64>::from_vec(
 		22, 
 		1, 

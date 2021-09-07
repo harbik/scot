@@ -1,8 +1,6 @@
 
-use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
-use crate::ALL;
-use crate::{Domain, NM, Step, WavelengthStep, sprague_cols};
+use crate::{Domain, NM, };
 
 /**
 	Example spectral data for a collection of incandescent and halogen lamps, curated by the IES TM30 working group.
@@ -43,7 +41,8 @@ use crate::{Domain, NM, Step, WavelengthStep, sprague_cols};
 
 const N:usize = 401;
 const M:usize =  14;
-an_illuminant_from_static_slice!(IesTm30Incandescent, N, M, "IES/TM30 INC{}", Domain::new(380, 780, NM), INC_IES_DATA);
+illuminant!(IesTm30Incandescent, N, M, "IES/TM30 INC{}", Domain::new(380, 780, NM), INC_IES_DATA);
+illuminant!(IesTm30AllIncandescent, N, M, "IES/TM30 All Incandescents", Domain::new(380, 780, NM), INC_IES_DATA, INC_IES_KEYS);
 
 pub static INC_IES_KEYS: [&str; M] = [
 	/*  1 */ 	"Halogen (1)", 

@@ -1,13 +1,12 @@
-use nalgebra::{DMatrix, };
 
-use crate::util::{Domain, interp_cols};
-use crate::util::{WavelengthStep, Step, NM};
+use crate::util::{Domain, };
+use crate::util::{NM};
 
 
 const N: usize = 401;
 const M: usize = 20;
 
-an_illuminant_from_static_slice!(IesTm30Hid, N, M, "IES/TM30 HID{}", Domain::new(380, 780, NM), HID_IES_DATA);
+illuminant!(IesTm30Hid, N, M, "IES/TM30 HID{}", Domain::new(380, 780, NM), HID_IES_DATA);
 
 pub static HID_IES_KEYS: [&str; M] = [
 	"C100S54 (1) - HPS Standard", "C100S54 (2) - HPS Standard", "C100S54C (1) - HPS Deluxe", "C100S54C (2) - HPS Deluxe", 

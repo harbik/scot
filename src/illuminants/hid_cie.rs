@@ -1,14 +1,21 @@
 
 
-use nalgebra::{ArrayStorage, DMatrix, SMatrix, SVectorSlice};
 
-use crate::util::Domain;
-use crate::util::{WavelengthStep, Step, NM5};
-use crate::util::sprague_cols;
+//use crate::util::Domain;
+//use crate::util::{WavelengthStep, };
 
 const N: usize = 81;
 const M: usize = 5;
-an_illuminant_from_static_slice!(HP, N, M, "CIE HP{}", crate::util::Domain::new(380/5, 780/5, crate::util::NM5), HP_DATA);
+illuminant!(HP, N, M, "CIE HP{}", crate::util::Domain::new(380/5, 780/5, crate::util::NM5), HP_DATA);
+illuminant!(HPAll, N, M, "CIE All HP", crate::util::Domain::new(380/5, 780/5, crate::util::NM5), HP_DATA, HP_KEYS);
+
+static HP_KEYS: [&str; M] = [
+	"HP1",
+	"HP2",
+	"HP3",
+	"HP4",
+	"HP5"
+];
 
 static HP_DATA: [f64; M*N] = [
 	// 1
