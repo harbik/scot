@@ -68,7 +68,7 @@ macro_rules! illuminant {
 			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, 1>;
 			type StepType = crate::WavelengthStep;
 
-			fn len(&self) -> usize {1}
+			fn shape(&self) -> (usize, usize) {($N,1)}
 
 			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
 				assert!(I>0&&I<=$M);
@@ -102,7 +102,7 @@ macro_rules! illuminant {
 			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, $M>;
 			type StepType = crate::WavelengthStep;
 
-			fn len(&self) -> usize {$M}
+			fn shape(&self) -> (usize,  usize) {($N, $M) }
 
 			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
 				(

@@ -89,8 +89,8 @@ impl SpectralDistribution for CieDaylight {
 	type MatrixType = Matrix<f64, Const<N>, Dynamic, VecStorage<f64, Const<N>, Dynamic>>;
     type StepType =  WavelengthStep;
 
-	fn len(&self) -> usize {
-		self.ccts.len()
+	fn shape(&self) -> (usize, usize) {
+		(N, self.ccts.len())
 	}
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
@@ -139,9 +139,7 @@ impl<const T: usize> SpectralDistribution for D<T> {
 		CieDaylight::new(T).spd()
     }
 
-	fn len(&self) -> usize {
-		1
-	}
+	fn shape(&self) -> (usize, usize) { (N,1) }
 }
 
 impl<C:  StandardObserver, const T: usize> From<D<T>> for CieXYZ<C> 
@@ -162,7 +160,7 @@ impl SpectralDistribution for CieIllD65 {
 	type MatrixType = MatrixSliceXx1<'static, f64>;
     type StepType = WavelengthStep;
 
-	fn len(&self) -> usize { 1usize }
+	fn shape(&self) -> (usize, usize) { (NDATA, 1) }
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
 		(
@@ -212,9 +210,7 @@ impl<'a> SpectralDistribution for CieIllD50 {
 	type MatrixType = MatrixSliceXx1<'static, f64>;
     type StepType = WavelengthStep;
 
-	fn len(&self) -> usize {
-		1usize
-	}
+	fn shape(&self) -> (usize, usize) { (NDATA, 1) }
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
 		(
@@ -257,9 +253,7 @@ impl SpectralDistribution for CieIllD55 {
 	type MatrixType = MatrixSliceXx1<'static, f64>;
     type StepType = WavelengthStep;
 
-	fn len(&self) -> usize {
-		1usize
-	}
+	fn shape(&self) -> (usize, usize) { (NDATA, 1) }
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
 		(
@@ -300,7 +294,7 @@ impl SpectralDistribution for CieIllD75 {
 	type MatrixType = MatrixSliceXx1<'static, f64>;
     type StepType = WavelengthStep;
 
-	fn len(&self) -> usize { 1usize }
+	fn shape(&self) -> (usize, usize) { (NDATA, 1) }
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
 		(

@@ -1,19 +1,19 @@
 
 /*!
-CIE &Delta;E 1976 color differences for two spectral color collections.
+CIE &Delta;E<sub>1976</sub> color differences for two spectral color collections.
 
 In this formula the color difference is represented by the direct distance
 between two color points in the CIE L<sup>*</sup>a<sup>*</sup>b<sup>*</sup> color space.	
-It has been succeeded by better color difference metrix in 1994, and 2000.
+It has been superseeded by the color difference metrics CIE &Delta;E<sub>1994</sub>, and CIE &Delta;E<sub>2000</sub>.
 
 # Example
-Calculate the CIE DE1976 color differences between Color Checker patches, and 
+Calculate the CIE DE1976 color differences between Color Checker Swatch #13, and 
 the CIE CES color samples.
 ```
 	use crate::observers::Cie1931;
 	use crate::illuminants::CieD65;
-	use crate::swatches::{ColorChecker, IesTm30Ces};
-	let de = CieDE1976::<Cie1931, CieD65>::new(ColorChecker, IesTm30Ces);
+	use crate::swatches::{ColorCheckerSwatch, Ces};
+	let de = CieDE1976::<Cie1931, CieD65>::new(ColorCheckerSwatch::<13>, Ces);
 	println!("{:.1}", de.0);
 ```
 This will print a matrix, with 16 rows, each row corresponding to one of the 
@@ -49,7 +49,7 @@ pub struct CieDE1976<I = D65,C = CieObs1931>(pub DMatrix<f64>, PhantomData<*cons
 
 impl<I, C> CieDE1976<I, C>
 where
-	I: Illuminant<C>,
+	I: Illuminant,
 	C: StandardObserver,
 {
    pub fn new<L1,L2>(l1: L1, l2: L2) -> Self
@@ -63,7 +63,7 @@ where
 }
 
 
-impl<I: Illuminant<C>, C: StandardObserver> DeltaEValues<I,C> for CieDE1976<I,C>{}
+impl<I: Illuminant, C: StandardObserver> DeltaEValues<I,C> for CieDE1976<I,C>{}
 /* 
 	See AsRef<DMatrix<f64>> implementation, which represent the error values.
 	Using default methods only.
@@ -74,11 +74,11 @@ impl<I: Illuminant<C>, C: StandardObserver> DeltaEValues<I,C> for CieDE1976<I,C>
 	Generates DeltaE values from a pair objects which can produce 
 	one or more CieLab values.
  */
-impl<L1, L2, I, C> From<(L1, L2)> for CieDE1976<I,C>
+impl<I, C, L1, L2> From<(L1, L2)> for CieDE1976<I,C>
 where
 	L1: Into::<CieLab<I,C>>,
 	L2: Into::<CieLab<I,C>>,
-	I: Illuminant<C>,
+	I: Illuminant,
 	C: StandardObserver,
 
 {
@@ -101,13 +101,13 @@ where
 
 }
 
-impl<I: Illuminant<C>, C: StandardObserver> AsRef<DMatrix<f64>> for CieDE1976<I,C> {
+impl<I: Illuminant, C: StandardObserver> AsRef<DMatrix<f64>> for CieDE1976<I,C> {
     fn as_ref(&self) -> &DMatrix<f64> {
         &self.0
     }
 }
 
-impl<C: StandardObserver, I: Illuminant<C>> Debug for CieDE1976<I,C> {
+impl<C: StandardObserver, I: Illuminant> Debug for CieDE1976<I,C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
        Debug::fmt(&self.0, f) 
     }
@@ -115,7 +115,7 @@ impl<C: StandardObserver, I: Illuminant<C>> Debug for CieDE1976<I,C> {
 
 impl<I,C> std::fmt::Display for CieDE1976<I,C>
 where 
-	I: Illuminant<C>,
+	I: Illuminant,
 	C: StandardObserver
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -127,9 +127,8 @@ where
 fn test_ciede76(){
 	use crate::observers::{CieObs1931};
 	use crate::illuminants::{CieIllD65};
-	use crate::swatches::{ColorChecker, IesTm30Ces};
-	use crate::ALL;
-	let de = CieDE1976::<CieIllD65, CieObs1931>::from((ColorChecker::<13>, IesTm30Ces::<ALL>));
+	use crate::swatches::{ColorCheckerSwatch, Ces};
+	let de = CieDE1976::<CieIllD65, CieObs1931>::from((ColorCheckerSwatch::<13>, Ces));
 //	println!("{:.1}", de);
 	let m = de.matches();
 	let mut prev = 0f64;

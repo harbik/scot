@@ -41,9 +41,7 @@ impl<'a> SpectralDistribution for CieIllLed<'a> {
     type MatrixType = SMatrixSlice<'a, f64, N, M>;
     type StepType = WavelengthStep;
 
-	fn len(&self) -> usize {
-		M
-	}
+	fn shape(&self) -> (usize, usize) { (N,M) }
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
 		(

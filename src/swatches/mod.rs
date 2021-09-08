@@ -50,7 +50,7 @@ where
 		let (d, s) = self.spd();
 		let c = C::values(&d);
 		let l = I::default().map_domain(d.clone());
-		let m: DMatrix<f64>  = DMatrix::from_fn(l.nrows(), self.len(), |i, j| l[(i,0)] * s[(i,j)]);
+		let m: DMatrix<f64>  = DMatrix::from_fn(l.nrows(), self.shape().1, |i, j| l[(i,0)] * s[(i,j)]);
 		let xyzn = &c * l.column(0) * C::K * d.step.unitvalue(1).value();
 		let xyz = c * m * C::K * d.step.unitvalue(1).value();
 		CieLab::new(cielab(xyzn, xyz)) 
@@ -78,7 +78,7 @@ macro_rules! swatch {
 			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, 1>;
 			type StepType = crate::WavelengthStep;
 
-			fn len(&self) -> usize {1}
+			fn shape(&self) -> (usize, usize) {($N,1)}
 
 			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
 				assert!(J>0&&J<=$M);
@@ -115,7 +115,7 @@ macro_rules! swatch {
 			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, $M>;
 			type StepType = crate::WavelengthStep;
 
-			fn len(&self) -> usize {$M}
+			fn shape(&self) -> (usize, usize) {($N,$M) }
 
 			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
 				(
@@ -186,7 +186,7 @@ impl<const R:usize> SpectralDistribution for Gray<R> {
 		)
     }
 
-    fn len(&self) -> usize { 1 }
+    fn shape(&self) -> (usize,usize) { (DOMAIN_DEFAULT_LEN, 1) }
 
 	fn map_domain<S2:Step>(&self, dto: Domain<S2>) -> DMatrix<f64>
 	where 

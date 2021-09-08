@@ -64,7 +64,7 @@ const H: f64 = 6.6260700408181E-34;
 const C1: f64 = 2. * std::f64::consts::PI * H * C * C;
 
 /// Second radiation constant (m K)
-/// see https://en.wikipedia.org/wiki/Planckian_locus#International_Temperature_Scale
+/// see <https://en.wikipedia.org/wiki/Planckian_locus#International_Temperature_Scale>
 pub const C2: f64 = H * C / KB; // Now exact 
 pub const C2_NBS_1931: f64 = 1.435E-2; // A Illuminant 
 pub const C2_IPTS_1948: f64 = 1.4380E-2;  // Illuminant series D

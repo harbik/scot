@@ -63,7 +63,7 @@ impl LedOhno2005 {
 	}
 
 	pub fn keys(&self) -> Option<Vec<String>> {
-		let mut v: Vec<String> = Vec::with_capacity(self.len());
+		let mut v: Vec<String> = Vec::with_capacity(self.shape().1);
 		for LedPar { peak_wavelength: center , fwhm} in &self.parameters {
 			v.push(format!("Ohno LED Model {:.1}/{:.1}",center, fwhm));
 		}
@@ -120,9 +120,7 @@ impl SpectralDistribution for LedOhno2005 {
 		(self.domain.clone(), self.map_domain(self.domain.clone()))
 	}
 
-	fn len(&self) -> usize {
-		self.parameters.len()	
-		}
+	fn shape(&self) -> (usize, usize) { (self.domain.len(), self.parameters.len()) }
 
 	fn map_domain<S2:Step>(&self, dto: Domain<S2>) -> OMatrix<f64, Dynamic, Dynamic>
 	where 
@@ -130,7 +128,7 @@ impl SpectralDistribution for LedOhno2005 {
 	 {
 		let m = Self::MatrixType::from_iterator(
 			dto.len(),
-			self.len(),
+			self.shape().1,
 			self.parameters.iter().flat_map(|lp|dto.iter().map(move |l|led_ohno(l.value(), lp.peak_wavelength, lp.fwhm)))
 		);
 		m

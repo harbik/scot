@@ -51,7 +51,7 @@ pub use self::ciede94::CieDE1994;
 
 pub trait DeltaEValues<I,C>
 where 
-	I: Illuminant<C>,
+	I: Illuminant,
 	C: StandardObserver,
 	Self: AsRef<DMatrix<f64>>
 {
@@ -92,8 +92,7 @@ where
 }
 #[test]
 fn test_match(){
-	use crate::swatches::{ColorChecker,IesTm30Ces};
-	use crate::ALL;
-	let _de: CieDE1976 = (ColorChecker::<3>, IesTm30Ces::<ALL>).into();
+	use crate::swatches::{ColorCheckerSwatch,Ces};
+	let _de: CieDE1976 = (ColorCheckerSwatch::<3>, Ces).into();
 
 }

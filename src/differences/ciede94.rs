@@ -52,7 +52,7 @@ pub struct CieDE1994<I = CieIllD65, A = GraphicArts, C = CieObs1931 >(
 	PhantomData<*const A>
 );
 
-impl<C: StandardObserver, I: Illuminant<C>, A: Application> CieDE1994<I,A,C> 
+impl<C: StandardObserver, I: Illuminant, A: Application> CieDE1994<I,A,C> 
 {
 
     pub fn new<L1, L2>(l1: L1 , l2: L2) -> Self
@@ -64,15 +64,15 @@ impl<C: StandardObserver, I: Illuminant<C>, A: Application> CieDE1994<I,A,C>
 	}
 }
 
-impl<I: Illuminant<C>, A: Application, C: StandardObserver> DeltaEValues<I,C> for CieDE1994<I,A,C>{}
+impl<I: Illuminant, A: Application, C: StandardObserver> DeltaEValues<I,C> for CieDE1994<I,A,C>{}
 
-impl<I: Illuminant<C>, A: Application, C: StandardObserver> AsRef<DMatrix<f64>> for CieDE1994<I,A, C> {
+impl<I: Illuminant, A: Application, C: StandardObserver> AsRef<DMatrix<f64>> for CieDE1994<I,A, C> {
     fn as_ref(&self) -> &DMatrix<f64> {
         &self.0
     }
 }
 
-impl<C: StandardObserver, I: Illuminant<C>, A: Application> Debug for CieDE1994<C,I,A> {
+impl<C: StandardObserver, I: Illuminant, A: Application> Debug for CieDE1994<C,I,A> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
        self.0.fmt(f) 
     }
@@ -82,7 +82,7 @@ impl<L1,L2,I,C,A> From<(L1, L2)> for CieDE1994<I,A,C>
 where
 	L1: Into::<CieLab<I,C>>,
 	L2: Into::<CieLab<I,C>>,
-	I: Illuminant<C>,
+	I: Illuminant,
 	C: StandardObserver,
 	A: Application
 {
@@ -123,9 +123,8 @@ where
 fn test_ciede76(){
 	use crate::observers::{CieObs1931};
 	use crate::illuminants::{CieIllD65};
-	use crate::swatches::{ColorChecker, IesTm30Ces};
-	use crate::ALL;
-	let de = CieDE1994::<CieIllD65, GraphicArts, CieObs1931>::new(ColorChecker::<13>, IesTm30Ces::<ALL>);
+	use crate::swatches::{ColorCheckerSwatch, Ces};
+	let de = CieDE1994::<CieIllD65, GraphicArts, CieObs1931>::new(ColorCheckerSwatch::<13>, Ces);
 	let m = de.matches();
 	let mut prev = 0f64;
 	// check if error differences are in increasing order

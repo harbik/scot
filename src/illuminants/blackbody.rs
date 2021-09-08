@@ -5,7 +5,7 @@ use nalgebra::{DMatrix, DVector, };
 
 use crate::models::{CieXYZ, uv60};
 use crate::observers::StandardObserver;
-use crate::{C2, C2_IPTS_1948, C2_IPTS_1990, C2_NBS_1931, SpectralDistribution, planck_c2, planck_prime_c2, stefan_boltzmann};
+use crate::{C2, C2_IPTS_1948, C2_IPTS_1990, C2_NBS_1931, DOMAIN_DEFAULT_LEN, SpectralDistribution, planck_c2, planck_prime_c2, stefan_boltzmann};
 use crate::illuminants::{Illuminant};
 use crate::illuminants::cct_parameters::{CctParameters};
 use crate::util::{Domain, Step, Unit, WavelengthStep, };
@@ -133,8 +133,8 @@ impl SpectralDistribution for Planckian {
 		(d,m)
     }
 
-	fn len(&self) -> usize {
-		self.ccts.len()
+	fn shape(&self) -> (usize,usize) {
+		(self.domain.len(), self.ccts.len())
 	}
 
 	/// String temperature values for each of the blackbody sources in the collection.
@@ -184,8 +184,8 @@ impl<const T: usize> SpectralDistribution for BB<T> {
 		Planckian::new(T).spd()
     }
 
-	fn len(&self) -> usize {
-		1
+	fn shape(&self) -> (usize,usize) {
+		(DOMAIN_DEFAULT_LEN, 1)
 	}
 }
 

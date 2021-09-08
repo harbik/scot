@@ -21,7 +21,7 @@ pub trait SpectralDistribution {
 
 	fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType);
 
-	fn len(&self) -> usize;
+	fn shape(&self) -> (usize, usize);
 
 	/// Optional keys for each of the spectral distribution in the collection.
 	fn keys(&self) -> Option<Vec<String>> { None }
@@ -37,7 +37,7 @@ pub trait SpectralDistribution {
 		let (dfr, s) = self.spd();
 	//	sprague_cols_index_based::<_, S2, _>(&dfr, &dto, s, self.len())
 //		sprague_cols_index_based(&dfr, &dto, s, self.len())
-		lin_interp_mat_col(&dfr, &dto, self.len(), s)
+		lin_interp_mat_col(&dfr, &dto, self.shape().1, s)
 	}
 }
 

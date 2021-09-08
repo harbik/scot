@@ -87,7 +87,7 @@ pub const ALL: usize = 0;
  */
 pub mod models;
 
-//pub mod differences;
+pub mod differences;
 
 #[macro_use]
 pub mod illuminants;

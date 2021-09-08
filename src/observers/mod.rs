@@ -20,8 +20,8 @@ pub use cie_f2::*;
 pub mod cie_f10;
 pub use cie_f10::*;
 
-use nalgebra::{Const, DMatrix, Dynamic, Matrix3x1, Matrix3xX, MatrixSlice3xX, OMatrix};
-use crate::{Domain, Meter, WavelengthStep, Step, Unit};
+use nalgebra::{Const, Dynamic, MatrixSlice3xX, OMatrix};
+use crate::{Domain, Meter, WavelengthStep, Step, };
 
 
 /**
@@ -53,7 +53,7 @@ pub trait StandardObserver : Default
 		;
 
 
-	/**
+	/*
 		Calculate tri-stimulus values from spectral data, represented by a domain `d`,
 		and a `DMatrix<f64>` data array.
 
@@ -61,7 +61,6 @@ pub trait StandardObserver : Default
 		`cie::XYZ::<Cie1931>::from(D65)`.
 		 or `cie::Lab::<Cie1931, D50>::from(cc: ColorChecker)` 
 		instead.
-	*/
 	fn xyz_from_dom_mat<'a, L>(d: Domain<L>, m: DMatrix<f64>) -> Matrix3xX<f64>
 	where 
 		L: Step,
@@ -70,15 +69,15 @@ pub trait StandardObserver : Default
 	{
 		Self::values(&d) * m * Self::K * d.step.unitvalue(1).value()
 	}
+	*/
 
-	/**
+	/*
 		Calculate tri-stimulus values from reflection or transmission spectral data `m` `DMatrix<f64>` data array, and
 		an illuminant `l`, both defined on domain `d`. 
 		
 		The illuminant matrix is represented by a `DMatrix<f64>`, but only its first spectral distribution is used: any 
 		other data is ignored.  Typically this function is not used directly: use functions like `cie::Lab::<Cie1931,
 		D50>::from(cc/*: ColorChecker*/)` instead.
-	*/
 	fn xyz_from_dom_ill_mat<'a, L>(d: Domain<L>, l: DMatrix<f64>, m: DMatrix<f64>) -> (Matrix3x1<f64>, Matrix3xX<f64>)
 	where 
 		L: Step,
@@ -92,6 +91,7 @@ pub trait StandardObserver : Default
 			c * m * Self::K * d.step.unitvalue(1).value()
 		)
 	}
+	*/
 
 	/// Domain associated with the data for the standard observer itself, as defined in their standard. 
 	/// These standards uses meter as domain unit.
