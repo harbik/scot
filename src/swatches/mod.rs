@@ -19,11 +19,12 @@ Currently, this library has the following collections:
 
 
 
-use nalgebra::DMatrix;
+use nalgebra::{Const, DMatrix, OMatrix};
 
+use crate::illuminants::Illuminant;
 use crate::observers::StandardObserver;
-use crate::{Meter, SpectralDistribution, Step, Unit};
-use crate::models::{CieLab,  cielab};
+use crate::{DOMAIN_DEFAULT_LEN, Domain, Meter, SpectralDistribution, Step, Unit, WavelengthStep};
+use crate::models::{CieLab, cielab};
 
 /**
 	Traits for swatches, libraries or models for color samples, to get their spectral distributions
@@ -149,144 +150,81 @@ macro_rules! swatch {
 }
 
 
+macro_rules! impl_greys {
+	($ ($I:ident=$R:literal),*) => {
+		$(
+			pub type $I = Gray::<$R>;
+		 )*
+	};
+}
 
-/*
+impl_greys!(
+	Black=0, G0=0, G1=1, G2=2, G3=3, G4=4, G5=5, G6=6, G7=7, G8=8, G9=9,
+	G10=10, G11=11, G12=12, G13=13, G14=14, G15=15, G16=16, G17=17, G18=18, G19=19,
+	G20=20, G21=21, G22=22, G23=23, G24=24, G25=25, G26=26, G27=27, G28=28, G29=29,
+	G30=30, G31=31, G32=32, G33=33, G34=34, G35=35, G36=36, G37=37, G38=38, G39=39,
+	G40=40, G41=41, G42=42, G43=43, G44=44, G45=45, G46=46, G47=47, G48=48, G49=49,
+	G50=50, G51=51, G52=52, G53=53, G54=54, G55=55, G56=56, G57=57, G58=58, G59=59,
+	G60=60, G61=61, G62=62, G63=63, G64=64, G65=65, G66=66, G67=67, G68=68, G69=69,
+	G70=70, G71=71, G72=72, G73=73, G74=74, G75=75, G76=76, G77=77, G78=78, G79=79,
+	G80=80, G81=81, G82=82, G83=83, G84=84, G85=85, G86=86, G87=87, G88=88, G89=89,
+	G90=90, G91=91, G92=92, G93=93, G94=94, G95=95, G96=96, G97=97, G98=98, G99=99,
+	G100=100, White=100
+);
+
 #[derive(Default)]
-pub struct White;
+pub struct Gray<const R: usize>;
 
-impl SpectralTable for White {
+impl<const R:usize> SpectralDistribution for Gray<R> {
+	type MatrixType = OMatrix<f64,Const::<DOMAIN_DEFAULT_LEN>,Const::<1>>;
     type StepType = WavelengthStep;
 
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-		where
-			L: Step,
-			<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-			 {
-        DMatrix::from_element(domain.len(), 1, 1.0)
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+        (
+			Domain::default(),
+			Self::MatrixType::from_element(R as f64/100.0)
+		)
     }
 
-    fn domain(&self) -> Domain<Self::StepType> {
-        Domain::default()
-    }
-}
+    fn len(&self) -> usize { 1 }
 
-impl Swatch for White {}
-
-pub struct Gray (pub f64);
-
-pub const SW_WHITE: Gray = Gray(1.0);
-pub const SW_GRAY90: Gray = Gray(0.9);
-pub const SW_GRAY80: Gray = Gray(0.8);
-pub const SW_GRAY70: Gray = Gray(0.7);
-pub const SW_GRAY60: Gray = Gray(0.6);
-pub const SW_GRAY50: Gray = Gray(0.5);
-pub const SW_GRAY40: Gray = Gray(0.4);
-pub const SW_GRAY30: Gray = Gray(0.3);
-pub const SW_GRAY20: Gray = Gray(0.2);
-pub const SW_GRAY10: Gray = Gray(0.1);
-pub const SW_BLACK: Gray = Gray(0.0);
-
-impl Gray {
-	pub fn new(r: f64) -> Self {
-		Gray(r)
+	fn map_domain<S2:Step>(&self, dto: Domain<S2>) -> DMatrix<f64>
+	where 
+			<<Self as SpectralDistribution>::StepType as Step>::UnitValueType: From<S2::UnitValueType>, 
+	{
+		DMatrix::from_element(dto.len(),1, R as f64/100.0)
 	}
-}
-impl SpectralTable for Gray {
-    type StepType = WavelengthStep;
-
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-		where
-			L: Step,
-	//		<Self::ScaleType as Scale>::UnitType: From<<L>::UnitType> 
-			 {
-        DMatrix::from_element(domain.len(), 1, self.0)
-    }
-
-    fn domain(&self) -> Domain<Self::StepType> {
-        Domain::default()
-    }
-}
-
-impl Default for Gray {
-    fn default() -> Self {
-        Self(1.0)
-    }
-}
-
-impl Swatch for Gray {}
-
-pub type Grey = Gray;
-
-
-/*
-	Represents the spectral distributions of a swatch collection, 
-	illuminated with an illuminant.
-
-	# Examples
-
-	```
-		use colorado::swatches::{SwatchView, ColorChecker};
-		use colorado::illuminants::D65;
-		use colorado::cie::{self, Lab};
-		use colorado::observers::Cie1931;
-		let cc = ColorChecker::default();
-		let cc_d65 = SwatchView::<D65, _>::new(&cc);
-		let lab_cc_d65 = cie::Lab::<Cie1931, D65>::from(cc_d65);
-		println!("{}", lab_cc_d65);
-	```
 
 	
-*/
-*/
-/*
-pub struct SwatchView<'a, I,S> {
-	sd: &'a S,
-	ill: PhantomData<I>
 }
 
-impl<'a, I, S> SwatchView<'a, I, S> 
+impl<I: Illuminant, C: StandardObserver, const R: usize> From<Gray<R>> for CieLab<I,C> 
 where 
-	S: Swatches,
-	I: Illuminant
+	<<I as SpectralDistribution>::StepType as Step>::UnitValueType: From<Meter>
 {
-    pub fn new(sd: &'a S) -> Self { Self { sd, ill: PhantomData } }
-}
-
-
-impl<'a, I, S> SpectralData for SwatchView<'a, I, S>
-where
-	S: Swatches,
-	I: Illuminant,
-	<<S as SpectralData>::ScaleType as Scale>::UnitType: From<<<I as SpectralData>::ScaleType as Scale>::UnitType>,
-
-{
-    type ScaleType = <I as SpectralData>::ScaleType; // choose illuminant domain as domain basis
-
-    fn values<L>(&self, domain: Domain<L>) -> DMatrix<f64>
-		where
-			L: Scale,
-			<<Self as SpectralData>::ScaleType as Scale>::UnitType: From<<L>::UnitType>
-			 {
-
-				let ill  = I::default();
-				for vc in self.sd.values::<I::ScaleType>(ill.domain()). {
-					
-				}
-//				let v = ill.values::<I::ScaleType>(ill.domain()).column(0) * self.sd.values::<I::ScaleType>(ill.domain());
-				sprague_cols(&ill.domain(), &domain, &v)
-    }
-
-    fn domain(&self) -> Domain<Self::ScaleType> {
-		I::default().domain()
+    fn from(g: Gray<R>) -> Self 
+	{
+		g.lab()
     }
 }
- */
 
+impl<const R:usize> Swatch for Gray<R> {}
+
+#[cfg(feature="checker")]
 pub mod checker;
+
+#[cfg(feature="checker")]
 pub use self::checker::*;
 
-//pub mod tcs;
-//pub use self::tcs::*;
+#[cfg(feature="cri")]
+pub mod tcs;
 
-//pub mod ces;
-//pub use self::ces::*;
+#[cfg(feature="cri")]
+pub use self::tcs::*;
+
+#[cfg(feature="tm30")]
+pub mod ces; 
+
+#[cfg(feature="tm30")]
+pub use self::ces::*;
+	

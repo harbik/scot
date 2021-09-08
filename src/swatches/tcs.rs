@@ -14,61 +14,35 @@ Source:
 Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 
 */
-use nalgebra::{DMatrix, };
-use crate::{interp_cols, Domain, SpectralTable, WavelengthStep, Step, NM5};
-use super::Swatch;
 
 
 const N: usize = 95; // number of points in a spectral distributions, and the number of rows in the column major spectral matrix
 const M: usize = 15; // number of spectra in the set, or the number of columns in the spectral matrix
 
-#[derive(Default)]
-pub struct Tcs;
+swatch!(TcsSwatch, N, M, "TCS{}", crate::Domain::new(360/5, 830/5, crate::NM5), TCS_DATA);
+swatch!(Tcs, N, M, "TCS", crate::Domain::new(360/5, 830/5, crate::NM5), TCS_DATA, TCS_KEYS);
 
-impl SpectralTable for Tcs {
-    type StepType = WavelengthStep;
+static TCS_KEYS: [&str;M] = [
+	"7.5 R 6/4|light greyish red",
+	"5 Y 6/4|Dark greyish yellow",
+	"5 GY 6/8|Strong yellow green",
+	"2.5 G 6/6|Moderate yellowish green",
+	"10 BG 6/4|Light bluish green",
+	"5 PB 6/8|Light blue",
+	"2.5 P 6/8|Light violet",
+	"10 P 6/8|Light reddish purple",
+	"4.5 R 4/13|Strong red",
+	"5 Y 8/10|Strong yellow",
+	"4.5 G 5/8|Strong green",
+	"3 PB 3/11|Strong blue",
+	"5 YR 8/4|Light yellowish pink",
+	"5 GY 4/4|Moderate olive green",
+	"|Japanese skin",
+];
 
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		interp_cols(&self.domain(), &domain, M, &TCS)
-    }
-
-    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
-        Domain::new(360/5, 830/5, NM5)
-    }
-
-	fn keys(&self) -> Option<Vec<String>> {
-		Some(vec![
-			"7.5 R 6/4|light greyish red".to_string(),
-			"5 Y 6/4|Dark greyish yellow".to_string(),
-			"5 GY 6/8|Strong yellow green".to_string(),
-			"2.5 G 6/6|Moderate yellowish green".to_string(),
-			"10 BG 6/4|Light bluish green".to_string(),
-			"5 PB 6/8|Light blue".to_string(),
-			"2.5 P 6/8|Light violet".to_string(),
-			"10 P 6/8|Light reddish purple".to_string(),
-			"4.5 R 4/13|Strong red".to_string(),
-			"5 Y 8/10|Strong yellow".to_string(),
-			"4.5 G 5/8|Strong green".to_string(),
-			"3 PB 3/11|Strong blue".to_string(),
-			"5 YR 8/4|Light yellowish pink".to_string(),
-			"5 GY 4/4|Moderate olive green".to_string(),
-			"|Japanese skin".to_string(),
-		])
-	}
-
-	fn description(&self) -> Option<String> {
-		Some("CRI Test Color Samples (TCS)".to_string())
-	}
-}
-
-impl Swatch for Tcs {}
  
 
-const TCS: [f64;N*M] = [
+static TCS_DATA: [f64;N*M] = [
 /* 1 */	0.116, 0.136, 0.159, 0.19, 0.219, 0.239, 0.252, 0.256, 0.256, 0.254, 0.252, 0.248, 0.244, 0.24, 0.237, 0.232, 0.23,
 	0.226, 0.225, 0.222, 0.22, 0.218, 0.216, 0.214, 0.214, 0.214, 0.216, 0.218, 0.223, 0.225, 0.226, 0.226, 0.225,
 	0.225, 0.227, 0.23, 0.236, 0.245, 0.253, 0.262, 0.272, 0.283, 0.298, 0.318, 0.341, 0.367, 0.39, 0.409, 0.424, 0.435,
@@ -165,10 +139,10 @@ const TCS: [f64;N*M] = [
 #[test]
 fn test_tcs(){
 	use crate::models::CieLab;
-	use crate::illuminants::CieIllD65;
+	use crate::illuminants::{D50};
 	use crate::observers::CieObs1931;
 
-	let tcs_lab: CieLab<CieIllD65, CieObs1931> = Tcs::default().into();
+	let tcs_lab: CieLab<D50, CieObs1931> = Tcs::default().into();
 
 	println!("{:.4}", tcs_lab.data.transpose());
 

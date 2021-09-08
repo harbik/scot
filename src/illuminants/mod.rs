@@ -40,6 +40,7 @@ pub trait Illuminant
 where
 	Self: SpectralDistribution,
 	Self: Default,
+
 {
 	fn xyz<C>(&self) -> CieXYZ<C> 
 	where 
@@ -55,6 +56,7 @@ where
 	}
 }
 
+#[allow(unused_macros)]
 macro_rules! illuminant {
 	// a single illuminant from static slice column
 	($ILL:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident) => {

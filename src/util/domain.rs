@@ -128,6 +128,7 @@ where
 			_phd: PhantomData
 		}
 	}
+
 }
 
 pub struct IterInterpolate<S:Step, S2: Step> {
@@ -183,6 +184,8 @@ impl Default for Domain<WavelengthStep> {
         Domain::new(380, 780, WavelengthStep { size: 1, exp: -9 })
     }
 }
+
+pub const DOMAIN_DEFAULT_LEN: usize = 401;
 
 impl<S1:Step,  S2:Step> PartialEq<Domain<S2>> for Domain<S1> {
     fn eq(&self, other: &Domain<S2>) -> bool {

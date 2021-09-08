@@ -14,52 +14,12 @@ Source:
 Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 
 */
-use nalgebra::{DMatrix, };
-
-use crate::util::{Domain, };
-use crate::util::{WavelengthStep, Step, NM};
-use crate::ALL;
-
-use super::Swatch;
-
 
 const N: usize = 401; // number of points in a spectral distributions, and the number of rows in the column major spectral matrix
 const M: usize = 99; // number of spectra in the set, or the number of columns in the spectral matrix
 
-pub const IES_TM30_CES: IesTm30Ces::<ALL> = IesTm30Ces::<ALL>;
-
-#[derive(Default)]
-pub struct IesTm30Ces<const I:usize>;
-
-impl<const I:usize> SpectralTable for IesTm30Ces<I> {
-    type StepType = WavelengthStep;
-
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		match I {
-			ALL => {
-				interp_cols(&self.domain(), &domain, M, &CES_DATA)
-			}
-			i@1..=M => {
-				interp_cols(&self.domain(), &domain, M, &CES_DATA[(i-1)*N..i*N])
-			}
-			_ => panic!("Illegal Index")
-		}
-    }
-
-    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
-        Domain::new(380, 780, NM)
-    }
-
-	fn description(&self) -> Option<String> {
-		Some("IES TM30 CES  Color Evaluation Samples (CES)".into())
-	}
-}
-
-impl<const I:usize> Swatch for IesTm30Ces<I> {}
+swatch!(CesSwatch, N, M, "CES{}", crate::Domain::new(380, 780, crate::NM), CES_DATA);
+swatch!(Ces, N, M, "CES", crate::Domain::new(380, 780, crate::NM), CES_DATA, CES_KEYS);
 
 
 #[test]
@@ -67,13 +27,21 @@ fn test_tcs(){
 	use crate::models::CieLab;
 	use crate::illuminants::CieIllD65;
 	use crate::observers::CieObs1931;
-	use crate::ALL;
 
-	let ces_lab: CieLab<CieIllD65, CieObs1931> = IesTm30Ces::<ALL>::default().into();
+	let ces_lab: CieLab<CieIllD65, CieObs1931> = Ces::default().into();
 
 	println!("{:.10}", ces_lab.data.transpose());
 
 }
+
+static CES_KEYS: [&str;M] = [
+	"CES01", "CES02", "CES03", "CES04", "CES05", "CES06", "CES07", "CES08", "CES09", "CES10", "CES11", "CES12", "CES13", "CES14", "CES15", "CES16", "CES17", "CES18", "CES19", "CES20", "CES21", "CES22",
+	"CES23", "CES24", "CES25", "CES26", "CES27", "CES28", "CES29", "CES30", "CES31", "CES32", "CES33", "CES34", "CES35", "CES36", "CES37", "CES38", "CES39", "CES40", "CES41", "CES42", "CES43", "CES44",
+	"CES45", "CES46", "CES47", "CES48", "CES49", "CES50", "CES51", "CES52", "CES53", "CES54", "CES55", "CES56", "CES57", "CES58", "CES59", "CES60", "CES61", "CES62", "CES63", "CES64", "CES65", "CES66",
+	"CES67", "CES68", "CES69", "CES70", "CES71", "CES72", "CES73", "CES74", "CES75", "CES76", "CES77", "CES78", "CES79", "CES80", "CES81", "CES82", "CES83", "CES84", "CES85", "CES86", "CES87", "CES88",
+	"CES89", "CES90", "CES91", "CES92", "CES93", "CES94", "CES95", "CES96", "CES97", "CES98", "CES99"
+];
+
 
 static CES_DATA: [f64;N*M] = [
 /* CES01 */ 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359, 0.6359068, 0.635934, 0.6359612, 0.6359544, 0.6359,
