@@ -96,7 +96,7 @@ where
 
 			}
 		};
-		Self(DMatrix::from_vec(n1, n2, v), PhantomData, PhantomData)
+		Self(DMatrix::from_vec(n2, n1, v), PhantomData, PhantomData)
 	}
 
 }

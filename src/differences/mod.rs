@@ -31,9 +31,9 @@
 
 
 	Implemented are the following color difference metrics:
-	- CIE &Delta;E 1976
-	- CIE &Delta;E 1994
-	- CIE &Delta;E 2000
+	- CIE &Delta;E<sub>1976</sub>
+	- CIE &Delta;E<sub>1994</sub>
+	- CIE &Delta;E<sub>2000</sub>
 */
 pub mod ciede76;
 
@@ -69,11 +69,11 @@ where
 	fn matches(&self) -> DMatrix<usize> {
 		let m:  &DMatrix<f64> = self.as_ref();
 		let mut matched: Vec<usize> = Vec::with_capacity(m.len());
-		for r in m.row_iter() {
+		for r in m.column_iter() {
 			// Using a BTreeMap to order the results on insert
 			let mut btm = BTreeMap::new();
-			for (i,c) in r.iter().enumerate() {
-				let mut k = (c * 1E6) as usize;
+			for (i,de) in r.iter().enumerate() {
+				let mut k = (de * 1E6) as usize;
 				// in the very unlikely case if a match is right in the middle between two points and the key, the color
 				// difference value in usize format, already exists. Insert gives back None if insert was succesful, and
 				// the value, (i) in this case when the insert failed as a key already existed. This results in a dE
@@ -82,7 +82,7 @@ where
 					k += 1;
 				};
 			}
-			if btm.len()!=m.ncols() {
+			if btm.len()!=m.nrows() {
 				panic!("Uncorrect number of matches...")
 			}
 			btm.values().for_each(|v| matched.push(*v));

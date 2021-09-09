@@ -50,6 +50,7 @@ where
 		let (d, s) = self.spd();
 		let c = C::values(&d);
 		let l = I::default().map_domain(d.clone());
+	//	println!("****** {} {} {}", d.len(), self.shape().0, self.shape().1);
 		let m: DMatrix<f64>  = DMatrix::from_fn(l.nrows(), self.shape().1, |i, j| l[(i,0)] * s[(i,j)]);
 		let xyzn = &c * l.column(0) * C::K * d.step.unitvalue(1).value();
 		let xyz = c * m * C::K * d.step.unitvalue(1).value();
@@ -228,3 +229,4 @@ pub mod ces;
 #[cfg(feature="tm30")]
 pub use self::ces::*;
 	
+pub mod munsell_matt; 
