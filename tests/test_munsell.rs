@@ -13,7 +13,7 @@ use maplit::hashmap;
     with 10nm steps.  The values here use the illuminant D50 domain, which uses 5nm steps. This results in small deviations
     in the order of 0.1% in CieLab values.
 */
-fn test_munsell() {
+fn test_munsell_matt() {
     use colorado::illuminants::{D50};
     use colorado::models::CieLab;
     use colorado::observers::CieObs1931;
@@ -34,6 +34,27 @@ fn test_munsell() {
 	println!("{:?}", matched);
 }
 
+#[test]
+fn test_munsell_gloss() {
+    use colorado::illuminants::{D50};
+    use colorado::models::CieLab;
+    use colorado::observers::CieObs1931;
+    use colorado::swatches::munsell_gloss::MunsellGloss;
+	use colorado::differences::{CieDE1994, DeltaEValues};
+
+
+    let munsell_lab: CieLab<D50, CieObs1931> = MunsellGloss::default().into();
+	println!{"{}", munsell_lab.data.transpose()};
+
+	let d: CieDE1994<D50,  CieObs1931> = (Tcs, MunsellGloss).into();
+//	let d: CieDE1976 = (Tcs, MunsellMatt).into();
+//	let d: CieDE1976 = (Tcs, MunsellMatt).into();
+	let im = d.matches();
+	//println!("{}", d.matches().column(0));
+	let k = MunsellGloss::default().keys().unwrap();
+	let matched: Vec<String> =im.row(0).iter().map(|i|k[*i].clone()).collect();
+	println!("{:?}", matched);
+}
 
 // from 
 fn want() -> HashMap<&'static str, [&'static str; 2]> {

@@ -35,7 +35,6 @@
 	- CIE &Delta;E<sub>1994</sub>
 	- CIE &Delta;E<sub>2000</sub>
 */
-pub mod ciede76;
 
 use nalgebra::DMatrix;
 
@@ -43,11 +42,14 @@ use crate::illuminants::Illuminant;
 use crate::observers::{StandardObserver};
 use std::collections::{BTreeMap};
 
-pub use self::ciede76::CieDE1976;
+pub mod ciede76;
+pub use self::ciede76::*;
 
 pub mod ciede94;
-pub use self::ciede94::CieDE1994;
-//use crate::{illuminants::Illuminant, observers::StandardObserver, spectra::SpectralData, swatches::Swatches, util::units::{Meter, Scale}};
+pub use self::ciede94::*;
+
+pub mod ciede00;
+pub use self::ciede00::*;
 
 pub trait DeltaEValues<I,C>
 where 

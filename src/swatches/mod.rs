@@ -230,3 +230,5 @@ pub mod ces;
 pub use self::ces::*;
 	
 pub mod munsell_matt; 
+pub mod munsell_gloss; 
+pub mod munsell_renotation;
