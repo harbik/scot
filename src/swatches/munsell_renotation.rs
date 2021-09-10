@@ -1,7 +1,36 @@
+/*!
+Munsell Renotation Data
+
+
+From the [Rochester Institute of Technology]<https://www.rit.edu/cos/colorscience/rc_munsell_renotation.php> website:
+
+> In the 1940's the color science community recognized that the most visually-uniform color space to date, the Munsell
+> Color Order System, had inconsistencies that required examination and remedy. Towards this goal, a large-scale visual
+> experiment was taken with many observers across several continents. The results amounted to an adjustment of the target
+> color coordinates for the Munsell colors. The files here reflect that correction.
+
+And: 
+
+> Chromaticity coordinates were calculated using illuminant C and the CIE 1931 2 degree observer.
+
+
+*/
+
+use std::collections::HashMap;
+
+
+pub fn munsell_renotation_data() -> HashMap<&'static str, [f64;3]> {
+	let mut h = HashMap::new();
+	for (key, x, y, l) in MUNSELL_RENOTATION_DATA.iter() {
+		h.insert(*key, [*x,*y,*l]);
+	}
+	h
+}
 
 // "HV/C" => [x, y, Y], 
 pub const M: usize = 4995;
-pub fn munsell_renotation_data() -> [(&'static str, f64, f64, f64); M] {[
+//pub fn munsell_renotation_data() -> [(&'static str, f64, f64, f64); M] {[
+static  MUNSELL_RENOTATION_DATA: [(&'static str, f64, f64, f64); M] = [
 	("2.5GY0.2/2", 0.713, 1.414, 0.237), ("5GY0.2/2", 0.449, 1.145, 0.237), ("7.5GY0.2/2", 0.262, 0.837, 0.237), ("7.5GY0.2/4", -0.078, 2.16, 0.237), ("10GY0.2/2", 0.185, 0.676, 0.237),
 	("10GY0.2/4", -0.257, 1.233, 0.237), ("2.5G0.2/2", 0.144, 0.584, 0.237), ("2.5G0.2/4", -0.235, 0.891, 0.237), ("5G0.2/2", 0.117, 0.516, 0.237), ("5G0.2/4", -0.209, 0.719, 0.237),
 	("7.5G0.2/2", 0.097, 0.458, 0.237), ("7.5G0.2/4", -0.181, 0.575, 0.237), ("10G0.2/2", 0.08, 0.397, 0.237), ("10G0.2/4", -0.137, 0.425, 0.237), ("2.5BG0.2/2", 0.068, 0.332, 0.237),
@@ -1001,4 +1030,4 @@ pub fn munsell_renotation_data() -> [(&'static str, f64, f64, f64); M] {[
 	("5Y10/16", 0.462, 0.494, 102.57), ("5Y10/18", 0.472, 0.502, 102.57), ("5Y10/20", 0.478, 0.508, 102.57), ("5Y10/22", 0.484, 0.514, 102.57), ("7.5Y10/2", 0.335, 0.351, 102.57),
 	("7.5Y10/4", 0.357, 0.38, 102.57), ("7.5Y10/6", 0.376, 0.407, 102.57), ("7.5Y10/8", 0.395, 0.432, 102.57), ("7.5Y10/10", 0.412, 0.454, 102.57), ("7.5Y10/12", 0.427, 0.473, 102.57),
 	("7.5Y10/14", 0.442, 0.492, 102.57), ("7.5Y10/16", 0.453, 0.505, 102.57), ("7.5Y10/18", 0.462, 0.515, 102.57), ("7.5Y10/20", 0.467, 0.521, 102.57), ("7.5Y10/22", 0.472, 0.528, 102.57)
-]}
+];

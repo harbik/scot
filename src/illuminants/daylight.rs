@@ -148,11 +148,13 @@ impl<C:  StandardObserver, const T: usize> From<D<T>> for CieXYZ<C>
 }
 
 
+
 /**
 	CIE D65 illuminant, provied by the CIE as a data table.
 
 	Data is listed at the end of this file, and presented here as a matrix slice, to avoid data copying.
  */
+ /*
 #[derive(Debug,Clone, Default)]
 pub struct CieIllD65;
 
@@ -181,27 +183,10 @@ impl<C: StandardObserver> From<CieIllD65> for CieXYZ<C> {
 }
 
 impl Illuminant for CieIllD65{}
+  */
 
 
-#[test]
-fn test_d65(){
-	use crate::observers::CieObs1931;
-	use crate::models::{self, YxyValues, CieYxy};
-	use approx::assert_abs_diff_eq;
-
-	let yxy: models::CieYxy = CieIllD65.into();
-	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 x value
-	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 y value
-
-	let YxyValues{l: _, x, y} = CieYxy::<CieObs1931>::from(D::<6504>).into_iter().next().unwrap();
-	assert_abs_diff_eq!(x, 0.31272 , epsilon = 2E-5);  // CIE 15:2004, Table T.3. D65 x value
-	assert_abs_diff_eq!(y, 0.32903 , epsilon = 2E-5);  // CIE 15:2004, Table T.3. D65 y value
-
-	let YxyValues{l: _, x, y} = CieYxy::<CieObs1931>::from(CieDaylight::default()).into_iter().next().unwrap();
-	println!("{} {}", x, y);
-	assert_abs_diff_eq!(x, 0.31272 , epsilon = 1E-5);  // CIE 15:2004, Table T.3. D65 x value
-	assert_abs_diff_eq!(y, 0.32903 , epsilon = 1E-5);  // CIE 15:2004, Table T.3. D65 y value
-} 
+/*
 
 #[derive(Debug,Clone, Default)]
 pub struct CieIllD50;
@@ -231,20 +216,11 @@ impl<'a, C: StandardObserver> From<CieIllD50> for CieXYZ<C> {
 }
 
 impl<'a> Illuminant for CieIllD50{}
+ */
 
 
-#[test]
-fn test_d50(){
-	use crate::observers::CieObs1931;
-	use crate::models;
-	use approx::assert_abs_diff_eq;
 
-
-	let d50xyz: models::CieYxy<CieObs1931> = CieIllD50::default().into();
-	assert_abs_diff_eq!(d50xyz.data.column(0).y, 0.34567 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 x value
-	assert_abs_diff_eq!(d50xyz.data.column(0).z, 0.35851 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D50 y value - there is a slight deviation here... 50 vs 51
-} 
-
+ /*
 #[derive(Debug,Clone, Default)]
 pub struct CieIllD55;
 
@@ -275,18 +251,9 @@ impl<C: StandardObserver> From<CieIllD55> for CieXYZ<C> {
 
 impl<'a> Illuminant for CieIllD55{}
 
+  */
 
-#[test]
-fn test_d55(){
-	use crate::observers::CieObs1931;
-	use crate::models;
-	use approx::assert_abs_diff_eq;
-
-	let d: models::CieYxy<CieObs1931> = CieIllD55::default().into();
-	assert_abs_diff_eq!(d.data.column(0).y, 0.33243 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 x value
-	assert_abs_diff_eq!(d.data.column(0).z, 0.34744 , epsilon = 5E-5);  // CIE 15:2004, Table T.3. D55 y value - there is a slight deviation here... 50 vs 51
-} 
-
+/*
 #[derive(Debug,Clone, Default)]
 pub struct CieIllD75;
 
@@ -315,18 +282,8 @@ impl<C: StandardObserver> From<CieIllD75> for CieXYZ<C> {
 }
 
 impl<'a> Illuminant for CieIllD75{}
+ */
 
-#[test]
-fn test_d75(){
-	use crate::observers::CieObs1931;
-	use crate::models;
-	use approx::assert_abs_diff_eq;
-
-
-	let xyz: models::CieYxy<CieObs1931> = CieIllD75::default().into();
-	assert_abs_diff_eq!(xyz.data.column(0).y, 0.29903, epsilon = 5E-5);  // CIE 15:2004, Table T.3. D75 x value
-	assert_abs_diff_eq!(xyz.data.column(0).z, 0.31488, epsilon = 5E-5);  // CIE 15:2004, Table T.3. D75 y value
-} 
 
 
 /**
@@ -362,6 +319,9 @@ const S : [f64; NS * MS ] = [
 ];
 
 const NDATA:usize = 97;
+
+illuminant!(CieIllD50, NDATA, "CIE D50 Illuminant", Domain::new(300/5, 780/5, NM5), D50_DATA);
+
 static D50_DATA: [f64; NDATA] = [
 	0.019, 1.035, 2.051, 4.914, 7.778, 11.263, 14.748, 16.348, 17.948, 19.479, 21.010, 22.476, 23.942, 25.451, 26.961,
 	25.724, 24.488, 27.179, 29.871, 39.589, 49.308, 52.910, 56.513, 58.273, 60.034, 58.926, 57.818, 66.321, 74.825,
@@ -372,6 +332,11 @@ static D50_DATA: [f64; NDATA] = [
 	76.854, 81.683, 86.511, 89.546, 92.580, 85.405, 78.230, 67.961, 57.692, 70.307, 82.923, 80.599, 78.274
 ];
 
+illuminant_single_test!(test_d50, CieIllD65, 0.34567, 5E-5, 0.35851, 5E-5);
+
+
+illuminant!(CieIllD55, NDATA, "CIE D55 Illuminant", Domain::new(300/5, 780/5, NM5), D55_DATA);
+
 static D55_DATA: [f64; NDATA] = [
 	0.024, 1.048, 2.072, 6.648, 11.224, 15.936, 20.647, 22.266, 23.885, 25.851, 27.817, 29.219, 30.621, 32.464, 34.308,
 	33.446, 32.584, 35.335, 38.087, 49.518, 60.949, 64.751, 68.554, 70.065, 71.577, 69.746, 67.914, 76.760, 85.605, 91.799,
@@ -381,6 +346,11 @@ static D55_DATA: [f64; NDATA] = [
 	92.133, 93.950, 91.953, 89.956, 84.817, 79.677, 81.258, 82.840, 83.842, 84.844, 77.539, 70.235, 74.768, 79.301, 82.147,
 	84.993, 78.437, 71.880, 62.337, 52.793, 64.360, 75.927, 73.872, 71.818
 ];
+
+illuminant_single_test!(test_d55, CieIllD55, 0.33243, 5E-5, 0.34744, 5E-5);
+
+
+illuminant!(CieIllD65, NDATA, "CIE D65 Illuminant", Domain::new(300/5, 780/5, NM5), D65_DATA);
 
 static D65_DATA: [f64; NDATA]= [
 	0.034100, 1.664300, 3.294500, 11.765200, 20.236000, 28.644700, 37.053500, 38.501100, 39.948800, 42.430200, 44.911700, 45.775000, 46.638300, 49.363700,
@@ -394,6 +364,28 @@ static D65_DATA: [f64; NDATA]= [
 	
 ];
 
+#[test]
+fn test_d65(){
+	use crate::observers::CieObs1931;
+	use crate::models::{self, YxyValues, CieYxy};
+	use approx::assert_abs_diff_eq;
+
+	let yxy: models::CieYxy = CieIllD65.into();
+	assert_abs_diff_eq!(yxy.data.column(0).y, 0.31272 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 x value
+	assert_abs_diff_eq!(yxy.data.column(0).z, 0.32903 , epsilon = 1E-6);  // CIE 15:2004, Table T.3. D65 y value
+
+	let YxyValues{l: _, x, y} = CieYxy::<CieObs1931>::from(D::<6504>).into_iter().next().unwrap();
+	assert_abs_diff_eq!(x, 0.31272 , epsilon = 2E-5);  // CIE 15:2004, Table T.3. D65 x value
+	assert_abs_diff_eq!(y, 0.32903 , epsilon = 2E-5);  // CIE 15:2004, Table T.3. D65 y value
+
+	let YxyValues{l: _, x, y} = CieYxy::<CieObs1931>::from(CieDaylight::default()).into_iter().next().unwrap();
+	println!("{} {}", x, y);
+	assert_abs_diff_eq!(x, 0.31272 , epsilon = 1E-5);  // CIE 15:2004, Table T.3. D65 x value
+	assert_abs_diff_eq!(y, 0.32903 , epsilon = 1E-5);  // CIE 15:2004, Table T.3. D65 y value
+} 
+
+illuminant!(CieIllD75, NDATA, "CIE D75 Illuminant", Domain::new(300/5, 780/5, NM5), D75_DATA);
+
 static D75_DATA: [f64; NDATA] = [
 	0.043, 2.588, 5.133, 17.470, 29.808, 42.369, 54.930, 56.095, 57.259, 60.000, 62.740, 62.861, 62.982, 66.647, 70.312,
 	68.507, 66.703, 68.333, 69.963, 85.946, 101.929, 106.911, 111.894, 112.346, 112.798, 107.945, 103.092, 112.145, 121.198,
@@ -403,3 +395,18 @@ static D75_DATA: [f64; NDATA] = [
 	74.801, 74.562, 74.324, 74.873, 75.422, 73.499, 71.576, 67.714, 63.852, 64.464, 65.076, 66.573, 68.070, 62.256, 56.443,
 	60.343, 64.242, 66.697, 69.151, 63.890, 58.629, 50.623, 42.617, 51.985, 61.352, 59.838, 58.324
 ];
+
+illuminant_single_test!(test_d75, CieIllD75, 0.29903, 5E-5, 0.31488, 5E-5);
+
+
+illuminant!(CieIllC, NDATA, "C Illuminant", Domain::new(300/5, 780/5, NM5), C_DATA);
+
+static C_DATA: [f64; NDATA] = [
+	0.00, 0.00, 0.00, 0.00, 0.01, 0.20, 0.40, 1.55, 2.70, 4.85, 7.00, 9.95, 12.90, 17.20, 21.40, 27.50, 33.00, 39.92, 47.40, 55.17, 
+	63.30, 71.81, 80.60, 89.53, 98.10, 105.80, 112.40, 117.75, 121.50, 123.45, 124.00, 123.60, 123.10, 123.30, 123.80, 124.09, 123.90, 122.92, 120.70, 116.90, 
+	112.10, 106.98, 102.30, 98.81, 96.90, 96.78, 98.00, 99.94, 102.10, 103.95, 105.20, 105.67, 105.30, 104.11, 102.30, 100.15, 97.80, 95.43, 93.20, 91.22, 
+	89.70, 88.83, 88.40, 88.19, 88.10, 88.06, 88.00, 87.86, 87.80, 87.99, 88.20, 88.20, 87.90, 87.22, 86.30, 85.30, 84.00, 82.21, 80.20, 78.24, 
+	76.30, 74.36, 72.40, 70.40, 68.30, 66.30, 64.40, 62.80, 61.50, 60.20, 59.20, 58.50, 58.10, 58.00, 58.20, 58.50, 59.10, 
+];
+
+illuminant_single_test!(test_c_illuminant, CieIllC, 0.31006, 5E-5, 0.31616, 5E-5);

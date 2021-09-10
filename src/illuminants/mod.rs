@@ -20,9 +20,6 @@ pub use self::cct::*;
 pub mod cct_parameters;
 pub use self::cct_parameters::*; // use illuminants::CCTs
 
-pub mod daylight;
-pub use self::daylight::*;
-
 pub mod blackbody;
 pub use self::blackbody::*; 
 
@@ -130,9 +127,63 @@ macro_rules! illuminant {
 		}
 			
 	};
+	// single data illuminant
+	($ILL:ident, $N:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident) => {
+
+		#[derive(Debug, Default)]
+		pub struct $ILL;
+
+		impl crate::SpectralDistribution for $ILL {
+			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, 1>;
+			type StepType = crate::WavelengthStep;
+
+			fn shape(&self) -> (usize,  usize) {($N, 1) }
+
+			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
+				(
+					$DOMAIN,
+					<Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA),
+				)
+			}
+
+			fn keys(&self) -> Option<Vec<String>> {
+				None
+			}
+			
+			fn description(&self) -> Option<String> {
+				Some(format!($DESC))
+			}
+		}
+
+		impl crate::illuminants::Illuminant for $ILL {}
+
+		impl<C: crate::observers::StandardObserver> From<$ILL> for crate::models::CieXYZ<C> {
+			fn from(ill: $ILL) -> Self {
+				use crate::illuminants::Illuminant;
+				ill.xyz()
+			}
+		}
+			
+	};
 			
 }
 
+macro_rules! illuminant_single_test {
+	($FNAME:ident, $ILL:ident,  $X:expr, $XTOL:expr, $Y:expr, $YTOL:expr) => {
+		#[test]
+		fn $FNAME(){
+			use crate::observers::CieObs1931;
+			use crate::models;
+			use approx::assert_abs_diff_eq;
+
+
+			let xyz: models::CieYxy<CieObs1931> = $ILL::default().into();
+			assert_abs_diff_eq!(xyz.data.column(0).y, $X , epsilon = $XTOL);  // CIE 15:2004, Table T.3. D50 x value
+			assert_abs_diff_eq!(xyz.data.column(0).z, $Y , epsilon = $YTOL);  // CIE 15:2004, Table T.3. D50 y value - there is a slight deviation here... 50 vs 51
+		} 
+		
+	};
+}
 /*
 
 macro_rules! all_illuminants_from_static_slice {
@@ -226,3 +277,6 @@ pub mod led_ies_tm30;
 #[cfg(feature="ies_tm30_led_illuminants")]
 pub use self::led_ies_tm30::*;
 
+
+pub mod daylight;
+pub use self::daylight::*;
