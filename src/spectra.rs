@@ -1,7 +1,7 @@
 use std::ops::Index;
 
 use nalgebra::{DMatrix, };
-use crate::{lin_interp_mat_col, util::{Domain, Step, }};
+use crate::{lin_interp_mat_col, Domain, Step, };
 
 pub trait Pixel {}
 /// trait marker for display pixel spectra

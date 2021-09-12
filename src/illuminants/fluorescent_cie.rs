@@ -5,8 +5,8 @@ use std::collections::{HashMap, };
 
 use maplit::hashmap;
 
-use crate::util::domain::Domain;
-use crate::util::{NM5};
+use crate::Domain;
+use crate::{NM5};
 
 
 const N: usize = 81;

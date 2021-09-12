@@ -5,7 +5,7 @@ use nalgebra::{SMatrixSlice, };
 use crate::models::CieXYZ;
 use crate::SpectralDistribution;
 use crate::observers::StandardObserver;
-use crate::util::{WavelengthStep, Domain};
+use crate::{WavelengthStep, Domain};
 
 use super::Illuminant;
 
@@ -31,7 +31,7 @@ impl<'a, C:StandardObserver> From<CieIllLed<'a>> for CieXYZ<C> {
 impl<'a> Default for  CieIllLed<'a> {
     fn default() -> Self {
 		Self (
-			Domain::new(380/5, 780/5, crate::util::NM5),
+			Domain::new(380/5, 780/5, crate::NM5),
 			<Self as SpectralDistribution>::MatrixType::from_slice(&CIE_LED_ILL_DATA)
 		)
     }
@@ -59,7 +59,7 @@ impl<'a> SpectralDistribution for CieIllLed<'a> {
 const N:usize = 81;
 const M:usize = 9;
 
-illuminant!(LED, N, M, "CIE L{}", Domain::new(380/5, 780/5, crate::util::NM5), CIE_LED_ILL_DATA);
+illuminant!(LED, N, M, "CIE L{}", Domain::new(380/5, 780/5, crate::NM5), CIE_LED_ILL_DATA);
 
 static CIE_LED_ILL_KEYS: [&str;9] = [
     "LED-B1",

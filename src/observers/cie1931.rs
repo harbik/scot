@@ -2,8 +2,8 @@ use nalgebra::OMatrix;
 use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice, MatrixSlice3xX};
 use crate::interp_lin_cmf2;
 use crate::{observers::StandardObserver};
-use crate::util::{Domain};
-use crate::util::{NM5, NM, WavelengthStep, Meter, Step};
+use crate::{Domain};
+use crate::{NM5, NM, WavelengthStep, Meter, Step};
 
 
 

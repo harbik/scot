@@ -1,8 +1,8 @@
 use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice};
 use crate::interp_lin_cmf;
 use crate::{observers::StandardObserver};
-use crate::util::{Domain};
-use crate::util::{NM, WavelengthStep, Meter, Step};
+use crate::{Domain};
+use crate::{NM, WavelengthStep, Meter, Step};
 
 
 

@@ -68,6 +68,7 @@ where
 */
 
 #[allow(unused_macros)]
+#[macro_export]
 macro_rules! swatch {
 	// a single illuminant from static slice column
 	($SWATCH:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident) => {
@@ -75,17 +76,17 @@ macro_rules! swatch {
 		#[derive(Debug, Default)]
 		pub struct $SWATCH<const J:usize>;
 
-		impl<const J:usize> crate::SpectralDistribution for $SWATCH<J> {
+		impl<const J:usize> $crate::SpectralDistribution for $SWATCH<J> {
 			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, 1>;
-			type StepType = crate::WavelengthStep;
+			type StepType = $crate::WavelengthStep;
 
 			fn shape(&self) -> (usize, usize) {($N,1)}
 
-			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
+			fn spd(&self) -> ($crate::Domain<Self::StepType>, Self::MatrixType) {
 				assert!(J>0&&J<=$M);
 				(
 					$DOMAIN,
-					<Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA[(J-1)*N..J*N]),
+					<Self as $crate::SpectralDistribution>::MatrixType::from_slice(&$DATA[(J-1)*N..J*N]),
 				)
 			}
 			
@@ -94,14 +95,14 @@ macro_rules! swatch {
 			}
 		}
 
-		impl<const J:usize> crate::swatches::Swatch for $SWATCH<J> {}
+		impl<const J:usize> $crate::swatches::Swatch for $SWATCH<J> {}
 
-		impl<I: crate::illuminants::Illuminant, C: crate::observers::StandardObserver, const J:usize> From<$SWATCH<J>> for crate::models::CieLab<I,C> 
+		impl<I: $crate::illuminants::Illuminant, C: $crate::observers::StandardObserver, const J:usize> From<$SWATCH<J>> for $crate::models::CieLab<I,C> 
 		where
-			<<I as crate::SpectralDistribution>::StepType as crate::Step>::UnitValueType: From<crate::Meter>	
+			<<I as $crate::SpectralDistribution>::StepType as $crate::Step>::UnitValueType: From<$crate::Meter>	
 		{
 			fn from(sw: $SWATCH<J>) -> Self {
-				use crate::swatches::Swatch;
+				use $crate::swatches::Swatch;
 				sw.lab()
 			}
 		}
@@ -112,16 +113,16 @@ macro_rules! swatch {
 		#[derive(Debug, Default)]
 		pub struct $SWATCH;
 
-		impl crate::SpectralDistribution for $SWATCH {
+		impl $crate::SpectralDistribution for $SWATCH {
 			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, $M>;
-			type StepType = crate::WavelengthStep;
+			type StepType = $crate::WavelengthStep;
 
 			fn shape(&self) -> (usize, usize) {($N,$M) }
 
-			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
+			fn spd(&self) -> ($crate::Domain<Self::StepType>, Self::MatrixType) {
 				(
 					$DOMAIN,
-					<Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA),
+					<Self as $crate::SpectralDistribution>::MatrixType::from_slice(&$DATA),
 				)
 			}
 
@@ -134,14 +135,14 @@ macro_rules! swatch {
 			}
 		}
 
-		impl crate::swatches::Swatch for $SWATCH {}
+		impl $crate::swatches::Swatch for $SWATCH {}
 
-		impl<I:crate::illuminants::Illuminant, C: crate::observers::StandardObserver> From<$SWATCH> for crate::models::CieLab<I,C>
+		impl<I:$crate::illuminants::Illuminant, C: $crate::observers::StandardObserver> From<$SWATCH> for $crate::models::CieLab<I,C>
 		where
-			<<I as crate::SpectralDistribution>::StepType as crate::Step>::UnitValueType: From<crate::Meter>
+			<<I as $crate::SpectralDistribution>::StepType as $crate::Step>::UnitValueType: From<$crate::Meter>
 		{
 			fn from(sw: $SWATCH) -> Self {
-				use crate::swatches::Swatch;
+				use $crate::swatches::Swatch;
 				sw.lab()
 			}
 		}
@@ -229,6 +230,4 @@ pub mod ces;
 #[cfg(feature="tm30")]
 pub use self::ces::*;
 	
-pub mod munsell_matt; 
-pub mod munsell_gloss; 
-pub mod munsell_renotation;
+pub use swatch;

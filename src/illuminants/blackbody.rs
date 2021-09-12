@@ -8,7 +8,7 @@ use crate::observers::StandardObserver;
 use crate::{C2, C2_IPTS_1948, C2_IPTS_1990, C2_NBS_1931, DOMAIN_DEFAULT_LEN, SpectralDistribution, planck_c2, planck_prime_c2, stefan_boltzmann};
 use crate::illuminants::{Illuminant};
 use crate::illuminants::cct_parameters::{CctParameters};
-use crate::util::{Domain, Step, Unit, WavelengthStep, };
+use crate::{Domain, Step, Unit, WavelengthStep, };
 
 
 

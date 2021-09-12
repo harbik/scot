@@ -304,7 +304,7 @@ impl<S: Step> IntoIterator for &Domain<S> {
 
 #[test]
 fn test_into_iterator_spectraldomain() {
-	use crate::util::KK;
+	use crate::KK;
 	assert_eq!(Domain::new(4, 6, KK).into_iter().map(|u|u.value()).collect::<Vec<_>>(), vec![4000.0, 5000.0, 6000.0]);
 }
 
@@ -312,7 +312,7 @@ fn test_into_iterator_spectraldomain() {
 #[test]
 fn test_iter_interpolate() {
 	{
-		use crate::util::{NONE5, NONE};
+		use crate::{NONE5, NONE};
 
 		let from_domain = Domain::new(1, 2, NONE5); // 2, 4
 		let din = from_domain.iter().map(|u|u.value()).collect::<Vec<_>>();

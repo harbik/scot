@@ -20,8 +20,8 @@ use std::ops::Index;
 use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice3xX, OMatrix, VecStorage, };
 use nalgebra::{storage::Storage, DMatrix, Dim, Matrix,};
 
-use crate::util::Domain;
-use crate::util::{Step, Unit};
+use crate::Domain;
+use crate::{Step, Unit};
 
 use super::IterInterpolateType;
 
@@ -284,7 +284,7 @@ where
 
 #[test]
 fn test_sprague_rows() {
-    use crate::util::{NONE, NONE2};
+    use crate::{NONE, NONE2};
     use nalgebra::matrix;
     let m_in = matrix!(
         1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
@@ -393,7 +393,7 @@ where
 
 #[test]
 fn test_sprague_cols() {
-    use crate::util::{NONE, NONE2};
+    use crate::{NONE, NONE2};
     use nalgebra::matrix;
     let m_in = matrix!(
         1.0, 1.0, 1.0;

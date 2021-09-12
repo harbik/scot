@@ -6,8 +6,8 @@
 
 const N: usize = 81;
 const M: usize = 5;
-illuminant!(HP, N, M, "CIE HP{}", crate::util::Domain::new(380/5, 780/5, crate::util::NM5), HP_DATA);
-illuminant!(HPAll, N, M, "CIE All HP", crate::util::Domain::new(380/5, 780/5, crate::util::NM5), HP_DATA, HP_KEYS);
+illuminant!(HP, N, M, "CIE HP{}", crate::Domain::new(380/5, 780/5, crate::NM5), HP_DATA);
+illuminant!(HPAll, N, M, "CIE All HP", crate::Domain::new(380/5, 780/5, crate::NM5), HP_DATA, HP_KEYS);
 
 static HP_KEYS: [&str; M] = [
 	"HP1",

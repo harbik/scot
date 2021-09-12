@@ -44,14 +44,14 @@ CIE D illumiant algorithm. To recreate the values as originally defined, the fol
 
 
 
-use nalgebra::{Const, Dynamic, Matrix, Matrix3xX, MatrixSliceXx1, SMatrixSlice, VecStorage};
+use nalgebra::{Const, Dynamic, Matrix, Matrix3xX, SMatrixSlice, VecStorage};
 
 use crate::{SpectralDistribution, };
 use crate::models::CieXYZ;
 use crate::observers::StandardObserver;
 use crate::illuminants::cct_parameters::{CctParameters};
-use crate::util::domain::Domain;
-use crate::util::{WavelengthStep, NM5};
+use crate::Domain;
+use crate::{WavelengthStep, NM5};
 
 use super::Illuminant;
 
@@ -146,144 +146,6 @@ impl<C:  StandardObserver, const T: usize> From<D<T>> for CieXYZ<C>
 {
     fn from(d: D<T>) -> Self { d.xyz() }
 }
-
-
-
-/**
-	CIE D65 illuminant, provied by the CIE as a data table.
-
-	Data is listed at the end of this file, and presented here as a matrix slice, to avoid data copying.
- */
- /*
-#[derive(Debug,Clone, Default)]
-pub struct CieIllD65;
-
-impl SpectralDistribution for CieIllD65 {
-	type MatrixType = MatrixSliceXx1<'static, f64>;
-    type StepType = WavelengthStep;
-
-	fn shape(&self) -> (usize, usize) { (NDATA, 1) }
-
-    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-		(
-			Domain::new(60, 156, NM5),
-			MatrixSliceXx1::from_slice(&D65_DATA, NDATA)
-		)
-    }
-
-    fn description(&self) -> Option<String> { 
-		Some("CIE D65 Standard Illuminant".to_string())
-	}
-}
-
-impl<C: StandardObserver> From<CieIllD65> for CieXYZ<C> {
-    fn from(d65: CieIllD65) -> Self {
-		d65.xyz()
-    }
-}
-
-impl Illuminant for CieIllD65{}
-  */
-
-
-/*
-
-#[derive(Debug,Clone, Default)]
-pub struct CieIllD50;
-
-impl<'a> SpectralDistribution for CieIllD50 {
-	type MatrixType = MatrixSliceXx1<'static, f64>;
-    type StepType = WavelengthStep;
-
-	fn shape(&self) -> (usize, usize) { (NDATA, 1) }
-
-    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-		(
-			Domain::new(60, 156, NM5),
-			MatrixSliceXx1::from_slice(&D50_DATA, NDATA)
-		)
-    }
-
-    fn description(&self) -> Option<String> { 
-		Some("CIE D50 Standard Illuminant".to_string())
-	}
-}
-
-impl<'a, C: StandardObserver> From<CieIllD50> for CieXYZ<C> {
-    fn from(d50: CieIllD50) -> Self {
-		d50.xyz()
-    }
-}
-
-impl<'a> Illuminant for CieIllD50{}
- */
-
-
-
- /*
-#[derive(Debug,Clone, Default)]
-pub struct CieIllD55;
-
-
-impl SpectralDistribution for CieIllD55 {
-	type MatrixType = MatrixSliceXx1<'static, f64>;
-    type StepType = WavelengthStep;
-
-	fn shape(&self) -> (usize, usize) { (NDATA, 1) }
-
-    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-		(
-			Domain::new(60, 156, NM5),
-			MatrixSliceXx1::from_slice(&D55_DATA, NDATA)
-		)
-    }
-
-    fn description(&self) -> Option<String> { 
-		Some("CIE D55 Standard Illuminant".to_string())
-	}
-}
-
-impl<C: StandardObserver> From<CieIllD55> for CieXYZ<C> {
-    fn from(d55: CieIllD55) -> Self {
-		d55.xyz()
-    }
-}
-
-impl<'a> Illuminant for CieIllD55{}
-
-  */
-
-/*
-#[derive(Debug,Clone, Default)]
-pub struct CieIllD75;
-
-impl SpectralDistribution for CieIllD75 {
-	type MatrixType = MatrixSliceXx1<'static, f64>;
-    type StepType = WavelengthStep;
-
-	fn shape(&self) -> (usize, usize) { (NDATA, 1) }
-
-    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-		(
-			Domain::new(60, 156, NM5),
-			MatrixSliceXx1::from_slice(&D75_DATA, NDATA)
-		)
-    }
-
-    fn description(&self) -> Option<String> { 
-		Some("CIE D75 Standard Illuminant".to_string())
-	}
-}
-
-impl<C: StandardObserver> From<CieIllD75> for CieXYZ<C> {
-    fn from(d75: CieIllD75) -> Self {
-		d75.xyz()
-    }
-}
-
-impl<'a> Illuminant for CieIllD75{}
- */
-
 
 
 /**

@@ -1,7 +1,7 @@
 
 
-use crate::util::domain::Domain;
-use crate::util::{NM};
+use crate::Domain;
+use crate::{NM};
 
 
 const N: usize = 401;
