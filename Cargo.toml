@@ -19,7 +19,7 @@ maplit = "1.0" # hashmap! macro
 criterion = "0.3"
 
 [features]
-default = ["cie_illuminants", "ies_tm30_illuminants", "quality"]
+default = ["cie_illuminants", "quality"]
 cie_illuminants = [
 	"cie_incandescent_illuminants",
 	"cie_fluorescent_illuminants", 
@@ -31,16 +31,16 @@ cie_fluorescent_illuminants = []
 cie_hid_illuminants = []
 cie_led_illuminants = []
 
-ies_tm30_illuminants = [
-	"ies_tm30_incandescent_illuminants",
-	"ies_tm30_fluorescent_illuminants",
-	"ies_tm30_hid_illuminants",
-	"ies_tm30_led_illuminants"
-	]
-ies_tm30_fluorescent_illuminants = []
-ies_tm30_incandescent_illuminants = []
-ies_tm30_hid_illuminants = []
-ies_tm30_led_illuminants = []
+#ies_tm30_illuminants = [
+#	"ies_tm30_incandescent_illuminants",
+#	"ies_tm30_fluorescent_illuminants",
+#	"ies_tm30_hid_illuminants",
+#	"ies_tm30_led_illuminants"
+#	]
+#ies_tm30_fluorescent_illuminants = []
+#ies_tm30_incandescent_illuminants = []
+#ies_tm30_hid_illuminants = []
+#ies_tm30_led_illuminants = []
 
 quality = [
 	"cri", 

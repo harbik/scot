@@ -235,11 +235,11 @@ macro_rules! all_illuminants_from_static_slice {
 	color science work.
 */
 
-#[cfg(feature="ies_tm30_incandescent_illuminants")]
-pub mod incandescent_ies_tm30;
+//#[cfg(feature="ies_tm30_incandescent_illuminants")]
+//pub mod incandescent_ies_tm30;
 
-#[cfg(feature="ies_tm30_incandescent_illuminants")]
-pub use self::incandescent_ies_tm30::*; 
+//#[cfg(feature="ies_tm30_incandescent_illuminants")]
+//pub use self::incandescent_ies_tm30::*; 
 
 #[cfg(feature="cie_fluorescent_illuminants")]
 pub mod fluorescent_cie;
@@ -247,11 +247,11 @@ pub mod fluorescent_cie;
 #[cfg(feature="cie_fluorescent_illuminants")]
 pub use self::fluorescent_cie::*;
 
-#[cfg(feature="ies_tm30_fluorescent_illuminants")]
-pub mod fluorescent_ies_tm30;
+//#[cfg(feature="ies_tm30_fluorescent_illuminants")]
+//pub mod fluorescent_ies_tm30;
 
-#[cfg(feature="ies_tm30_fluorescent_illuminants")]
-pub use self::fluorescent_ies_tm30::*;
+//#[cfg(feature="ies_tm30_fluorescent_illuminants")]
+//pub use self::fluorescent_ies_tm30::*;
 
 #[cfg(feature="cie_hid_illuminants")]
 pub mod hid_cie;
@@ -259,11 +259,7 @@ pub mod hid_cie;
 #[cfg(feature="cie_hid_illuminants")]
 pub use self::hid_cie::*;
 
-#[cfg(feature="ies_tm30_hid_illuminants")]
-pub mod hid_ies_tm30;
 
-#[cfg(feature="ies_tm30_hid_illuminants")]
-pub use self::hid_ies_tm30::*;
 
 #[cfg(feature="cie_led_illuminants")]
 pub mod led_cie;
@@ -271,11 +267,7 @@ pub mod led_cie;
 #[cfg(feature="cie_led_illuminants")]
 pub use self::led_cie::*;
 
-#[cfg(feature="ies_tm30_led_illuminants")]
-pub mod led_ies_tm30;
 
-#[cfg(feature="ies_tm30_led_illuminants")]
-pub use self::led_ies_tm30::*;
 
 
 pub mod daylight;
