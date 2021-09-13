@@ -1,6 +1,6 @@
+use colorado::{Domain, NM,};
 
-
-use crate::{Domain, NM, };
+use colorado::illuminants::illuminant;
 
 /**
 	Example spectral data for a collection of incandescent and halogen lamps, curated by the IES TM30 working group.

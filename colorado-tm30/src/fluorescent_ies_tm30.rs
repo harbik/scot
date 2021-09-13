@@ -1,7 +1,13 @@
 
 
-use crate::Domain;
-use crate::{NM};
+use colorado::{
+	Domain,
+	NM,
+};
+
+
+use colorado::illuminants::illuminant;
+
 
 
 const N: usize = 401;

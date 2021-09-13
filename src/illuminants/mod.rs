@@ -53,7 +53,7 @@ where
 	}
 }
 
-#[allow(unused_macros)]
+#[macro_export]
 macro_rules! illuminant {
 	// a single illuminant from static slice column
 	($ILL:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident) => {
@@ -61,17 +61,17 @@ macro_rules! illuminant {
 		#[derive(Debug, Default)]
 		pub struct $ILL<const I:usize>;
 
-		impl<const I:usize> crate::SpectralDistribution for $ILL<I> {
+		impl<const I:usize> $crate::SpectralDistribution for $ILL<I> {
 			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, 1>;
-			type StepType = crate::WavelengthStep;
+			type StepType = $crate::WavelengthStep;
 
 			fn shape(&self) -> (usize, usize) {($N,1)}
 
-			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
+			fn spd(&self) -> ($crate::Domain<Self::StepType>, Self::MatrixType) {
 				assert!(I>0&&I<=$M);
 				(
 					$DOMAIN,
-					<Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA[(I-1)*N..I*N]),
+					<Self as $crate::SpectralDistribution>::MatrixType::from_slice(&$DATA[(I-1)*N..I*N]),
 				)
 			}
 			
@@ -80,11 +80,11 @@ macro_rules! illuminant {
 			}
 		}
 
-		impl<const I:usize> crate::illuminants::Illuminant for $ILL<I> {}
+		impl<const I:usize> $crate::illuminants::Illuminant for $ILL<I> {}
 
-		impl<C: crate::observers::StandardObserver, const I:usize> From<$ILL<I>> for crate::models::CieXYZ<C> {
+		impl<C: $crate::observers::StandardObserver, const I:usize> From<$ILL<I>> for $crate::models::CieXYZ<C> {
 			fn from(ill: $ILL<I>) -> Self {
-				use crate::illuminants::Illuminant;
+				use $crate::illuminants::Illuminant;
 				ill.xyz()
 			}
 		}
@@ -95,16 +95,16 @@ macro_rules! illuminant {
 		#[derive(Debug, Default)]
 		pub struct $ILL;
 
-		impl crate::SpectralDistribution for $ILL {
+		impl $crate::SpectralDistribution for $ILL {
 			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, $M>;
-			type StepType = crate::WavelengthStep;
+			type StepType = $crate::WavelengthStep;
 
 			fn shape(&self) -> (usize,  usize) {($N, $M) }
 
-			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
+			fn spd(&self) -> ($crate::Domain<Self::StepType>, Self::MatrixType) {
 				(
 					$DOMAIN,
-					<Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA),
+					<Self as $crate::SpectralDistribution>::MatrixType::from_slice(&$DATA),
 				)
 			}
 
@@ -117,11 +117,11 @@ macro_rules! illuminant {
 			}
 		}
 
-		impl crate::illuminants::Illuminant for $ILL {}
+		impl $crate::illuminants::Illuminant for $ILL {}
 
-		impl<C: crate::observers::StandardObserver> From<$ILL> for crate::models::CieXYZ<C> {
+		impl<C: $crate::observers::StandardObserver> From<$ILL> for $crate::models::CieXYZ<C> {
 			fn from(ill: $ILL) -> Self {
-				use crate::illuminants::Illuminant;
+				use $crate::illuminants::Illuminant;
 				ill.xyz()
 			}
 		}
@@ -133,16 +133,16 @@ macro_rules! illuminant {
 		#[derive(Debug, Default)]
 		pub struct $ILL;
 
-		impl crate::SpectralDistribution for $ILL {
+		impl $crate::SpectralDistribution for $ILL {
 			type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, 1>;
-			type StepType = crate::WavelengthStep;
+			type StepType = $crate::WavelengthStep;
 
 			fn shape(&self) -> (usize,  usize) {($N, 1) }
 
-			fn spd(&self) -> (crate::Domain<Self::StepType>, Self::MatrixType) {
+			fn spd(&self) -> ($crate::Domain<Self::StepType>, Self::MatrixType) {
 				(
 					$DOMAIN,
-					<Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA),
+					<Self as $crate::SpectralDistribution>::MatrixType::from_slice(&$DATA),
 				)
 			}
 
@@ -155,11 +155,11 @@ macro_rules! illuminant {
 			}
 		}
 
-		impl crate::illuminants::Illuminant for $ILL {}
+		impl $crate::illuminants::Illuminant for $ILL {}
 
-		impl<C: crate::observers::StandardObserver> From<$ILL> for crate::models::CieXYZ<C> {
+		impl<C: $crate::observers::StandardObserver> From<$ILL> for $crate::models::CieXYZ<C> {
 			fn from(ill: $ILL) -> Self {
-				use crate::illuminants::Illuminant;
+				use $crate::illuminants::Illuminant;
 				ill.xyz()
 			}
 		}
@@ -272,3 +272,5 @@ pub use self::led_cie::*;
 
 pub mod daylight;
 pub use self::daylight::*;
+
+pub use illuminant;

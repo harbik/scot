@@ -1,5 +1,6 @@
 
-use crate::{Domain, NM};
+use colorado::{Domain, NM};
+use colorado::illuminants::illuminant;
 
 
 const N: usize = 401;

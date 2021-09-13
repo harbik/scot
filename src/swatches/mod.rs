@@ -67,7 +67,6 @@ where
 
 */
 
-#[allow(unused_macros)]
 #[macro_export]
 macro_rules! swatch {
 	// a single illuminant from static slice column

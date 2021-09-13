@@ -1,5 +1,6 @@
 
-use crate::{Domain, NM};
+use colorado::{Domain, NM};
+use colorado::illuminant;
 
 /**
 	Commercial, measured, LED Spectra, from the IES TM30 library, V2.00, Aug 10, 2018.
