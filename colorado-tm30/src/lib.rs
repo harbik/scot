@@ -11,3 +11,5 @@ pub use self::hid_ies_tm30::*;
 
 pub mod led_ies_tm30;
 pub use self::led_ies_tm30::*;
+
+pub mod illuminants;
