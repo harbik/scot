@@ -1,7 +1,7 @@
-use std::ops::Index;
+use std::ops::{Index, Mul};
 
-use nalgebra::{DMatrix, };
-use crate::{lin_interp_mat_col, Domain, Step, };
+use nalgebra::{DMatrix, DVectorSlice, Matrix3xX};
+use crate::{Domain, Meter, Step, Unit, WavelengthStep, lin_interp_mat_col, models::CieXYZ, observers::StandardObserver};
 
 pub trait Pixel {}
 /// trait marker for display pixel spectra
@@ -39,5 +39,42 @@ pub trait SpectralDistribution {
 //		sprague_cols_index_based(&dfr, &dto, s, self.len())
 		lin_interp_mat_col(&dfr, &dto, self.shape().1, s)
 	}
+
+	fn xyz<C>(&self) -> CieXYZ<C> 
+	where 
+		C: StandardObserver,
+		Meter: From<<<Self as SpectralDistribution>::StepType as Step>::UnitValueType>,
+		Matrix3xX<f64>: Mul<Self::MatrixType>,
+		<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output: Mul<f64>,
+		CieXYZ::<C>: From<<<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output as Mul<f64>>::Output>
+	{
+		let (d, s) = self.spd();
+		let xyz = (C::values(&d) * s) * (C::K * C::domain().step.unitvalue(1).value());
+		CieXYZ::<C>::from(xyz)
+	}
 }
 
+pub struct DataSpectrumFromSlice<'a> {
+	d: Domain<WavelengthStep>,
+	m: &'a [f64],
+}
+
+impl<'a> DataSpectrumFromSlice<'a> {
+    pub fn new(d: Domain<WavelengthStep>, m: &'a [f64]) -> Self { 
+		assert_eq!(d.len(), m.len());
+		Self { d, m } 
+	}
+}
+
+impl<'a> SpectralDistribution for DataSpectrumFromSlice<'a> {
+	type MatrixType = DVectorSlice<'a, f64>;
+    type StepType = WavelengthStep;
+
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+		(self.d.clone(), <Self::MatrixType>::from(self.m))
+    }
+
+    fn shape(&self) -> (usize, usize) {
+       (self.d.len(), 1)
+    }
+}

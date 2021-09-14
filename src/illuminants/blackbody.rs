@@ -145,8 +145,18 @@ impl SpectralDistribution for Planckian {
     fn description(&self) -> Option<String> { 
 		Some("Planckian Spectral Distribution".to_string())
 	}
+
+	fn xyz<C>(&self) -> CieXYZ<C> 
+	where
+		C: StandardObserver
+	{
+		let xyz = 
+			C::cmf() * self.map_domain(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
+		CieXYZ::<C>::new(xyz)
+	}
 }
 
+/*
 impl Illuminant for Planckian {
 	fn xyz<C>(&self) -> CieXYZ<C> 
 	where
@@ -157,6 +167,7 @@ impl Illuminant for Planckian {
 		CieXYZ::<C>::new(xyz)
 	}
 }
+ */
 
 impl<C: StandardObserver> From<Planckian> for CieXYZ<C> {
     fn from(p: Planckian) -> Self {

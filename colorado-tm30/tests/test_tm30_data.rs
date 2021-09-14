@@ -3,7 +3,7 @@ use colorado::models::{CieYxy, YxyValues};
 use colorado::SpectralDistribution;
 
 
-static FL_WANT: [(&str, [f64;2]);10] =
+static FL_WANT: [(&str, [f64;2]);3] =
 [
 	("F32T8/930", [0.4401220, 0.3995537]),
 	("F32T8/950", [0.3386684, 0.3510573]),

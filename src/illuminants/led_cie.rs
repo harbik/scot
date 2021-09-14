@@ -7,7 +7,7 @@ use crate::SpectralDistribution;
 use crate::observers::StandardObserver;
 use crate::{WavelengthStep, Domain};
 
-use super::Illuminant;
+//use super::Illuminant;
 
 
 /**

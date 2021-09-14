@@ -5,7 +5,7 @@ use num::ToPrimitive;
 
 use crate::{Domain, NM, SpectralDistribution, Step, Unit, WavelengthStep, led_ohno, models::CieXYZ, observers::StandardObserver, };
 
-use super::Illuminant;
+//use super::Illuminant;
 
 
 
@@ -137,8 +137,18 @@ impl SpectralDistribution for LedOhno2005 {
 	fn description(&self) -> Option<String> {
 		Some("Ohno 2005 LED model spectra ".to_string())
 	}
+
+	fn xyz<C>(&self) -> CieXYZ<C>
+	where 
+		C: StandardObserver
+	{
+		let xyz = 
+			C::cmf() * self.map_domain(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
+		CieXYZ::<C>::new(xyz)
+	}
 }
 
+/*
 impl Illuminant for LedOhno2005 {
 	fn xyz<C>(&self) -> CieXYZ<C>
 	where 
@@ -149,6 +159,7 @@ impl Illuminant for LedOhno2005 {
 		CieXYZ::<C>::new(xyz)
 	}
 }
+ */
 
 impl<C: StandardObserver> From<LedOhno2005> for CieXYZ<C> {
     fn from(l: LedOhno2005) -> Self {

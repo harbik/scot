@@ -3,16 +3,16 @@
 
 */
 
-use std::ops::Mul;
+//use std::ops::Mul;
 
-use nalgebra::Matrix3xX;
+//use nalgebra::Matrix3xX;
 
-use crate::Meter;
+//use crate::Meter;
 use crate::SpectralDistribution;
-use crate::Step;
-use crate::Unit;
-use crate::models::CieXYZ;
-use crate::observers::StandardObserver;
+//use crate::Step;
+//use crate::Unit;
+//use crate::models::CieXYZ;
+//use crate::observers::StandardObserver;
 
 pub mod cct;
 pub use self::cct::*;
@@ -39,6 +39,7 @@ where
 	Self: Default,
 
 {
+	/*
 	fn xyz<C>(&self) -> CieXYZ<C> 
 	where 
 		C: StandardObserver,
@@ -51,6 +52,7 @@ where
 		let xyz = (C::values(&d) * s) * (C::K * C::domain().step.unitvalue(1).value());
 		CieXYZ::<C>::from(xyz)
 	}
+	 */
 }
 
 #[macro_export]
@@ -84,7 +86,8 @@ macro_rules! illuminant {
 
 		impl<C: $crate::observers::StandardObserver, const I:usize> From<$ILL<I>> for $crate::models::CieXYZ<C> {
 			fn from(ill: $ILL<I>) -> Self {
-				use $crate::illuminants::Illuminant;
+				//use $crate::illuminants::Illuminant;
+				use $crate::spectra::SpectralDistribution;
 				ill.xyz()
 			}
 		}
@@ -121,7 +124,8 @@ macro_rules! illuminant {
 
 		impl<C: $crate::observers::StandardObserver> From<$ILL> for $crate::models::CieXYZ<C> {
 			fn from(ill: $ILL) -> Self {
-				use $crate::illuminants::Illuminant;
+				//use $crate::illuminants::Illuminant;
+				use $crate::spectra::SpectralDistribution;
 				ill.xyz()
 			}
 		}
@@ -159,7 +163,8 @@ macro_rules! illuminant {
 
 		impl<C: $crate::observers::StandardObserver> From<$ILL> for $crate::models::CieXYZ<C> {
 			fn from(ill: $ILL) -> Self {
-				use $crate::illuminants::Illuminant;
+				//use $crate::illuminants::Illuminant;
+				use $crate::spectra::SpectralDistribution;
 				ill.xyz()
 			}
 		}
