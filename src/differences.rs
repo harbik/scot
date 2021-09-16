@@ -77,7 +77,7 @@ where
 			for (i,de) in r.iter().enumerate() {
 				let mut k = (de * 1E6) as usize;
 				// in the very unlikely case if a match is right in the middle between two points and the key, the color
-				// difference value in usize format, already exists. Insert gives back None if insert was succesful, and
+				// difference value in usize format, already exists. Insert gives back None if insert was successful, and
 				// the value, (i) in this case when the insert failed as a key already existed. This results in a dE
 				// error of 1.E-6 for the second point...
 				while let Some(_v) = btm.insert(k, i){
@@ -94,7 +94,5 @@ where
 }
 #[test]
 fn test_match(){
-	use crate::swatches::{ColorCheckerSwatch,Ces};
-	let _de: CieDE1976 = (ColorCheckerSwatch::<3>, Ces).into();
 
 }

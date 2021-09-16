@@ -331,6 +331,7 @@ where
     }
 }
 
+/*
 #[test]
 fn test_ciede00(){
 	use crate::observers::{CieObs1931};
@@ -350,5 +351,6 @@ fn test_ciede00(){
 	}
 }
 
+*/
 
 

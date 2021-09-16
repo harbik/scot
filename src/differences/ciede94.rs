@@ -119,23 +119,6 @@ where
     }
 }
 
-#[test]
-fn test_ciede76(){
-	use crate::observers::{CieObs1931};
-	use crate::illuminants::{CieIllD65};
-	use crate::swatches::{ColorCheckerSwatch, Ces};
-	let de = CieDE1994::<CieIllD65, CieObs1931, GraphicArts>::new(ColorCheckerSwatch::<13>, Ces);
-	let m = de.matches();
-	let mut prev = 0f64;
-	// check if error differences are in increasing order
-	for i in 0..m.ncols() {
-		let ind = m[(0,i)];
-		let v = de.0[(0,ind)];
-		assert!(v>prev);
-		prev = v;
-		println!("{} {} {:.1}", i, ind, v);
-	}
-}
 
 
 

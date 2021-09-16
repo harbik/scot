@@ -223,10 +223,10 @@ pub mod tcs;
 #[cfg(feature="cri")]
 pub use self::tcs::*;
 
-#[cfg(feature="tm30")]
-pub mod ces; 
+//#[cfg(feature="tm30")]
+//pub mod ces; 
 
-#[cfg(feature="tm30")]
-pub use self::ces::*;
+//#[cfg(feature="tm30")]
+//pub use self::ces::*;
 	
 pub use swatch;

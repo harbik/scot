@@ -16,3 +16,5 @@ pub use self::led_ies_tm30::*;
 */
 
 pub mod samples;
+
+pub mod ces;
