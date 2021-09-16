@@ -9,25 +9,7 @@ use colorado::illuminants::illuminant;
 	or the `default-features = false` option in a `Cargo.toml` dependency declaration. If not included by default, 
 	it can be included using the `ies_tm30_incandescent_illuminants` feature, or the `ies_tm30_illuminants` feature.
 
-	The collection consists of:
-	- 3 Halogen lamps (1,2,3)
-	- 3 Halogen MR16 spot lamps (4,5,6)
-	- A standard 60W A 19 incandescent lamp (7)
-	- A 75W A19 Halogena lamp, an A19 shaped bulb with a mains voltage Halogen lamp as source inside (8)
-	- A 75W A19 Incandescent lamp, with its light filtered by Neodymium coating on the insize of the bulb (9)
-	- Another 75W A19 Incandescent lamp example, in this case one of the so-called "Rough House" variety,
-		which has a stronger filament design  (10)
-	- And a 75W A19 "Softer White" sample (11) 
-	- Krypton Incandescent (12)
-	- Neodymium Incandescent (13)
-	- and last, a "Filtered Halogen" example (14)
-
-	All these spectral distributions are measured from commercially available lamps.
-	Further details, such as their manufacturers, or part numbers, are not available:
-	the intention of this dataset is to be used for general color science research only.
-
-	The data is given on the wavelength range from 380 to 780nm, with steps of 1nm,
-	and linearly interpolated between the data points for finer domain grids (with steps less than 1 nm).
+	
 	
 
 	# Examples
@@ -35,9 +17,6 @@ use colorado::illuminants::illuminant;
 
  */
 
-//fn keys(&self) -> Option<Vec<String>> {
-//	Some(INC_IES_KEYS.iter().map(|s| s.to_string()).collect())
-//	}
 
 const N:usize = 401;
 const M:usize =  14;
