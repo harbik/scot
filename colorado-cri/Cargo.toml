@@ -1,5 +1,5 @@
 [package]
-name = "colorado-tm30"
+name = "colorado-cri"
 version = "0.1.0"
 edition = "2018"
 description = "Color Sience algorithms and datasets, for research and color management in lighting, graphic arts, and displays"

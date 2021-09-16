@@ -1,14 +1,26 @@
+/*!
+
+IES TM30 Sample Illuminants
+
+The collection of spectral distribution data use used by the IES TM30 standardization committee for testing
+their color fidelity and color preference metrics.
+
+*/
+
+
 mod data;
+pub use data::*;
 
 use std::collections::HashMap;
+use colorado::illuminants::Illuminant;
 use colorado::observers::StandardObserver;
-use colorado::models::{CieXYZ, XYZValues, CieYxy};
-use colorado::{Domain, NM, DataSpectrumFromSlice, SpectralDistribution};
-use nalgebra::Matrix3xX;
+use colorado::models::{CieXYZ, XYZValues};
+use colorado::{DataSpectrumFromSlice, Domain, NM, SpectralDistribution, WavelengthStep};
+use nalgebra::{SVectorSlice, Matrix3xX, SMatrixSlice};
 use self::data::{TM30_ILLUMINANTS_DATA, TM30_CIE1931, N, M};
 
 
-#[derive(Clone)]
+#[derive(Clone,  PartialEq,  Eq)]
 pub enum EmissionType {
 	FluorescentBroadband = 0,
 	FluorescentNarrowband = 1,
@@ -31,6 +43,7 @@ pub enum ModelType {
 pub fn tm30_cie1931_xy() -> HashMap<&'static str, [f64;2]> {
 	TM30_CIE1931.iter().map(|(key,_,_,x,y)|(*key,[*x,*y])).collect()
 }
+
 
 impl From<EmissionType> for Vec<&str> {
 	fn from(et: EmissionType) -> Self {
@@ -60,11 +73,76 @@ impl<C: StandardObserver> From<EmissionType> for CieXYZ<C> {
 			}
 		}
 		Self::new(Matrix3xX::from_vec(v))
-
-
 	}
-
 }
+
+
+
+#[derive(Default)]
+pub struct TM30Illuminant<const K:usize>;
+
+impl<const K:usize> SpectralDistribution for TM30Illuminant<K> {
+    type MatrixType = SVectorSlice<'static, f64, N>;
+    type StepType = WavelengthStep;
+
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+        (Domain::new(380, 780, NM), Self::MatrixType::from_slice(&TM30_ILLUMINANTS_DATA[(K-1)*N..K*N]))
+    }
+
+    fn shape(&self) -> (usize, usize) {
+		(N,1)
+    }
+}
+
+impl<const K:usize> Illuminant for TM30Illuminant<K>{}
+
+impl<C: StandardObserver, const K: usize> From<TM30Illuminant<K>> for CieXYZ<C> {
+	fn from(ill: TM30Illuminant<K>) -> Self {
+		ill.xyz()	
+	}
+}
+
+#[test]
+fn test_tm30_ill(){
+	use colorado::models::CieYxy;
+	let ill = TM30Illuminant::<CIE_F1>;
+	let xy: CieYxy = ill.into();
+	println!{"{}", xy};
+}
+
+#[derive(Default)]
+pub struct TM30Illuminants;
+
+impl SpectralDistribution for TM30Illuminants {
+    type MatrixType = SMatrixSlice<'static, f64, N, M>;
+    type StepType = WavelengthStep;
+
+    fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
+        (Domain::new(380, 780, NM), Self::MatrixType::from_slice(&TM30_ILLUMINANTS_DATA))
+    }
+
+    fn shape(&self) -> (usize, usize) {
+		(N,M)
+    }
+}
+
+
+impl<C: StandardObserver> From<TM30Illuminants> for CieXYZ<C> {
+	fn from(ill: TM30Illuminants) -> Self {
+		ill.xyz()	
+	}
+}
+
+#[test]
+fn test_tm30_illuminants(){
+	use colorado::models::CieYxy;
+	let ill = TM30Illuminants;
+	let xy: CieYxy = ill.into();
+	println!{"{}", xy.data.transpose()};
+}
+
+
+
 
 #[test]
 fn test_from_emission_type(){

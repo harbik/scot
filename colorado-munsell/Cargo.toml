@@ -2,8 +2,11 @@
 name = "colorado-munsell"
 version = "0.0.1"
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Color Sience algorithms and datasets, for research and color management in lighting, graphic arts, and displays"
+authors = ["Gerard Harbers", "Harbers Bik LLC"]
+repository = "https://github.com/harbik/colorado"
+keywords = ["color science", "CIE", "chromaticity", "CRI", "CIECAM"]
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 nalgebra = "0.27"
