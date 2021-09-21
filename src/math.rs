@@ -33,3 +33,9 @@ where
 	}
 	sum * h / 3.0
 }
+
+#[inline]
+pub fn linterp(x:f64, x1:f64, y1:f64, x2:f64, y2:f64) -> f64 {
+	let s = (x - x1)/(x2 - x1);
+	y1 * (1.0 - s) + y2 * s
+}

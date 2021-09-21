@@ -1,7 +1,7 @@
 
 use std::{fmt::Display, marker::PhantomData};
 
-use nalgebra::{Const, DefaultAllocator, Dim, Matrix3xX, OMatrix, };
+use nalgebra::{Const, DVector, DefaultAllocator, Dim, Matrix3xX, OMatrix};
 use crate::{DefaultObserver, observers::StandardObserver};
 
 /**	
@@ -17,13 +17,33 @@ use crate::{DefaultObserver, observers::StandardObserver};
 #[derive(Debug)]
 pub struct CieXYZ<C: StandardObserver = DefaultObserver> {
 	pub data : Matrix3xX<f64>,
+	pub y: Option<DVector<f64>>,
 	cmf: PhantomData<*const C>, // only used through C::Default(), but needed to mark the type
 }
 
 impl<C: StandardObserver> CieXYZ<C> {
 	pub fn new(xyz: Matrix3xX<f64>) -> Self {
-		Self { data: xyz, cmf: PhantomData}
+		Self { data: xyz, y: None, cmf: PhantomData}
 	}
+
+	pub fn len(&self) -> usize {
+		self.data.ncols()
+	}
+
+	pub fn normalize(mut self, v: f64) -> Self {
+		let mut ys: Vec<f64> = Vec::with_capacity(self.len());
+		for i in 0..self.len() {
+			let y = self.data[(1,i)];
+			let t = v / y; 
+			ys.push(y);
+			self.data[(0,i)] *= t;
+			self.data[(1,i)] =  v;
+			self.data[(2,i)] *= t;
+		}
+		self.y = Some(DVector::from(ys));
+		self
+	}
+
 }
 
 /**
@@ -35,7 +55,7 @@ where
 	 {
 	fn from(xyz: OMatrix<f64, Const<3>, C>) -> Self {
 		let data = Matrix3xX::from_iterator(xyz.ncols(), xyz.into_iter().cloned());
-		Self { data, cmf: PhantomData}
+		Self { data, y: None, cmf: PhantomData}
 	}
 }
 

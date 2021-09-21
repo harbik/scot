@@ -33,27 +33,11 @@ by using its default constructor, and getting its first, and single row vector.
 */
 
 
-pub trait Illuminant 
-where
-	Self: SpectralDistribution,
-	Self: Default,
-
-{
-	/*
-	fn xyz<C>(&self) -> CieXYZ<C> 
-	where 
-		C: StandardObserver,
-		Meter: From<<<Self as SpectralDistribution>::StepType as Step>::UnitValueType>,
-		Matrix3xX<f64>: Mul<Self::MatrixType>,
-		<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output: Mul<f64>,
-		CieXYZ::<C>: From<<<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output as Mul<f64>>::Output>
-	{
-		let (d, s) = self.spd();
-		let xyz = (C::values(&d) * s) * (C::K * C::domain().step.unitvalue(1).value());
-		CieXYZ::<C>::from(xyz)
-	}
-	 */
-}
+pub trait Illuminant: SpectralDistribution + Default
+//where
+	//Self: SpectralDistribution,
+//	Self: Default,
+{}
 
 #[macro_export]
 macro_rules! illuminant {

@@ -15,18 +15,20 @@ Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 
 */
 
+pub use colorado::swatch;
+
 const N: usize = 401; // number of points in a spectral distributions, and the number of rows in the column major spectral matrix
 const M: usize = 99; // number of spectra in the set, or the number of columns in the spectral matrix
 
-swatch!(CesSwatch, N, M, "CES{}", crate::Domain::new(380, 780, crate::NM), CES_DATA);
-swatch!(Ces, N, M, "CES", crate::Domain::new(380, 780, crate::NM), CES_DATA, CES_KEYS);
+swatch!(CesSwatch, N, M, "CES{}", colorado::Domain::new(380, 780, colorado::NM), CES_DATA);
+swatch!(Ces, N, M, "CES", colorado::Domain::new(380, 780, colorado::NM), CES_DATA, CES_KEYS);
 
 
 #[test]
 fn test_tcs(){
-	use crate::models::CieLab;
-	use crate::illuminants::CieIllD65;
-	use crate::observers::CieObs1931;
+	use colorado::models::CieLab;
+	use colorado::illuminants::CieIllD65;
+	use colorado::observers::CieObs1931;
 
 	let ces_lab: CieLab<CieIllD65, CieObs1931> = Ces::default().into();
 
@@ -36,35 +38,43 @@ fn test_tcs(){
 
 #[test]
 fn test_ciede76(){
-	use crate::observers::{CieObs1931};
-	use crate::illuminants::{CieIllD65};
-	use crate::swatches::{ColorCheckerSwatch, Ces};
+	use colorado::observers::{CieObs1931};
+	use colorado::illuminants::{CieIllD65};
+	use crate::ces::Ces;
+	use colorado::swatches::{ColorCheckerSwatch};
+	use colorado::differences::{CieDE1994, GraphicArts, DeltaEValues};
 	let de = CieDE1994::<CieIllD65, CieObs1931, GraphicArts>::new(ColorCheckerSwatch::<13>, Ces);
+	println!("{:.0}", de.0);
 	let m = de.matches();
 	let mut prev = 0f64;
+	println!("{}", m);
 	// check if error differences are in increasing order
-	for i in 0..m.ncols() {
-		let ind = m[(0,i)];
-		let v = de.0[(0,ind)];
+	
+	for i in 0..m.nrows() {
+		let ind = m[(i,0)];
+		let v = de.0[(ind,0)];
 		assert!(v>prev);
 		prev = v;
 		println!("{} {} {:.1}", i, ind, v);
 	}
+	
 }
 
 #[test]
 fn test_ciede76_2(){
-	use crate::observers::{CieObs1931};
-	use crate::illuminants::{CieIllD65};
-	use crate::swatches::{ColorCheckerSwatch, Ces};
+	use colorado::observers::{CieObs1931};
+	use colorado::illuminants::{CieIllD65};
+	use crate::ces::Ces;
+	use colorado::swatches::{ColorCheckerSwatch};
+	use colorado::differences::{CieDE1976, DeltaEValues};
 	let de = CieDE1976::<CieIllD65, CieObs1931>::from((ColorCheckerSwatch::<13>, Ces));
 //	println!("{:.1}", de);
 	let m = de.matches();
 	let mut prev = 0f64;
 	// check if error differences are in increasing order
-	for i in 0..m.ncols() {
-		let ind = m[(0,i)];
-		let v = de.0[(0,ind)];
+	for i in 0..m.nrows() {
+		let ind = m[(i,0)];
+		let v = de.0[(ind,0)];
 		assert!(v>prev);
 		prev = v;
 	//	println!("{} {} {:.1}", i, ind, v);

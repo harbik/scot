@@ -1,6 +1,65 @@
 pub(super) const N:usize = 401;
 pub(super) const M:usize = 344;
 
+use super::TM30Illuminant;
+macro_rules! tm30lib_illuminants {
+	($ ($K:ident=$J:literal),*) => {
+		$(
+			pub type $K = TM30Illuminant<$J>;	
+		)*
+	};
+}
+
+tm30lib_illuminants!(
+CieF1=1, CieF2=2, CieF3=3, CieF4=4, CieF5=5, CieF6=6, CieF7=7, CieF8=8, CieF9=9, CieF10=10, CieF11=11, CieF12=12, F32T8v930=13, F32T8v950=14, F34T12CwRsEw=15,
+F34T12LwRsEw=16, F34T12WwRsEw=17, F40T12C50a=18, F40T12C50b=19, F40T12C75a=20, F40T12C75b=21, F40T12CWXa=22, F40T12CWXb=23, F40T12DXa=24, F40T12DXb=25,
+F40T12DXTPa=26, F40T12DXTPb=27, F40T12N1=28, F40T12N2=29, F32T8v730=30, F32T8v735=31, F32T8v741=32, F32T8v750=33, F32T8v830a=34, F32T8v830b=35, F32T8v830c=36,
+F32T8v835a=37, F32T8v835b=38, F32T8v835c=39, F32T8v841a=40, F32T8v841b=41, F32T8v841c=42, F32T8v850a=43, F32T8v850b=44, F32T8v850c=45, F32T8v865a=46,
+F32T8v865b=47, F40T12v30U=48, F40T12v35U=49, F40T12v41U=50, F40T12v50U=51, ModTriPhosphorTG0=52, ModTriPhosphorTG6=53, ModTriPhosphorTG10=54,
+ModTriPhosphorTP5=55, C100S54HPSStd1=56, C100S54HPSStd2=57, C100S54CHPSDeLuxe1=58, C100S54CHPSDeLuxe2=59, SDWT100WLVSuperHPS1=60, SDWT100WLVSuperHPS2=61,
+CDM830a=62, CDM830b=63, CDM830c=64, CDM940a=65, CDM940b=66, MH100W=67, MHC100Ump3K1=68, MHC100Ump4K1=69, MHC100Ump3K2=70, MHC100Ump4K2=71, H38HT100Mercury1=72,
+H38HT100Mercury2=73, H38JA100DxMercury1=74, H38JA100DxMercury2=75, Halogen1=76, Halogen2=77, Halogen3=78, HalogenMR16a=79, HalogenMR16b=80, HalogenMR16c=81,
+Inc60WA19=82, Inc75WA19HalogenA=83, Inc75WA19Neodymium=84, Inc75WA19RoughHouse=85, Inc75WA19SofterWhite=86, KryptonInc=87, NeodymiumInc=88, FilteredHalogen=89,
+LedHybridBluePump1=90, LedHybridBluePump2=91, LedHybridBluePump3=92, LedHybridBluePump4=93, LedHybridBluePump5=94, LedHybridBluePump6=95, LedHybridBluePump7=96,
+LedHybridBluePump8=97, LedHybridBluePump9=98, LedHybridBluePump10=99, LedHybridBluePump11=100, LedHybridBluePump12=101, LedHybridBluePump13=102,
+LedHybridVioletPump1=103, LedHybridVioletPump2=104, Rgb445n500n640nE=105, Rgb445n500n640nM=106, Rgb445n515n640=107, Rgb445n520n640=108, Rgb450n525n625n3K=109,
+Rgb450n525n625n4K=110, Rgb450n530n645n=111, Rgb455n530n615n=112, Rgb455n534n616n=113, Rgb455n547n623n=114, Rgb457n540n605n=115, Rgb460n525n625n=116,
+Rgb460n540n620n=117, Rgb464n538n613n=118, Rgb464n546n620n=119, Rgb464n562n626n=120, Rgb465n525n630n=121, Rgb465n530n620n=122, Rgb465n535n590n=123,
+Rgb465n546n614n=124, Rgb466n538n603n=125, Rgb467n548n616n=126, Rgb470n525n630n=127, Rgb470n530n635n=128, Rgb472n550n603n=129, Rgb473n545n616n=130,
+Rgb474n545n616nTG6=131, Rgb474n545n616nTG10=132, Rgb474n545n616nTG0=133, Rgb474n545n616nTP6=134, Rgb475n515n630n=135, Rgb475n545n615n=136,
+Rgba445n495n555n615nE=137, Rgba445n495n555n615nM=138, Rgba445n505n590n640n=139, Rgba445n505n595n640n=140, Rgba445n520n595n640n=141, Rgba447n512n573n627n=142,
+Rgba450n525n580n625n=143, Rgba450n525n600n650n=144, Rgba455n530n590n635n3K=145, Rgba455n530n590n635n3Ka=146, Rgba455n530n590n635n3Kb=147,
+Rgba455n530n590n635n3Kc=148, Rgba455n530n590n635n3Kd=149, Rgba455n530n590n635n3Ke=150, Rgba455n530n590n635n3Kf=151, Rgba455n530n590n635n3Kg=152,
+Rgba455n530n590n635n3Kh=153, Rgba455n530n590n635n3Ki=154, Rgba455n530n590n635n4K=155, Rgba455n530n590n635n4Ka=156, Rgba455n530n590n635n4Kb=157,
+Rgba455n530n590n635n4Kc=158, Rgba455n530n590n635n4Kd=159, Rgba455n530n590n635n4Ke=160, Rgba455n530n590n635n4Kf=161, Rgba455n530n590n635n4Kg=162,
+Rgba455n530n590n635n4Kh=163, Rgba455n530n590n635n4Ki=164, Rgba460n530n575n625n=165, Rgba461n526n576n624n=166, Rgba470n520n595n635n27K=167,
+Rgba470n520n595n635n65K=168, LedPhBluePump01=169, LedPhBluePump02=170, LedPhBluePump03=171, LedPhBluePump04=172, LedPhBluePump05=173, LedPhBluePump06=174,
+LedPhBluePump07=175, LedPhBluePump08=176, LedPhBluePump09=177, LedPhBluePump10=178, LedPhBluePump11=179, LedPhBluePump12=180, LedPhBluePump13=181,
+LedPhBluePump14=182, LedPhBluePump15=183, LedPhBluePump16=184, LedPhBluePump17=185, LedPhBluePump18=186, LedPhBluePump19=187, LedPhBluePump20=188,
+LedPhBluePump21=189, LedPhBluePump22=190, LedPhBluePump23=191, LedPhBluePump24=192, LedPhBluePump25=193, LedPhBluePump26=194, LedPhBluePump27=195,
+LedPhBluePump28=196, LedPhBluePump29=197, LedPhBluePump30=198, LedPhBluePump31=199, LedPhBluePump32=200, LedPhBluePump33=201, LedPhBluePump34=202,
+LedPhBluePump35=203, LedPhBluePump36=204, LedPhBluePump37=205, LedPhBluePump38=206, LedPhBluePump39=207, LedPhBluePump40=208, LedPhBluePump41=209,
+LedPhBluePump42=210, LedPhBluePump43=211, LedPhBluePump44=212, LedPhBluePump45=213, LedPhBluePump46=214, LedPhBluePump47=215, LedPhBluePump48=216,
+LedPhBluePump49=217, LedPhBluePump50=218, LedPhBluePump51=219, LedPhBluePump52=220, LedPhBluePump53=221, LedPhBluePump54=222, LedPhBluePump55=223,
+LedPhBluePump56=224, LedPhBluePump57=225, LedPhBluePump58=226, LedPhBluePump59=227, LedPhBluePump60=228, LedPhBluePump61=229, LedPhBluePump62=230,
+LedPhBluePump63=231, LedPhBluePump64=232, LedPhBluePump65=233, LedPhBluePump66=234, LedPhBluePump67=235, LedPhBluePump68=236, LedPhBluePump69=237,
+LedPhBluePump70=238, LedPhBluePump71=239, LedPhBluePump72=240, LedPhBluePump73=241, LedPhBluePump74=242, LedPhBluePump75=243, LedPhBluePump76=244,
+LedPhBluePump77=245, LedPhBluePump78=246, LedPhBluePump79=247, LedPhBluePump80=248, LedPhBluePump81=249, LedPhBluePump82=250, LedPhBluePump83=251,
+LedPhBluePump84=252, LedPhBluePump85=253, LedPhBluePump86=254, LedPhBluePump87=255, LedPhBluePump88=256, LedPhBluePump89=257, LedPhBluePump90=258,
+LedPhBluePump91=259, LedPhBluePump92=260, LedPhBluePump93=261, LedPhBluePump94=262, LedPhBluePump95=263, LedPhBluePump96=264, LedPhBluePump97=265,
+LedPhBluePump98=266, LedPhBluePump99=267, LedPhBluePump100=268, LedPhBluePump101=269, LedPhBluePump102=270, LedPhBluePump103=271, LedPhBluePump104=272,
+LedPhBluePump105=273, LedPhBluePump106=274, LedPhBluePump107=275, LedPhBluePump108=276, LedPhBluePump109=277, LedPhBluePump110=278, LedPhBluePump111=279,
+LedPhBluePump112=280, LedPhBluePump113=281, LedPhBluePump114=282, LedPhBluePump115=283, LedPhBluePump116=284, LedPhBluePump117=285, LedPhBluePump118=286,
+LedPhBluePump119=287, LedPhBluePump120=288, LedPhBluePump121=289, LedPhBluePump122=290, LedPhBluePump123=291, LedPhBluePump124=292, LedPhBluePump125=293,
+LedPhVioletPump1=294, LedPhVioletPump2=295, LedPhVioletPump3=296, LedPhVioletPump4=297, CieD5000K=298, CieD5500K=299, CieD6000K=300, CieD6500K=301,
+CieD7000K=302, CieD7500K=303, CieD8000K=304, MixedReference5000K=305, Planckian2000K=306, Planckian2500K=307, Planckian2700K=308, Planckian3000K=309,
+Planckian3500K=310, Planckian4000K=311, Planckian4500K=312, Planckian4999K=313, EqualEnergy=314, IdealPrimeColor=315, Plasma=316, TriBandGaussian1=317,
+TriBandGaussian2=318, Ldrd1=319, Ldrd2=320, Ldrd3=321, Ldrd4=322, Ldrd5=323, Ldrd6=324, Ldrd7=325, Ldrd8=326, Ldrd9=327, Ldrd10=328, Ldrd11=329, Ldrd12=330,
+Ldrd13=331, Ldrd14=332, Ldrd15=333, Ldrd16=334, Ldrd17=335, Ldrd18=336, Ldrd19=337, Ldrd20=338, Ldrd21=339, Ldrd22=340, Ldrd23=341, Ldrd24=342, Ldrd25=343,
+Ldrd26=344
+);
+
+/*
 macro_rules! tm30lib_constants {
 	($ ($K:ident=$J:literal),*) => {
 		$(
@@ -69,6 +128,7 @@ tm30lib_constants!(
 	LDRD6=324, LDRD7=325, LDRD8=326, LDRD9=327, LDRD10=328, LDRD11=329, LDRD12=330, LDRD13=331, LDRD14=332, LDRD15=333, LDRD16=334, LDRD17=335, LDRD18=336,
 	LDRD19=337, LDRD20=338, LDRD21=339, LDRD22=340, LDRD23=341, LDRD24=342, LDRD25=343, LDRD26=344
 );
+*/
 
 
 pub(super) static TM30_CIE1931: [(&str, u32, u32, f64, f64);M] = [ // EmissionType, ModelType

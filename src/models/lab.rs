@@ -27,7 +27,7 @@ impl<I, C> CieLab<I, C>
         }
     }
 
-    pub fn len(&self) -> usize {
+	pub fn len(&self) -> usize {
         self.data.ncols()
     }
 
