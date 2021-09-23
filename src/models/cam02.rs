@@ -7,7 +7,7 @@ use crate::{
 	DefaultObserver, 
 	linterp, 
 	illuminants::{
-		D65, D50
+		D65,
 	}, 
 	observers::{
 		StandardObserver
@@ -40,12 +40,6 @@ pub static MCAT02INV: SMatrix<f64, 3, 3> = matrix![
      1.096124, -0.278869, 0.182745;
      0.454369,  0.473533, 0.072098;
     -0.009628, -0.005698, 1.015326;
-];
-
-pub static HUE_ANGLE_PARAMETERS: SMatrix<f64, 3, 5> = matrix![
-	/* h_i */	20.14, 	90.0, 	164.25, 237.53, 380.14;
-	/* e_i */	0.8,	0.7,	1.0,	1.2,	0.8;
-	/* H_i */	0.0,	100.0,	200.0,	300.0,	400.0;
 ];
 
 /**
@@ -237,10 +231,7 @@ where
 		let rgb_p_w = &MHPE * &MCAT02INV * rgb_wc;
 
 		// RGB'<sub>a</sub> Post-adaptation cone responses
-		let rgb_p_aw = rgb_p_w.map(|r|{
-			let t = (vc.f_l * r/100.0).powf(0.42);
-			400.0 * (t/(t+27.13)) + 0.1
-		});
+		let rgb_p_aw = rgb_p_w.map(|r| cone_adaptation(vc.f_l,r));
 
 		// Achromatic Response for reference white
 		let a_w = (2.0 * rgb_p_aw.x + rgb_p_aw.y + rgb_p_aw.z/20.0-0.305)*n_bb;
@@ -249,38 +240,17 @@ where
 		let lab: CieLab<I,C> = samples.into();
 		let n_samples = lab.len();
 		let xyz: CieXYZ<C> = lab.into();
-
-
 		let rgb = &MCAT02 * xyz.data;
-		let d_rgbs = Matrix3xX::from_fn(rgb.ncols(), |i,_j|
-			match i {
-				0 => d_rgb.x,
-				1 => d_rgb.y,
-				2 => d_rgb.z,
-				_ => panic!("index error!"),
-			}
-		);
+		let d_rgbs = Matrix3xX::from_iterator(n_samples, d_rgb.as_slice().iter().cycle().take(3*n_samples).cloned()); // repeat columns
 		let rgb_c = d_rgbs.component_mul(&rgb);
 		let rgb_p = MHPE * MCAT02INV * rgb_c;
-		let rgb_p_a = rgb_p.map(|r|{
-			if r>=0.0 {
-				let t = (vc.f_l * r/100.0).powf(0.42);
-				400.0 * (t/(t+27.13)) + 0.1
-			} else {
-				let t = (-vc.f_l * r/100.0).powf(0.42);
-				-400.0 * (t/(t+27.13)) + 0.1
-			}
-		});
-		
+		let rgb_p_a = rgb_p.map(|r|cone_adaptation(vc.f_l, r));
 
-		// 9xX Matrix, with 9 correlates in rows Q, J, a, b, h, H, C, M, s for the number of input samples
-
+		// 9xX Matrix, with 9 correlates in rows J, Q, a, b, C, M, s, h, H for the number of input samples
 		let mut vdata: Vec<f64> = Vec::with_capacity(9*n_samples);
 		for j in 0..n_samples {
 
-			let rp = rgb_p_a.column(j).x;
-			let gp = rgb_p_a.column(j).y;
-			let bp = rgb_p_a.column(j).z;
+			let [rp, gp, bp] = [rgb_p_a[(0,j)], rgb_p_a[(1,j)], rgb_p_a[(2,j)]];
 			let achromatic_response = (2.0 * rp + gp + bp/20.0 - 0.305) * n_bb; // achromatic response
 
 			// Lightness (J), Red-Greenness (a) and Blue-Yellowness (b)
@@ -295,52 +265,17 @@ where
 				if theta<0.0 { theta + 360.0}
 				else {theta}
 			};
-			//
 			
-			/*
 			// Hue composition (H)
-			let hp = if hue_angle<HUE_ANGLE_PARAMETERS[(0,0)] {
-				hue_angle + 360.0
-			} else {
-				hue_angle
-			};
-			let m: usize = 
-				if      hp >= HUE_ANGLE_PARAMETERS[(0,0)] && hp < HUE_ANGLE_PARAMETERS[(0,1)] { 0 }
-				else if hp >= HUE_ANGLE_PARAMETERS[(0,1)] && hp < HUE_ANGLE_PARAMETERS[(0,2)] { 1 }
-				else if hp >= HUE_ANGLE_PARAMETERS[(0,2)] && hp < HUE_ANGLE_PARAMETERS[(0,3)] { 2 }
-				else if hp >= HUE_ANGLE_PARAMETERS[(0,3)] && hp < HUE_ANGLE_PARAMETERS[(0,4)] { 3 }
-				else { panic!("Hue angle out of range");
-			};
-			println!("m: {}", m);
-			println!("hp: {}", hp);
-			let hi = HUE_ANGLE_PARAMETERS[(0,m)];
-			let hl = HUE_ANGLE_PARAMETERS[(2,m)];
-			let hr = HUE_ANGLE_PARAMETERS[(2,m+1)];
-			let el = HUE_ANGLE_PARAMETERS[(1,m)];
-			let er = HUE_ANGLE_PARAMETERS[(1,m+1)]; 
-			//let hue_composition = hi + (100.0 * (hp - hl)/el) / ((hp-hl)/el + (hr-hp)/er);
-			*/
 			let hue_composition = hue_composition_from_hue_angle(hue_angle);
 
 			// Chroma (C), Colorfulness (M), and saturation (S)
-			let eccentricity = 0.25 * ((hp.to_radians() + 2.0).cos() + 3.8);
-			println!("e_t*** {}", eccentricity);
-			println!("e_t*** Fairchild {}", 12500.0/13.0*4.0*eccentricity);
+			let eccentricity = 0.25 * ((hue_angle.to_radians() + 2.0).cos() + 3.8);
 			let t = ((50_000.0/13.0 * vc.n_c * n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(rp + gp + 21.0 * bp/20.0);
-			println!("t*** {}", t);
 			let chroma = t.powf(0.9) * (lightness/100.0).sqrt() * (1.64 - 0.29f64.powf(n)).powf(0.73);
 			let colorfulness = chroma * vc.f_l.powf(0.25);
 			let saturation = 100.0 * (colorfulness/brightness).sqrt();
-			vdata.push(lightness); //  J
-			vdata.push(brightness); // Q
-			vdata.push(red_green); // a
-			vdata.push(blue_yellow); // b
-			vdata.push(chroma); // C
-			vdata.push(colorfulness); // M
-			vdata.push(saturation); // s
-			vdata.push(hue_angle); // h
-			vdata.push(hue_composition); // H
-
+			vdata.append(&mut vec![lightness, brightness, red_green, blue_yellow, chroma, colorfulness, saturation, hue_angle, hue_composition]);
 		}
 		let data = OMatrix::<f64, Const::<9>, Dynamic>::from_vec(vdata);
 		Self::new(data)
@@ -350,219 +285,56 @@ where
 #[test]
 fn test_from_lab(){
 	use crate::observers::CieObs1931;
+	use approx::assert_relative_eq;
+	use crate::illuminants::D50;
 	let lab: CieLab<D50> = CieLab::new(Matrix3xX::from_vec(vec![
-	//	19.01, 20.0, 21.78, 
-		71.5957, 44.2271, 18.1105,
-//		3.53, 6.56, 2.14,
-//		19.01, 20.0, 21.78,
+		50.0, 0.0, 0.0,
+		50.0, -20.0, 20.0,
+		50.0, 20.0, -20.0,
+		50.0, -20.0, -20.0,
+		0.0, 0.0, 0.0,
+		100.0, 100.0, 0.0,
+		100.0, 0.0, 100.0,
+		100.0, 0.0, -100.0,
+		100.0, 100.0, -100.0,
 	]));
 	let cam: CieCam<ViewConditions<32, 20, SR_AVG, D_AUTO>, D50, CieObs1931> = lab.into();
-	println!("{}", cam.data);
-}
+	let want = OMatrix::<f64,Const::<9>, Dynamic>::from_vec(vec![
+		39.614, 118.490, -0.005, 0.011, 1.104, 0.948, 8.944, 112.539, 138.373,
+		38.867, 117.368, -0.271, 0.263, 28.643, 24.586, 45.769, 135.844, 169.748,
+		40.378, 119.628, 0.256, -0.251, 28.455, 24.425, 45.186, 315.552, 344.608,
+		38.683, 117.090, -0.338, -0.270, 37.260, 31.983, 52.263, 218.554, 277.448,
+		0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 180.000, 224.729,
+		106.226, 194.033, 1.952, 0.068, 100.220, 86.026, 66.585, 1.993, 382.054,
+		99.751, 188.026, -0.125, 1.421, 79.525, 68.262, 60.253, 95.020, 109.386,
+		98.294, 186.648, -0.620, -1.544, 97.974, 84.098, 67.125, 248.127, 305.080,
+		105.470, 193.342, 1.379, -1.481, 105.655, 90.691, 68.489, 312.958, 342.808
+	]);
+	println!("{:.3}", cam.data.transpose());
+	for (c,w) in cam.data.iter().zip(want.iter()){
+		assert_relative_eq!(c, w, epsilon=1E-3, max_relative=5E-4); // abs<1.E-3 or rel<5E-4
 
-/*
-pub type VcAverage = ViewConditions<AVG, 100, 690, 100, false>;
-pub type VcDim= ViewConditions<DIM, 90, 590, 90, false>;
-pub type VcDark = ViewConditions<DARK, 80, 525, 80, false>;
- */
+	}
+	//assert_abs_diff_eq!(&cam.data, &want, epsilon=5E-2);
 
-/*
-
-#[derive(Debug, Serialize, Clone)]
-pub struct CIECAM {
-    pub vc: ViewConditions,
-    pub jch: Vec<[f64; 3]>,
-    pub xyz_w: [f64; 3],
-    pub obs: ObserverKey,
-}
-
-impl CIECAM {
-    pub fn from(xyz: XYZ, vc: ViewConditions) -> CIECAM {
-        // See Luo CIECAM02 and its recent developments Appendix A, part 1: The forward mode
-        let xyz_w = xyz.xyz_w.expect("Need white point");
-        let mut rgb_w = m_cat02(xyz_w);
-        let vcd = vc.D();
-        let fl = vc.Fl();
-
-        let Yw = xyz_w[1];
-        let dr = vcd * Yw / rgb_w[0] + 1.0 - vcd;
-        let dg = vcd * Yw / rgb_w[1] + 1.0 - vcd;
-        let db = vcd * Yw / rgb_w[2] + 1.0 - vcd;
-
-
-        let n = vc.Yb / Yw;
-        let z = n.sqrt() + 1.48;
-        let Nbb = 0.725 * n.powf(-0.2);
-        let Ncb = Nbb;
-
-        // rgb_wc
-        rgb_w[0] *= dr; rgb_w[1] *= dg; rgb_w[2] *= db;
-
-        // rgb_pw
-        rgb_w = m_cat02_inv(rgb_w);
-        rgb_w = m_hpe(rgb_w);
-
-        // rgb_paw
-        rgb_w = vc.lum_adapt(rgb_w);
-
-        let Aw = achromatic_rsp(rgb_w, Nbb);
-
-        let mut jch: Vec<[f64; 3]> = Vec::with_capacity(xyz.len());
-
-        for _xyz in xyz.xyz_vec {
-            let mut rgb = m_cat02(_xyz);
-
-            // rgb_C
-            rgb[0] *= dr; rgb[1] *= dg; rgb[2] *= db;
-
-            // rgb_p
-            rgb = m_cat02_inv(rgb);
-            rgb = m_hpe(rgb);
-
-            // rgb_pa
-            rgb = vc.lum_adapt(rgb);
-
-            let ca = rgb[0] - 12.0 / 11.0 * rgb[1] + rgb[2] / 11.0;
-            let cb = (rgb[0] + rgb[1] - 2. * rgb[2]) / 9.0;
-
-            // calculate h in radians
-            let mut h = cb.atan2(ca);
-            if h<0.0 { h+= 2.0* PI;}
-
-
-            // calculate J = jj
-            let jj = 100.0 * (achromatic_rsp(rgb, Nbb) / Aw).powf(vc.c * z);
-
-            // calculate C = cc
-            let et = 0.25f64 * ((h + 2.0).cos() + 3.8);
-            let t = (50000.0 / 13.0 * Ncb * vc.Nc * et * (ca * ca + cb * cb).sqrt()) / (rgb[0] + rgb[1] + 21.0 / 20.0 * rgb[2]);
-            let cc = t.powf(0.9) * (jj / 100.).sqrt() * (1.64 - (0.29f64).powf(n)).powf(0.73);
-
-            jch.push([jj, cc, h * 180.0/PI]);
-        }
-
-        CIECAM { vc, jch, xyz_w, obs: xyz.obs }
-    }
-
-    // Get J'a'b' coordinates
-    pub fn jab_p(&self) -> Vec<[f64; 3]> {
-
-        let mut jab_p_vec : Vec<[f64;3]> = Vec::with_capacity(self.jch.len());
-
-        for [jj,cc,h] in &self.jch {
-            let M = cc * self.vc.Fl().powf(0.25);
-            let MPrime = 1.0 / 0.0228 * (1.0 + 0.0228 * M).ln();
-            jab_p_vec.push(
-                [
-                    (1.0 + 100.0 * 0.007) * jj / (1.0 + 0.007 * jj),
-                    MPrime * (h * PI / 180.0).cos(),
-                    MPrime * (h * PI / 180.0).sin(),
-                ]
-            );
-        }
-        jab_p_vec
-    }
-}
-
-pub fn m_cat02(xyz: [f64; 3]) -> [f64; 3] {
-    [
-        0.7328 * xyz[0] + 0.4296 * xyz[1] - 0.1624 * xyz[2],
-        -0.7036 * xyz[0] + 1.6975 * xyz[1] + 0.0061 * xyz[2],
-        0.0030 * xyz[0] + 0.0136 * xyz[1] + 0.9834 * xyz[2],
-    ]
-}
-
-pub fn m_cat02_inv(rgb: [f64; 3]) -> [f64; 3] {
-    [
-        1.096124 * rgb[0] - 0.278869 * rgb[1] + 0.182745 * rgb[2],
-        0.454369 * rgb[0] + 0.473533 * rgb[1] + 0.072098 * rgb[2],
-        -0.009628 * rgb[0] - 0.005698 * rgb[1] + 1.015326 * rgb[2],
-    ]
-}
-
-pub fn m_hpe(rgb: [f64; 3]) -> [f64; 3] {
-    [
-        0.38971 * rgb[0] + 0.68898 * rgb[1] - 0.07868 * rgb[2],
-        -0.22981 * rgb[0] + 1.18340 * rgb[1] + 0.04641 * rgb[2],
-        0.0 * rgb[0] +  0.0 * rgb[1] + 1.0 * rgb[2],
-    ]
-}
-
-pub fn m_hpe_inv(rgb: [f64; 3]) -> [f64; 3] {
-    [
-        1.910197 * rgb[0]  - 1.112124 * rgb[1] + 0.201908 * rgb[2],
-        0.370950 * rgb[0] + 0.629054 * rgb[1] - 0.000008 * rgb[2],
-        0.0 * rgb[0] +  0.0 * rgb[1] + 1.0 * rgb[2],
-    ]
-}
-
-pub fn achromatic_rsp(rgb: [f64; 3], Nbb: f64) -> f64 {
-    (2.0 * rgb[0] + rgb[1] + rgb[2] / 20.0 - 0.305) * Nbb
+	println!("{:.3}", cam.data.transpose());
 }
 
 #[test]
-fn cie_cam_test() {
-    use crate::cie1931::CIE1931;
-    use crate::observers::ObserverKey;
-    use crate::filter::grey_flt;
-    use crate::sources::Spectra;
-    use crate::physics::assert_vec_eq;
-    use assert_approx_eq::assert_approx_eq;
-    let xyz = XYZ::from(
-        &Spectra::cie_d(5001.8, 1.0 / 1.8101228747229374),
-        &grey_flt(380.0, 5.0, 81, vec![0.1841865]),
-        &CIE1931,
-    );
+fn test_from_lab2(){
+	use crate::observers::CieObs1931;
+	use crate::illuminants::D50;
+//	use nalgebra::{dmatrix, convert};
+	let lab: CieLab<D50> = CieLab::new(Matrix3xX::from_vec(vec![
+		50.0, 0.0, 0.0,
+	]));
+	let cam: CieCam<ViewConditions<32, 20, SR_AVG, D_AUTO>, D50, CieObs1931> = lab.into();
+//	let want = matrix![
+//
+	//];
 
-    // values from CIECAM02 spreadsheet
-    let vcd = ViewConditions::default();
-    assert_approx_eq!(vcd.D(), 0.940656466);
-    assert_approx_eq!(vcd.k(), 0.00199601);
-    assert_approx_eq!(vcd.Fl(), 0.79370053);
-    let cam = CIECAM::from(xyz, ViewConditions::default());
-
-    // CIECAM02 spreadsheet
-    assert_approx_eq!(cam.jch[0][0], 39.74001389);
-    assert_approx_eq!(cam.jch[0][1], 0.5660349);
-    assert_approx_eq!(cam.jch[0][2], 112.403451);
-
-//	println!("{:?}", cam);
-
-
-    // http://www.cis.rit.edu/fairchild/files/CIECAM02.XLS
-    let tst_xyz = XYZ {
-        xyz_vec: vec![
-            [28.86602045, 18.41865185, 2.677891918], // Lab 50, 50, 50
-            [19.69905189, 18.41865185, 6.068714129], // 50, 10, 30
-            [17.75961545, 18.41865185, 2.677891918], // 50, 0, 50
-            [28.86602045, 18.41865185, 15.19916323], // 50, 50, 0
-        //	[0., 0., 0.], // 0,0,0
-            [15.95184479, 18.41865185, 45.32717872], // 50, -10, -50
-            [54.65318174, 56.68129075, 103.2566216], // 80, 0, -50
-        ],
-        obs: ObserverKey::CIE1931,
-        xyz_w: Some([96.421908, 100.0, 82.520498]),
-    };
-
-    let cam = CIECAM::from(tst_xyz, ViewConditions::default());
-
-//	println!("{:?}", cam.jch);
-
-    let want = vec![
-        [41.749269, 68.836414, 38.720187],
-        [40.138001, 27.410128, 69.268409],
-        [39.662698, 43.578235, 93.629232],
-        [41.935959, 55.425303, 1.766343],
-    //	[0., 0., 180.],
-        [38.787623, 60.277030, 240.725076],
-        [73.036617, 54.776410, 254.404297],
-    ];
-    for i in 0..want.len() {
-        assert_vec_eq(&cam.jch[i] ,&want[i], 1.0E-5);
-    }
+	println!("{}", cam.data);
 }
-
- */
 
 
  fn hue_composition_from_hue_angle(h:f64) -> f64 {
@@ -579,4 +351,10 @@ fn cie_cam_test() {
 	} else {
 		panic!("wrong hue angle")
 	} 
+ }
+
+ #[inline]
+ fn cone_adaptation(f_l:f64, x:f64) -> f64 {
+	let t = (f_l * x/100.0).powf(0.42);
+	400.0 * (t/(t+27.13)) + 0.1
  }
