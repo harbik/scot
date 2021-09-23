@@ -1,23 +1,4 @@
-/*!
-Spectral distributions of color samples, or color swatches, as found in color swatch books and guides. 
-
-Swatches are typically used to specify, or check, the color of products, and objects, such as the color of fabrics.
-To see their color, they need to be illuminated, typically using ambient light, such as daylight, or artificial light, provided by 
-LED or fluorescent lights. 
-The collections in this library represent spectral reflectivity distributions, normalized to a peak reflectivity of 1.0.
-They all implement the `SpectralData`, and `Swatch` traits.
-
-Currently, this library has the following collections:
-
-- X-Rites's ColorChecker chart samples, measured by BabelColor's Danny Pascale, averaged over 30 sample charts.
-
-
-*/
-
-//use std::{marker::PhantomData, vec::from_elem};
-
-
-
+#![doc = include_str!("swatches/swatches.md")]
 
 use nalgebra::{Const, DMatrix, OMatrix};
 

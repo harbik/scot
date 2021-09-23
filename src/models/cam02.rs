@@ -1,190 +1,23 @@
-/*!
-
-# CIECAM02 Color Model
-
-
-This is a complex model, and to get satisfactory results requires a good understanding of all its – sometimes confusing – input and output parameters.
-
-The output of the model are six color appearance attributes, or correlates,
-which are described by [By Luo et all in "CIECAM02 and Its Recent Developments"][CIECAM02LUO] as follows:
-
-<blockquote><i>
-
-- Brightness (Q)
-
-  This is a visual perception according to which an area appears to exhibit more or less light. This is an openended scale with a zero origin defining the black.
-  The brightness of a sample is affected by the luminance of the light source used. A surface colour illuminated by a higher luminance would appear brighter than the same surface illuminated by a lower luminance. \[...\]
-  Brightness is an absolute quantity, for example, a colour appears much brighter when it is viewed under bright outdoor sunlight than under moonlight. Hence, their Q values could be largely different
-
-- Lightness (J)
-
-  This is the brightness of an area judged relative to the brightness of a similarly illuminated reference white.
-  It is a relative quantity, for example, thinking a saturated red colour printed onto a paper. The paper is defined as reference white having a lightness of 100. By comparing the light reflected from both surfaces in the bright sunlight, the red has a lightness of about 40% of the reference white (J value of 40). When assessing the lightness of the same red colour under the moonlight against the same reference white paper, the lightness remains more or less the same with a J of 40.
-  It can be expressed by J = Q<sub>S</sub>/Q<sub>W</sub>, where Q<sub>S</sub> and Q<sub>W</sub> are the brightness values for the sample and reference white, respectively.
-
-- Colourfulness (M)
-
-  Colourfulness is that attribute of a visual sensation according to which an area appears to exhibit more or less chromatic content.
-  This is an open-ended scale with a zero origin defining the neutral colours. Similar to the brightness attribute, the colourfulness of a sample is also affected by luminance. An object illuminated under bright sunlight would appear more colourful than when viewed under moonlight, such as M value changes from 2000 to 1 with a ratio of 2000.
-
-- Chroma (C)
-
-  This is the colourfulness of an area judged as a proportion of the brightness of a similarly illuminated reference
-  white. This is an open-ended scale with a zero origin representing neutral colours. It can be expressed by C = M/Q<sub>W</sub>.
-  The same example is given here, a saturated red printed on a white paper. It has a colourfulness of 50 against the white paper having a brightness of 250 when viewed under sunlight. When viewed under dim light, colourfulness reduces to 25 and brightness of paper also reduces to half. Hence, the C value remains unchanged.
-
-- Saturation (S)
-
-  This is the colourfulness of an area judged in proportion to its brightness as expressed by s = M/Q, or s = C/J. This scale runs from zero, representing neutral colours, with an open end.
-  Taking Figs. 2.3–2.5 as an example, the green grass under sunlight is bright and colourful. In contrast, those under the tree appear dark and less colourful. Because they are the same grass in the field, we know that they have the same colour, but their brightness and colourfulness values are largely different. However, their saturation values will be very close because it is the ratio between brightness and colourfulness. Similar example can also be found in the image on the brick wall. Hence, saturation could be a good measure for detecting the number and size of objects in an image.
-
-- Hue (h  and H)
-
-  Hue is the attribute of a visual sensation according to which an area appears to be similar to one, or to proportions of two, of the perceived colours red, yellow, green and blue.
-  CIECAM02 predicts hue with two measures: hue angle (h) ranging from 0º to 360º, and hue composition (H) ranging from 0, through 100, 200, 300, to 400 corresponding to the psychological hues of red, yellow, green, blue and back to red. These four hues are the psychological hues, which cannot be described in terms of any combinations of the other colour names. All other hues can be described as a mixture of them. For example, an orange colour should be described as mixtures of red and yellow, such as 60% of red and 40% of yellow.
-
-</i></blockquote>
-
-Similar to CIELAB, also here two additional correlates are defined:
-
-- Redness-Greenness (a)
-
-- Yellowness-Blueness (b)
-
-
-# Viewing Conditions Input Parameters
-
-CIECAM02 takes into account the viewing conditions of the model target.
-To define these viewing condtions, the following terms are used:
-
-- A "Stimulus", or "Target", is the element for which a CIECAM02 values is determined. This can take different forms: it can be for example a color swatch, or color sample of a material, which is in the model assumed to have a 2º angular extend, and assumed to be uniform. For a display, it is a bit more confusing to defined the target: is it a single pixel, or a collection of uniform pixels, with an angular size of 2º, or is it the full display, with all the pixels set to the same RGB pixel values?
-
-- The next is "Reference White".
-For the model we need the its tristimulus values X<sub>W</sub>, Y<sub>W</sub>, and Z<sub>W</sub>, and its absolute luminance, L<sub>W</sub>.
-What is this Reference White, and its values?
-Are the Referenfe White tristimulus values obtained by measuring a perfectly white reflecting sample, instead of the "colored' target sample?
-Or is it the "Adopted White", as defined by ISO12231 as <i>"a stimulus that an observer who is adapted to the viewing environment would judge to be perfectly achromatic and to have a reflectance factor of unity (i.e., have absolute colorimetric coordinates that an observer would consider to be the perfect white diffuser)"</i>.
-Very confusingly, sometimes the term "Adapted White" is used as well, which is the white point an observers assigns to a scene,
-for example	an image viewed on a laptop computer, with the "adapted white" being the white in the scene of the image on the display, which can outdoor daylight scene, with a correlated color temperature of 6500K.
-Looking at a image scene on a monitor, it is not always clear what the white point in the image is supposed to be; a very clear example of this is the famous picture of a dress, which can be interpreted as white-yellow, or blue-black, depending on the white point adapted by the observer. In that particular case, it is impossible to to describe its color appearance by the CIECAM model, or for that matter any color model at all.
-
-- The "Proximal Field" is the area extending 2º around the Stimulus. This area is currently
-ignored in the model, and are considered to be part of the Background.
-
-- The "Background" in a model test set-up is the area around the Proximal Field, extending over a field angle of about 10º.
-When considering color swatches, this background area is typically well defined: for images not;
-sometimes the average of all the pixels in an image is taken as a representation of its background.
-In CIECAM, only the relative luminance of the background area is used, with the symbol Y<sub>B</sub>, and is often set to a value of 20.
-
-- "Surround" is the angular field outside the background, extending to an eye's full view.
-
-# CIECAM Model Input Parameters
-The following parameters are used in CIECAM02:
-
-
-The first two are the same as used in the CIELAB model:
-- the tristimulus values (X,Y,Z) of the target (e.g. surface, or pixel) to be described,
-- and the tristimulus values (X<sub>W</sub>,Y<sub>W</sub>,Z<sub>W</sub>) of the refetrence white (perfect white surface, or white pixel).
-For the model, the tristimulus values are normalized to Y<sub>W</sub>=100.
-
-
-- The absolute luminance of the adapting field (L<sub>A</sub>), in cd/m<sup>2</sup>, which should be ideally measured with a photometer,
-but which can be approximated by setting it to 20% of the luminance of the reference white L<sub>W</sub>, assuming an average reflectivity
-of 20% for the objects in the adapting field.
-For example, in a brightly lit room, average illuminance is 1000lux, which is approximately 318 cd/m<sup>2</sup>, so L<sub>W</sub>=318 cd/m2<sup>2</sup>,
-resulting in an L<sub>A</sub>=64 cd/m<sup>2</sup>.
-- The background relative luminance (Y<sub>b</sub>), which is 20 for the average "world grey" assumption in the previous item, but ideally be derived from
-the absolute luminances of the background, and the absolute luminance of the reference white.
-- A surround ratio (S<sub>R</sub>), the relative luminance of the target's surround, an area of approximately 10º in field around the target, which is assumed to have an angular extend of 2º. It is typically approximated by values described as "average", "dim", and
-"dark", and is used through its derived dimensionless parameters impact factor c, chromatic induction factor N<sub>c</sub>, and degree of
-adaptation F.
-- The last parameter is the parameter D, representing in how far color constancy is in effect, also known as discounting-the-illuminant phenomenom.
-It can either be approximated by using the other parameters, or set manually; D is set to 1.0 when the illuminant is fully discounted, for example when viewing surface colors in a bright environment,
-or is set to 0.0, at the other end of its range, when not in effect at all, such as when viewing pixels on a display in a complete dark environment,
-In practice the value of D is never 0.0, as there is always some adaptation taking place, and is in higher than 0.6 in almost all cases.
-If D is larger than 0, a chromatic adaptation transform is applied to a target's tristimulus values, described by the CIECAT02, the CIE recommended Chromatic Adaptation Transform as defined in 2002.
-
-
-[CIECAM02LUO]: https://link.springer.com/chapter/10.1007/978-1-4419-6190-7_2 "C. Fernandez-Maloigne (ed.), Advanced Color Image Processing and Analysis,  DOI 10.1007/978-1-4419-6190-7 2, Springer Science+Business Media New York 2013"
-
- */
+#![doc = include_str!("cam02.md")]
 
 use core::panic;
-use std::{marker::PhantomData, };
-
-use nalgebra::{Matrix3x1, Matrix3xX, SMatrix, matrix};
-
-use crate::{DefaultObserver, illuminants::{D65}, linterp, models::XYZValues, observers::{StandardObserver}};
-
+use std::{marker::PhantomData};
+use nalgebra::{Const, Dynamic, Matrix3x1, Matrix3xX, OMatrix, SMatrix, matrix};
+use crate::{
+	DefaultObserver, 
+	linterp, 
+	illuminants::{
+		D65, D50
+	}, 
+	observers::{
+		StandardObserver
+	}};
 use super::{CieLab, CieXYZ};
 
 /*
    TODO:
    - CIECAT02 transform for non-cie1931 observer?
 */
-
-pub trait CieCamParameters 
-where
-	Self: Default
-{
-
-    fn sr_value(&self) -> f64;
-
-    fn yb_value(&self) -> f64;
-
-    fn la_value(&self) -> f64;
-
-    fn d_value(&self) -> DFactor;
-
-    /*
-         Sr		 F		  c		 Nc
-        >=0.15 	1.0		0.69	1.0	Average
-        0.075	0.9		0.59	0.9	Dim // this is listed as 0 < Sr < 0.15
-        0.0		0.8		0.525	0.8	Dark
-    */
-
-    fn c(&self) -> f64 {
-        let s = self.sr_value();
-        if s >= 0.15 {
-            0.69
-        } else if s > 0.075 {
-			linterp(s, 0.075, 0.59, 0.15, 0.69)
-        } else {
-			linterp(s, 0.0, 0.525, 0.075, 0.59)
-        }
-    }
-
-    fn f(&self) -> f64 {
-		let c = self.c();
-        if c > 0.59 {
-			linterp(c, 0.59, 0.9, 0.69, 1.0)
-        } else {
-			linterp(c, 0.525, 0.8, 0.59, 0.9)
-        }
-    }
-
-	fn nc(&self) ->f64 {
-		self.f()
-	}
-
-    fn k(&self) -> f64 {
-        1. / (5. * self.la_value() + 1.)
-    }
-
-    fn fl(&self) -> f64 {
-        let k = self.k();
-        k.powi(4) * self.la_value()
-            + (1. - k.powi(4)).powi(2) / 10. * (5.0 * self.la_value()).powf(1. / 3.)
-    }
-    fn d(&self) -> f64 {
-        match self.d_value() {
-            DFactor::Auto => {
-                self.f() * (1.0 - (1.0 / 3.6) * ((-1.0 * self.la_value()) - 42.0) / 92.0).exp()
-            }
-            DFactor::D(v) => v,
-        }
-    }
-}
 
 pub static MHPE: SMatrix<f64, 3, 3> = matrix![
      0.38971, 0.68898, -0.07868;
@@ -208,22 +41,12 @@ pub static MCAT02INV: SMatrix<f64, 3, 3> = matrix![
      0.454369,  0.473533, 0.072098;
     -0.009628, -0.005698, 1.015326;
 ];
-/*
-pub static MCAT02: SMatrix<f64,3,3> = SMatrix::from_array_storage(ArrayStorage([
-    [0.7328, -0.7036, 0.003],
-    [0.4296, 1.6975, 0.0136],
-    [-0.1624, 0.0061, 0.9834]
-]));
- */
 
-#[test]
-fn test_mcat02() {
-    println!("{}", MCAT02);
-    println!("{}", MCAT02INV);
-    println!("{}", MCAT02.try_inverse().unwrap());
-    println!("{}", MHPE);
-    println!("{}", MHPE * MHPEINV);
-}
+pub static HUE_ANGLE_PARAMETERS: SMatrix<f64, 3, 5> = matrix![
+	/* h_i */	20.14, 	90.0, 	164.25, 237.53, 380.14;
+	/* e_i */	0.8,	0.7,	1.0,	1.2,	0.8;
+	/* H_i */	0.0,	100.0,	200.0,	300.0,	400.0;
+];
 
 /**
 # CieCam View conditions
@@ -250,46 +73,100 @@ fn test_mcat02() {
 #[derive(Default)]
 pub struct ViewConditions<const LA: usize, const YB: usize, const SR1000: usize, const D100: isize>;
 
-type VcAvg = ViewConditions<100, 20, SR_AVG, D_AUTO>;
+/**
+ # CieCam View Parameters
+
+ Parameters derived from viewconditions, needed to calculate the CieCamValues.
+ */
+ #[derive(Debug)]
+pub struct CieCamViewParameters {
+	// Surround
+	pub s_r: f64,
+	pub c: f64,
+	pub f: f64,
+	pub n_c: f64, 
+
+	// Ambient
+	pub l_a: f64,
+	pub k: f64,
+	pub f_l: f64,
+	pub d: f64,
+
+
+	// Background
+	pub y_b: f64,
+}
+
+/*
+		Sr		 F		  c		 Nc
+	>=0.15 	1.0		0.69	1.0	Average
+	0.075	0.9		0.59	0.9	Dim // this is listed as 0 < Sr < 0.15
+	0.0		0.8		0.525	0.8	Dark
+*/
+
+impl<
+	const LA:usize, 
+	const YB:usize, 
+	const SR1000:usize, 
+	const D100:isize
+	> From<ViewConditions<LA,YB,SR1000,D100>> for CieCamViewParameters {
+    fn from(_: ViewConditions<LA,YB,SR1000,D100>) -> Self {
+			// Surround dependent parameters
+			let s_r = SR1000 as f64/1000.0;
+			let c = 
+				if s_r >= 0.15 {
+					0.69
+				} else if s_r > 0.075 {
+					linterp(s_r, 0.075, 0.59, 0.15, 0.69)
+				} else {
+					linterp(s_r, 0.0, 0.525, 0.075, 0.59)
+				};
+			let f = 
+				if c > 0.59 {
+					linterp(c, 0.59, 0.9, 0.69, 1.0)
+				} else {
+					linterp(c, 0.525, 0.8, 0.59, 0.9)
+				};
+			let n_c = f;
+
+			// Ambient parameters
+			let l_a = LA as f64;
+    		let k = 1. / (5. * l_a + 1.);
+			let f_l = k.powi(4) * l_a + (1. - k.powi(4)).powi(2) / 10. * (5.0 * l_a).powf(1. / 3.);
+			let d = match D100 {
+					D_AUTO => { (f * (1.0 - (1.0 / 3.6) * ((-l_a - 42.0) / 92.0).exp())).clamp(0.0, 1.0) }
+					_ => ((D100 as f64)/100.0).clamp(0.0, 1.0),
+				};
+
+			// Background
+			let y_b = YB as f64;
+
+		Self { s_r, c, f, n_c, l_a, k, f_l, d, y_b } 
+    }
+}
+
+
+
+type VcAvg = ViewConditions<318, 20, SR_AVG, D_AUTO>;
+
+#[test]
+fn test_vc_avg(){
+	// AppModEx.xls From MarkFairchild.org's site
+	use approx::assert_abs_diff_eq;
+	let p: CieCamViewParameters = ViewConditions::<32, 20, SR_AVG, D_AUTO>::default().into();
+	let CieCamViewParameters{c,d,k,f_l, f,.. } = p;
+	assert_abs_diff_eq!(c, 0.69);
+	assert_abs_diff_eq!(k, 0.0062112, epsilon=5E-7);
+	assert_abs_diff_eq!(d, 0.87573, epsilon=5E-6);
+	assert_abs_diff_eq!(f_l, 0.5429, epsilon=5E-5);
+	assert_abs_diff_eq!(f, 1.0, epsilon=5E-5);
+}
 
 pub const SR_AVG: usize = 0.150E3 as usize;
 pub const SR_DIM: usize = 0.075E3 as usize;
 pub const SR_DARK: usize = 0;
 
 pub const D_AUTO: isize = -1;
-
-pub enum DFactor {
-    Auto,
-    D(f64),
-}
-
-impl<
-	const LA: usize, 
-	const YB: usize, 
-	const SR1000: usize, 
-	const D100: isize
-	> CieCamParameters for ViewConditions<LA, YB, SR1000, D100>
-{
-    fn sr_value(&self) -> f64 {
-        SR1000 as f64 / 1000.0
-    }
-
-    fn yb_value(&self) -> f64 {
-        YB as f64
-    }
-
-    fn la_value(&self) -> f64 {
-        LA as f64
-    }
-
-    fn d_value(&self) -> DFactor {
-        if D100 == D_AUTO {
-            DFactor::Auto
-        } else {
-            DFactor::D((D100 as f64 / 100.0).clamp(0.0, 1.0))
-        }
-    }
-}
 
 
 // Illumiant reference white Lw
@@ -298,6 +175,7 @@ impl<
 // Table 16.4, Mark Fairchild, Color Appearance Models
 // /*X	Y	Z*/	Xw	Yw	Zw	LA	F	D	Yb	Nc	Fl	Nbb,Ncb	h	H	/*Hc*/	J	Q	S	C	M	ac	bc	am	bm	as	bs
 
+#[doc(hidden)]
 pub static CIECAM_WANT: SMatrix<f64, 4, 23> = matrix![
 /*19.01, 20.0, 21.78,*/ 95.05, 100.0, 108.88, 318.31, 1.0, 0.994, 20.0, 1.0, 1.17, 1.0, 219.0, 278.1, /*"78B, 22G",*/ 41.73, 195.37, 2.36, 0.1, 0.11, -0.08, -0.07, -0.08, -0.07, -1.83, -1.49;
 /*57.06, 43.06, 31.96,*/ 95.05, 100.0, 108.88, 31.83, 1.0, 0.875, 20.0, 1.0, 0.54, 1.0, 19.6, 399.6, /*100R,*/ 65.96, 152.67, 52.25, 48.57, 41.67, 45.77, 16.26, 39.27, 13.95, 49.23, 17.49;
@@ -306,15 +184,28 @@ pub static CIECAM_WANT: SMatrix<f64, 4, 23> = matrix![
 ];
 
 pub struct CieCam<V = VcAvg, I = D65, C = DefaultObserver> {
-	pub data: Matrix3xX<f64>, // JCh
+	pub data: OMatrix<f64, Const<9>, Dynamic>, 
 	v: PhantomData<*const V>,
 	i: PhantomData<*const I>,
 	c: PhantomData<*const C>,
 }
 
+pub enum CieCamCorrelate {
+	Brightness = 0,
+	Lightness = 1,
+	RednessGreenness = 2,
+	YellownessBlueness = 3,
+	HueAngle = 4,
+	HueComposition = 5,
+	Chroma = 6,
+	Colorfulness = 7,
+	Saturation = 8,
+
+}
+
 impl<V, I, C> CieCam<V, I, C> {
 
-    pub fn new(data: Matrix3xX<f64>) -> Self { 
+    pub fn new(data: OMatrix<f64, Const<9>, Dynamic>) -> Self { 
 		Self { data, i:PhantomData, c:PhantomData, v:PhantomData } 
 	}
 
@@ -323,40 +214,45 @@ impl<V, I, C> CieCam<V, I, C> {
     }
 }
 
-impl<V, I,C> From<CieLab<I,C>> for CieCam<V,I,C>
+impl<V,I,C,L> From<L> for CieCam<V,I,C>
 where
 	I: Default + Into<CieXYZ<C>>,
+	L: Into<CieLab<I,C>>,
 	C: StandardObserver,
-	V: CieCamParameters,
+	V: Default + Into<CieCamViewParameters>,
 {
-    fn from(lab: CieLab<I,C>) -> Self {
-		let vc = V::default();
-		let xyz_w: CieXYZ<C> = I::default().into().normalize(100.0);
+    fn from(samples: L) -> Self {
+		let vc: CieCamViewParameters = V::default().into();
+		let xyz_w: CieXYZ<C> = I::default().into()/* .normalize(100.0)*/;
 		let y_w = xyz_w.data[(1,0)]; // = 100.0
-		let n = vc.yb_value()/y_w;
-		let c = vc.c();
+		let n = vc.y_b/y_w;
 		let z = n.sqrt() + 1.48;
 		let n_bb = 0.725 * n.powf(-0.2);
 		let n_cb = n_bb;
-		let d = vc.d();
-		let f_l = vc.fl();
-
 		let rgb_w =  &MCAT02 * &xyz_w.data;
-		
-		let nom = Matrix3x1::from_element(d * y_w);
+		let nom = Matrix3x1::from_element(vc.d * y_w);
 		let mut d_rgb = nom.component_div(&rgb_w);
-		d_rgb.add_scalar_mut(1.0 + d);
+		d_rgb.add_scalar_mut(1.0 - vc.d);
 		let rgb_wc = d_rgb.component_mul(&rgb_w);
 		let rgb_p_w = &MHPE * &MCAT02INV * rgb_wc;
+
+		// RGB'<sub>a</sub> Post-adaptation cone responses
 		let rgb_p_aw = rgb_p_w.map(|r|{
-			let t = (f_l * r/100.0).powf(0.42);
+			let t = (vc.f_l * r/100.0).powf(0.42);
 			400.0 * (t/(t+27.13)) + 0.1
 		});
+
+		// Achromatic Response for reference white
 		let a_w = (2.0 * rgb_p_aw.x + rgb_p_aw.y + rgb_p_aw.z/20.0-0.305)*n_bb;
+
+		// Calculate XYZ values from CieLab input data
+		let lab: CieLab<I,C> = samples.into();
+		let n_samples = lab.len();
 		let xyz: CieXYZ<C> = lab.into();
 
+
 		let rgb = &MCAT02 * xyz.data;
-		let d_rgbs = Matrix3xX::from_fn(rgb.ncols(), |i,j|
+		let d_rgbs = Matrix3xX::from_fn(rgb.ncols(), |i,_j|
 			match i {
 				0 => d_rgb.x,
 				1 => d_rgb.y,
@@ -368,46 +264,99 @@ where
 		let rgb_p = MHPE * MCAT02INV * rgb_c;
 		let rgb_p_a = rgb_p.map(|r|{
 			if r>=0.0 {
-				let t = (f_l * r/100.0).powf(0.42);
+				let t = (vc.f_l * r/100.0).powf(0.42);
 				400.0 * (t/(t+27.13)) + 0.1
 			} else {
-				let t = (-f_l * r/100.0).powf(0.42);
+				let t = (-vc.f_l * r/100.0).powf(0.42);
 				-400.0 * (t/(t+27.13)) + 0.1
 			}
 		});
-		let jab = Matrix3xX::from_fn(rgb.ncols(),|i,j|{
-			match i {
-				0 => { // Step 8: J
-					let a = (2.0 * rgb_p_a.column(j).x + rgb_p_a.column(j).y + rgb_p_a.column(j).z/20.0 - 0.305) * n_bb;
-					100.0 * (a/a_w).powf(c*z)
-				},
-				1 => { // Step 5: a
-					rgb_p_a.column(j).x	- 12.0/11.0 * rgb_p_a.column(j).y + rgb_p_a.column(j).z / 11.0
-				},
-				2 => {
-					(rgb_p_a.column(j).x + rgb_p_a.column(j).y - 2.0 *  rgb_p_a.column(j).z) / 9.0
+		
 
-				},
-				_ => panic!("index error!"),
+		// 9xX Matrix, with 9 correlates in rows Q, J, a, b, h, H, C, M, s for the number of input samples
 
+		let mut vdata: Vec<f64> = Vec::with_capacity(9*n_samples);
+		for j in 0..n_samples {
 
-			}
-		});
+			let rp = rgb_p_a.column(j).x;
+			let gp = rgb_p_a.column(j).y;
+			let bp = rgb_p_a.column(j).z;
+			let achromatic_response = (2.0 * rp + gp + bp/20.0 - 0.305) * n_bb; // achromatic response
 
-		Self::new(jab)
+			// Lightness (J), Red-Greenness (a) and Blue-Yellowness (b)
+			let lightness = 100.0 * (achromatic_response/a_w).powf(vc.c*z);
+			let brightness = 4.0/vc.c * (lightness/100.0).sqrt() * (a_w + 4.0) * vc.f_l.powf(0.25);
+			let red_green = rp - 12.0 * gp/11.0 + bp/11.0; // a
+			let blue_yellow = (rp + gp - 2.0 *  bp) / 9.0; // b
+
+			// Hue angle (h)
+			let hue_angle = {
+				let theta = blue_yellow.atan2(red_green).to_degrees();
+				if theta<0.0 { theta + 360.0}
+				else {theta}
+			};
+			//
+			
+			/*
+			// Hue composition (H)
+			let hp = if hue_angle<HUE_ANGLE_PARAMETERS[(0,0)] {
+				hue_angle + 360.0
+			} else {
+				hue_angle
+			};
+			let m: usize = 
+				if      hp >= HUE_ANGLE_PARAMETERS[(0,0)] && hp < HUE_ANGLE_PARAMETERS[(0,1)] { 0 }
+				else if hp >= HUE_ANGLE_PARAMETERS[(0,1)] && hp < HUE_ANGLE_PARAMETERS[(0,2)] { 1 }
+				else if hp >= HUE_ANGLE_PARAMETERS[(0,2)] && hp < HUE_ANGLE_PARAMETERS[(0,3)] { 2 }
+				else if hp >= HUE_ANGLE_PARAMETERS[(0,3)] && hp < HUE_ANGLE_PARAMETERS[(0,4)] { 3 }
+				else { panic!("Hue angle out of range");
+			};
+			println!("m: {}", m);
+			println!("hp: {}", hp);
+			let hi = HUE_ANGLE_PARAMETERS[(0,m)];
+			let hl = HUE_ANGLE_PARAMETERS[(2,m)];
+			let hr = HUE_ANGLE_PARAMETERS[(2,m+1)];
+			let el = HUE_ANGLE_PARAMETERS[(1,m)];
+			let er = HUE_ANGLE_PARAMETERS[(1,m+1)]; 
+			//let hue_composition = hi + (100.0 * (hp - hl)/el) / ((hp-hl)/el + (hr-hp)/er);
+			*/
+			let hue_composition = hue_composition_from_hue_angle(hue_angle);
+
+			// Chroma (C), Colorfulness (M), and saturation (S)
+			let eccentricity = 0.25 * ((hp.to_radians() + 2.0).cos() + 3.8);
+			println!("e_t*** {}", eccentricity);
+			println!("e_t*** Fairchild {}", 12500.0/13.0*4.0*eccentricity);
+			let t = ((50_000.0/13.0 * vc.n_c * n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(rp + gp + 21.0 * bp/20.0);
+			println!("t*** {}", t);
+			let chroma = t.powf(0.9) * (lightness/100.0).sqrt() * (1.64 - 0.29f64.powf(n)).powf(0.73);
+			let colorfulness = chroma * vc.f_l.powf(0.25);
+			let saturation = 100.0 * (colorfulness/brightness).sqrt();
+			vdata.push(lightness); //  J
+			vdata.push(brightness); // Q
+			vdata.push(red_green); // a
+			vdata.push(blue_yellow); // b
+			vdata.push(chroma); // C
+			vdata.push(colorfulness); // M
+			vdata.push(saturation); // s
+			vdata.push(hue_angle); // h
+			vdata.push(hue_composition); // H
+
+		}
+		let data = OMatrix::<f64, Const::<9>, Dynamic>::from_vec(vdata);
+		Self::new(data)
     }
 }
 
 #[test]
 fn test_from_lab(){
 	use crate::observers::CieObs1931;
-	let lab: CieLab<D65> = CieLab::new(Matrix3xX::from_vec(vec![
-		19.01, 20.0, 21.78, 
-	//	57.06, 43.06, 31.96,
-		3.53, 6.56, 2.14,
+	let lab: CieLab<D50> = CieLab::new(Matrix3xX::from_vec(vec![
+	//	19.01, 20.0, 21.78, 
+		71.5957, 44.2271, 18.1105,
+//		3.53, 6.56, 2.14,
 //		19.01, 20.0, 21.78,
 	]));
-	let cam: CieCam<ViewConditions<318, 20, SR_AVG, D_AUTO>, D65, CieObs1931> = lab.into();
+	let cam: CieCam<ViewConditions<32, 20, SR_AVG, D_AUTO>, D50, CieObs1931> = lab.into();
 	println!("{}", cam.data);
 }
 
@@ -418,91 +367,6 @@ pub type VcDark = ViewConditions<DARK, 80, 525, 80, false>;
  */
 
 /*
-use std::f64::consts::PI;
-use std::iter::Iterator;
-
-use crate::cie::XYZ;
-use crate::observers::ObserverKey;
-
-#[derive(Clone, Copy, Debug, Serialize)]
-pub struct ViewConditions {
-    pub D_opt: Option<f64>,
-    pub F: f64,
-    pub La: f64,
-    pub Nc: f64,
-    pub Yb: f64,
-    pub c: f64,
-}
-
-impl ViewConditions {
-    pub fn new(Yb: f64, F: f64, Nc: f64, c: f64, La: f64, D_opt: Option<f64>) -> ViewConditions {
-        ViewConditions {
-            Yb,
-            F,
-            Nc,
-            c,
-            La,
-            D_opt,
-        }
-    }
-
-    #[inline]
-    pub fn k(&self) -> f64 {
-        1. / (5. * self.La + 1.)
-    }
-
-    #[inline]
-    pub fn Fl(&self) -> f64 {
-        let k = self.k();
-        k.powi(4) * self.La + (1. - k.powi(4)).powi(2) / 10. * (5.0 * self.La).powf(1. / 3.)
-    }
-
-    pub fn D(&self) -> f64 {
-        let D: f64;
-        if let Some(d) = self.D_opt {
-            D = d;
-        } else {
-            D = self.F * (1.0 - (1.0 / 3.6) * ((-1.0 * self.La - 42.0) / 92.0).exp());
-        }
-
-        if D < 0.0 {
-            0.0
-        } else if D > 1.0 {
-            1.0
-        } else {
-            D
-        }
-    }
-
-    pub fn lum_adapt(&self, rgb: [f64; 3]) -> [f64; 3] {
-        let fl = self.Fl();
-        let mut rgb_adapt = rgb.clone();
-        rgb_adapt.iter_mut().for_each(|v| {
-            if *v >= 0.0 {
-                let t = (fl * *v / 100.).powf(0.42);
-                *v = 400. * t / (27.13 + t) + 0.1
-            } else {
-                let t = (-fl * *v / 100.).powf(0.42);
-                *v = -400. * t / (27.13 + t) + 0.1
-            }
-        });
-        rgb_adapt
-    }
-}
-
-impl Default for ViewConditions {
-    fn default() -> Self {
-        Self {
-            Yb: 20.0,
-            c: 0.69,
-            Nc: 1.0,
-            F: 1.0,
-            La: 100.0,
-            //		D_opt: Some(1.0),
-            D_opt: None,
-        }
-    }
-}
 
 #[derive(Debug, Serialize, Clone)]
 pub struct CIECAM {
@@ -699,3 +563,20 @@ fn cie_cam_test() {
 }
 
  */
+
+
+ fn hue_composition_from_hue_angle(h:f64) -> f64 {
+	if h>=20.14 && h<=90.0 {
+		(100.0*(h-20.14)/0.8)/(((h-20.14)/0.8)+(90.0-h)/0.7)
+	} else if h>=90.0 && h<=164.25 {
+		100.0+(100.0*(h-90.0)/0.7)/(((h-90.0)/0.7)+(164.25-h))
+	} else if h>=164.25 && h<=237.53 {
+		200.0+(100.0*(h-164.25))/((h-164.25)+((237.53-h)/1.2))
+	} else if h>=237.53 && h<=380.14 {
+		300.0+(100.0*(h-237.53) /1.2)/(((h-237.53)/1.2)+(380.14-h)/0.8)
+	} else if h<20.14 {
+		300.0+(100.0*((h+360.0)-237.53) /1.2)/((((h+360.0)-237.53)/1.2)+(380.14-(h+360.0))/0.8)
+	} else {
+		panic!("wrong hue angle")
+	} 
+ }

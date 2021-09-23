@@ -72,7 +72,7 @@ macro_rules! illuminant {
 			fn from(ill: $ILL<I>) -> Self {
 				//use $crate::illuminants::Illuminant;
 				use $crate::spectra::SpectralDistribution;
-				ill.xyz()
+				ill.xyz().normalize(100.0)
 			}
 		}
 	};
@@ -110,7 +110,7 @@ macro_rules! illuminant {
 			fn from(ill: $ILL) -> Self {
 				//use $crate::illuminants::Illuminant;
 				use $crate::spectra::SpectralDistribution;
-				ill.xyz()
+				ill.xyz().normalize(100.0)
 			}
 		}
 			
@@ -149,7 +149,7 @@ macro_rules! illuminant {
 			fn from(ill: $ILL) -> Self {
 				//use $crate::illuminants::Illuminant;
 				use $crate::spectra::SpectralDistribution;
-				ill.xyz()
+				ill.xyz().normalize(100.0)
 			}
 		}
 			

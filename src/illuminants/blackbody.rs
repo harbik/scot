@@ -171,7 +171,7 @@ impl Illuminant for Planckian {
 
 impl<C: StandardObserver> From<Planckian> for CieXYZ<C> {
     fn from(p: Planckian) -> Self {
-		p.xyz()
+		p.xyz().normalize(100.0)
     }
 }
 

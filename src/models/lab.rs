@@ -42,6 +42,7 @@ where
     I: Default,
 	I: Into<CieXYZ<C>>,
 {
+	// Scaled to Yn = 100
     fn from(lab: CieLab<I, C>) -> Self {
         let ill = I::default();
 		let xyz: CieXYZ<C> = ill.into();
@@ -49,9 +50,9 @@ where
 		let mut v: Vec<f64> = Vec::with_capacity(lab.data.len());
         for LabValues { l, a, b } in lab {
             let s = (l + 16f64) / 116f64;
-            v.push(xn * lab_finv(s + a / 500f64));
-			v.push(yn * lab_finv(s));
-			v.push(zn * lab_finv(s - b / 200f64));
+            v.push(100.0 * xn / yn * lab_finv(s + a / 500f64));
+			v.push(100.0 * lab_finv(s));
+			v.push(100.0 * zn / yn * lab_finv(s - b / 200f64));
         }
 		Self::new(Matrix3xX::from_vec(v))
     }
