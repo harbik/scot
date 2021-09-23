@@ -3,13 +3,7 @@
 use core::panic;
 use std::{marker::PhantomData};
 use nalgebra::{Const, Dynamic, Matrix3x1, Matrix3xX, OMatrix, SMatrix, matrix};
-use crate::{
-	DefaultObserver, 
-	linterp, 
-	illuminants::{
-		D65,
-	}, 
-	observers::{
+use crate::{DefaultObserver, illuminants::{D65, Illuminant}, linterp, observers::{
 		StandardObserver
 	}};
 use super::{CieLab, CieXYZ};
@@ -73,7 +67,7 @@ pub struct ViewConditions<const LA: usize, const YB: usize, const SR1000: usize,
  Parameters derived from viewconditions, needed to calculate the CieCamValues.
  */
  #[derive(Debug)]
-pub struct CieCamViewParameters {
+pub struct CieCamViewParameters<I, C> {
 	// Surround
 	pub s_r: f64,
 	pub c: f64,
@@ -89,6 +83,32 @@ pub struct CieCamViewParameters {
 
 	// Background
 	pub y_b: f64,
+
+	// Illuminant dependent parameters
+	pub y_w: f64,
+	pub n: f64,
+	pub z: f64,
+	pub n_bb: f64,
+	pub n_cb: f64,
+	pub d_rgb: Matrix3x1<f64>,
+	pub a_w: f64,
+
+	i: PhantomData<*const I>,
+	obs: PhantomData<*const C>,
+}
+
+impl<I, C: StandardObserver> CieCamViewParameters<I, C> {
+	pub fn post_adaptation_cone_response_from_xyz(&self, xyz: CieXYZ<C>) -> Matrix3xX<f64> {
+		let n_samples = xyz.len();
+		let rgb = &MCAT02 * xyz.data;
+		let d_rgbs = Matrix3xX::from_iterator(n_samples, self.d_rgb.as_slice().iter().cycle().take(3*n_samples).cloned()); // repeat columns
+		let rgb_c = d_rgbs.component_mul(&rgb);
+		let rgb_p = MHPE * MCAT02INV * rgb_c;
+		let rgb_p_a = rgb_p.map(|r|cone_adaptation(self.f_l, r));
+		rgb_p_a
+
+	}
+    
 }
 
 /*
@@ -98,12 +118,12 @@ pub struct CieCamViewParameters {
 	0.0		0.8		0.525	0.8	Dark
 */
 
-impl<
-	const LA:usize, 
-	const YB:usize, 
-	const SR1000:usize, 
-	const D100:isize
-	> From<ViewConditions<LA,YB,SR1000,D100>> for CieCamViewParameters {
+impl< C, I, const LA:usize, const YB:usize, const SR1000:usize, const D100:isize > 
+	From<ViewConditions<LA,YB,SR1000,D100>> for CieCamViewParameters<I, C> 
+	where 
+		C: StandardObserver,
+		I: Illuminant + Default + Into<CieXYZ<C>> 
+	 {
     fn from(_: ViewConditions<LA,YB,SR1000,D100>) -> Self {
 			// Surround dependent parameters
 			let s_r = SR1000 as f64/1000.0;
@@ -135,7 +155,23 @@ impl<
 			// Background
 			let y_b = YB as f64;
 
-		Self { s_r, c, f, n_c, l_a, k, f_l, d, y_b } 
+			// Further Illuminant and Viewing Environment derived parameters
+			let xyz_w: CieXYZ<C> = I::default().into()/* .normalize(100.0)*/;
+			let y_w = xyz_w.data[(1,0)]; // = 100.0
+			let n = y_b/y_w;
+			let z = n.sqrt() + 1.48;
+			let n_bb = 0.725 * n.powf(-0.2);
+			let n_cb = n_bb;
+			let rgb_w =  &MCAT02 * &xyz_w.data;
+			let nom = Matrix3x1::from_element(d * y_w);
+			let mut d_rgb = nom.component_div(&rgb_w);
+			d_rgb.add_scalar_mut(1.0 - d);
+			let rgb_wc = d_rgb.component_mul(&rgb_w);
+			let rgb_p_w = &MHPE * &MCAT02INV * rgb_wc;
+			let rgb_p_aw = rgb_p_w.map(|r| cone_adaptation(f_l,r));
+			let a_w = (2.0 * rgb_p_aw.x + rgb_p_aw.y + rgb_p_aw.z/20.0-0.305)*n_bb;
+
+		Self { s_r, c, f, n_c, l_a, k, f_l, d, y_b, y_w, n, z, n_bb, n_cb, d_rgb, a_w, i: PhantomData, obs:PhantomData} 
     }
 }
 
@@ -143,58 +179,17 @@ impl<
 
 type VcAvg = ViewConditions<318, 20, SR_AVG, D_AUTO>;
 
-#[test]
-fn test_vc_avg(){
-	// AppModEx.xls From MarkFairchild.org's site
-	use approx::assert_abs_diff_eq;
-	let p: CieCamViewParameters = ViewConditions::<32, 20, SR_AVG, D_AUTO>::default().into();
-	let CieCamViewParameters{c,d,k,f_l, f,.. } = p;
-	assert_abs_diff_eq!(c, 0.69);
-	assert_abs_diff_eq!(k, 0.0062112, epsilon=5E-7);
-	assert_abs_diff_eq!(d, 0.87573, epsilon=5E-6);
-	assert_abs_diff_eq!(f_l, 0.5429, epsilon=5E-5);
-	assert_abs_diff_eq!(f, 1.0, epsilon=5E-5);
-}
-
 pub const SR_AVG: usize = 0.150E3 as usize;
 pub const SR_DIM: usize = 0.075E3 as usize;
 pub const SR_DARK: usize = 0;
 
 pub const D_AUTO: isize = -1;
 
-
-// Illumiant reference white Lw
-
-
-// Table 16.4, Mark Fairchild, Color Appearance Models
-// /*X	Y	Z*/	Xw	Yw	Zw	LA	F	D	Yb	Nc	Fl	Nbb,Ncb	h	H	/*Hc*/	J	Q	S	C	M	ac	bc	am	bm	as	bs
-
-#[doc(hidden)]
-pub static CIECAM_WANT: SMatrix<f64, 4, 23> = matrix![
-/*19.01, 20.0, 21.78,*/ 95.05, 100.0, 108.88, 318.31, 1.0, 0.994, 20.0, 1.0, 1.17, 1.0, 219.0, 278.1, /*"78B, 22G",*/ 41.73, 195.37, 2.36, 0.1, 0.11, -0.08, -0.07, -0.08, -0.07, -1.83, -1.49;
-/*57.06, 43.06, 31.96,*/ 95.05, 100.0, 108.88, 31.83, 1.0, 0.875, 20.0, 1.0, 0.54, 1.0, 19.6, 399.6, /*100R,*/ 65.96, 152.67, 52.25, 48.57, 41.67, 45.77, 16.26, 39.27, 13.95, 49.23, 17.49;
-/*3.53, 6.56, 2.14,*/ 109.85, 100.0, 35.58, 318.31, 1.0, 0.994, 20.0, 1.0, 1.17, 1.0, 177.1, 220.4, /*"80G, 20B",*/ 21.79, 141.17, 58.79, 46.94, 48.8, -46.89, 2.43, -48.74, 2.43, -58.72, 2.93;
-/*19.01, 20.0, 21.78,*/ 109.85, 100.0, 35.58, 31.83, 1.0, 0.875, 20.0, 1.0, 0.54, 1.0, 248.9, 305.8, /*"94B, 6R",*/ 42.53, 122.83, 60.22, 51.92, 44.54, -18.69, -48.44, -16.03, -41.56, -21.67, -56.18;
-];
-
 pub struct CieCam<V = VcAvg, I = D65, C = DefaultObserver> {
 	pub data: OMatrix<f64, Const<9>, Dynamic>, 
 	v: PhantomData<*const V>,
 	i: PhantomData<*const I>,
 	c: PhantomData<*const C>,
-}
-
-pub enum CieCamCorrelate {
-	Brightness = 0,
-	Lightness = 1,
-	RednessGreenness = 2,
-	YellownessBlueness = 3,
-	HueAngle = 4,
-	HueComposition = 5,
-	Chroma = 6,
-	Colorfulness = 7,
-	Saturation = 8,
-
 }
 
 impl<V, I, C> CieCam<V, I, C> {
@@ -213,49 +208,34 @@ where
 	I: Default + Into<CieXYZ<C>>,
 	L: Into<CieLab<I,C>>,
 	C: StandardObserver,
-	V: Default + Into<CieCamViewParameters>,
+	V: Default + Into<CieCamViewParameters<I,C>>,
 {
     fn from(samples: L) -> Self {
-		let vc: CieCamViewParameters = V::default().into();
-		let xyz_w: CieXYZ<C> = I::default().into()/* .normalize(100.0)*/;
-		let y_w = xyz_w.data[(1,0)]; // = 100.0
-		let n = vc.y_b/y_w;
-		let z = n.sqrt() + 1.48;
-		let n_bb = 0.725 * n.powf(-0.2);
-		let n_cb = n_bb;
-		let rgb_w =  &MCAT02 * &xyz_w.data;
-		let nom = Matrix3x1::from_element(vc.d * y_w);
-		let mut d_rgb = nom.component_div(&rgb_w);
-		d_rgb.add_scalar_mut(1.0 - vc.d);
-		let rgb_wc = d_rgb.component_mul(&rgb_w);
-		let rgb_p_w = &MHPE * &MCAT02INV * rgb_wc;
-
-		// RGB'<sub>a</sub> Post-adaptation cone responses
-		let rgb_p_aw = rgb_p_w.map(|r| cone_adaptation(vc.f_l,r));
-
-		// Achromatic Response for reference white
-		let a_w = (2.0 * rgb_p_aw.x + rgb_p_aw.y + rgb_p_aw.z/20.0-0.305)*n_bb;
+		let vc: CieCamViewParameters<I,C> = V::default().into();
 
 		// Calculate XYZ values from CieLab input data
 		let lab: CieLab<I,C> = samples.into();
 		let n_samples = lab.len();
 		let xyz: CieXYZ<C> = lab.into();
+		/*
 		let rgb = &MCAT02 * xyz.data;
-		let d_rgbs = Matrix3xX::from_iterator(n_samples, d_rgb.as_slice().iter().cycle().take(3*n_samples).cloned()); // repeat columns
+		let d_rgbs = Matrix3xX::from_iterator(n_samples, vc.d_rgb.as_slice().iter().cycle().take(3*n_samples).cloned()); // repeat columns
 		let rgb_c = d_rgbs.component_mul(&rgb);
 		let rgb_p = MHPE * MCAT02INV * rgb_c;
 		let rgb_p_a = rgb_p.map(|r|cone_adaptation(vc.f_l, r));
+		 */
+		let rgb_p_a = vc.post_adaptation_cone_response_from_xyz(xyz);
 
 		// 9xX Matrix, with 9 correlates in rows J, Q, a, b, C, M, s, h, H for the number of input samples
 		let mut vdata: Vec<f64> = Vec::with_capacity(9*n_samples);
 		for j in 0..n_samples {
 
 			let [rp, gp, bp] = [rgb_p_a[(0,j)], rgb_p_a[(1,j)], rgb_p_a[(2,j)]];
-			let achromatic_response = (2.0 * rp + gp + bp/20.0 - 0.305) * n_bb; // achromatic response
+			let achromatic_response = (2.0 * rp + gp + bp/20.0 - 0.305) * vc.n_bb; // achromatic response
 
 			// Lightness (J), Red-Greenness (a) and Blue-Yellowness (b)
-			let lightness = 100.0 * (achromatic_response/a_w).powf(vc.c*z);
-			let brightness = 4.0/vc.c * (lightness/100.0).sqrt() * (a_w + 4.0) * vc.f_l.powf(0.25);
+			let lightness = 100.0 * (achromatic_response/vc.a_w).powf(vc.c*vc.z);
+			let brightness = 4.0/vc.c * (lightness/100.0).sqrt() * (vc.a_w + 4.0) * vc.f_l.powf(0.25);
 			let red_green = rp - 12.0 * gp/11.0 + bp/11.0; // a
 			let blue_yellow = (rp + gp - 2.0 *  bp) / 9.0; // b
 
@@ -271,8 +251,8 @@ where
 
 			// Chroma (C), Colorfulness (M), and saturation (S)
 			let eccentricity = 0.25 * ((hue_angle.to_radians() + 2.0).cos() + 3.8);
-			let t = ((50_000.0/13.0 * vc.n_c * n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(rp + gp + 21.0 * bp/20.0);
-			let chroma = t.powf(0.9) * (lightness/100.0).sqrt() * (1.64 - 0.29f64.powf(n)).powf(0.73);
+			let t = ((50_000.0/13.0 * vc.n_c * vc.n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(rp + gp + 21.0 * bp/20.0);
+			let chroma = t.powf(0.9) * (lightness/100.0).sqrt() * (1.64 - 0.29f64.powf(vc.n)).powf(0.73);
 			let colorfulness = chroma * vc.f_l.powf(0.25);
 			let saturation = 100.0 * (colorfulness/brightness).sqrt();
 			vdata.append(&mut vec![lightness, brightness, red_green, blue_yellow, chroma, colorfulness, saturation, hue_angle, hue_composition]);
@@ -299,6 +279,8 @@ fn test_from_lab(){
 		100.0, 100.0, -100.0,
 	]));
 	let cam: CieCam<ViewConditions<32, 20, SR_AVG, D_AUTO>, D50, CieObs1931> = lab.into();
+	// From ciecam02.xls by Eric Walowit and Grit O'Brien <https://web.archive.org/web/20070109143710/http://www.cis.rit.edu/fairchild/files/CIECAM02.XLS>
+	// see also cielab.xyz
 	let want = OMatrix::<f64,Const::<9>, Dynamic>::from_vec(vec![
 		39.614, 118.490, -0.005, 0.011, 1.104, 0.948, 8.944, 112.539, 138.373,
 		38.867, 117.368, -0.271, 0.263, 28.643, 24.586, 45.769, 135.844, 169.748,
@@ -315,9 +297,6 @@ fn test_from_lab(){
 		assert_relative_eq!(c, w, epsilon=1E-3, max_relative=5E-4); // abs<1.E-3 or rel<5E-4
 
 	}
-	//assert_abs_diff_eq!(&cam.data, &want, epsilon=5E-2);
-
-	println!("{:.3}", cam.data.transpose());
 }
 
 #[test]
