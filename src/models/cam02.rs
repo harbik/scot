@@ -108,8 +108,49 @@ impl<I, C: StandardObserver> CieCamViewParameters<I, C> {
 		rgb_p_a
 
 	}
-    
-}
+
+	// A: Achromatic Response
+	pub fn achromatic_response(&self, r:f64, g:f64, b:f64) -> f64 {
+			(2.0 * r + g + b/20.0 - 0.305) * self.n_bb // achromatic response
+	}  
+
+	// a: Redness-Greenness
+	pub fn red_green(&self, r:f64, g:f64, b:f64) -> f64 {
+		r - 12.0 * g/11.0 + b/11.0
+	}  
+
+	// b: Blueness-Yellowness
+	pub fn blue_yellow(&self, r:f64, g:f64, b:f64) -> f64 {
+		(r + g - 2.0 *  b) / 9.0
+	}  
+
+	pub fn hue_angle(&self, red_green:f64, blue_yellow:f64) -> f64 {
+		let theta = blue_yellow.atan2(red_green).to_degrees();
+		if theta<0.0 { theta + 360.0}
+		else {theta}
+	}
+
+	pub fn lightness(&self, achromatic_response: f64) -> f64 {
+			100.0 * (achromatic_response/self.a_w).powf(self.c*self.z)
+	}  
+
+	pub fn brightness(&self, lightness: f64) -> f64 {
+		4.0/self.c * (lightness/100.0).sqrt() * (self.a_w + 4.0) * self.f_l.powf(0.25)
+	}
+
+	pub fn chroma(&self, r:f64, g:f64, b:f64, lightness:f64, red_green:f64, blue_yellow:f64, hue_angle:f64) -> f64 {
+		let eccentricity = 0.25 * ((hue_angle.to_radians() + 2.0).cos() + 3.8);
+		let t = ((50_000.0/13.0 * self.n_c * self.n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(r + g + 21.0 * b/20.0);
+		t.powf(0.9) * (lightness/100.0).sqrt() * (1.64 - 0.29f64.powf(self.n)).powf(0.73)
+	}
+
+	pub fn colorfulness(&self, chroma:f64) -> f64 {
+		chroma * self.f_l.powf(0.25)		
+	}
+
+	pub fn saturation(&self, brightness:f64, colorfulness:f64) -> f64 {
+		100.0 * (colorfulness/brightness).sqrt()}
+	}
 
 /*
 		Sr		 F		  c		 Nc
@@ -217,44 +258,49 @@ where
 		let lab: CieLab<I,C> = samples.into();
 		let n_samples = lab.len();
 		let xyz: CieXYZ<C> = lab.into();
-		/*
-		let rgb = &MCAT02 * xyz.data;
-		let d_rgbs = Matrix3xX::from_iterator(n_samples, vc.d_rgb.as_slice().iter().cycle().take(3*n_samples).cloned()); // repeat columns
-		let rgb_c = d_rgbs.component_mul(&rgb);
-		let rgb_p = MHPE * MCAT02INV * rgb_c;
-		let rgb_p_a = rgb_p.map(|r|cone_adaptation(vc.f_l, r));
-		 */
-		let rgb_p_a = vc.post_adaptation_cone_response_from_xyz(xyz);
+		let rgb_pa = vc.post_adaptation_cone_response_from_xyz(xyz);
 
 		// 9xX Matrix, with 9 correlates in rows J, Q, a, b, C, M, s, h, H for the number of input samples
 		let mut vdata: Vec<f64> = Vec::with_capacity(9*n_samples);
 		for j in 0..n_samples {
 
-			let [rp, gp, bp] = [rgb_p_a[(0,j)], rgb_p_a[(1,j)], rgb_p_a[(2,j)]];
-			let achromatic_response = (2.0 * rp + gp + bp/20.0 - 0.305) * vc.n_bb; // achromatic response
+			let [r, g, b] = [rgb_pa[(0,j)], rgb_pa[(1,j)], rgb_pa[(2,j)]];
+			let achromatic_response = vc.achromatic_response(r, g, b); // achromatic response
 
 			// Lightness (J), Red-Greenness (a) and Blue-Yellowness (b)
-			let lightness = 100.0 * (achromatic_response/vc.a_w).powf(vc.c*vc.z);
-			let brightness = 4.0/vc.c * (lightness/100.0).sqrt() * (vc.a_w + 4.0) * vc.f_l.powf(0.25);
-			let red_green = rp - 12.0 * gp/11.0 + bp/11.0; // a
-			let blue_yellow = (rp + gp - 2.0 *  bp) / 9.0; // b
+			//let lightness = 100.0 * (achromatic_response/vc.a_w).powf(vc.c*vc.z);
+			let lightness = vc.lightness(achromatic_response);
+			//let brightness = 4.0/vc.c * (lightness/100.0).sqrt() * (vc.a_w + 4.0) * vc.f_l.powf(0.25);
+			let brightness = vc.brightness(lightness);
+			//let red_green = r - 12.0 * g/11.0 + b/11.0; // a
+			let red_green = vc.red_green(r,g,b);
+			//let blue_yellow = (r + g - 2.0 *  b) / 9.0; // b
+			let blue_yellow = vc.blue_yellow(r,g,b);
 
 			// Hue angle (h)
+			/*
 			let hue_angle = {
 				let theta = blue_yellow.atan2(red_green).to_degrees();
 				if theta<0.0 { theta + 360.0}
 				else {theta}
 			};
+			 */
+			let hue_angle = vc.hue_angle(red_green, blue_yellow);
 			
 			// Hue composition (H)
 			let hue_composition = hue_composition_from_hue_angle(hue_angle);
 
 			// Chroma (C), Colorfulness (M), and saturation (S)
+			/*
 			let eccentricity = 0.25 * ((hue_angle.to_radians() + 2.0).cos() + 3.8);
-			let t = ((50_000.0/13.0 * vc.n_c * vc.n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(rp + gp + 21.0 * bp/20.0);
+			let t = ((50_000.0/13.0 * vc.n_c * vc.n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(r + g + 21.0 * b/20.0);
 			let chroma = t.powf(0.9) * (lightness/100.0).sqrt() * (1.64 - 0.29f64.powf(vc.n)).powf(0.73);
-			let colorfulness = chroma * vc.f_l.powf(0.25);
-			let saturation = 100.0 * (colorfulness/brightness).sqrt();
+			 */
+			let chroma = vc.chroma(r, g, b, lightness, red_green, blue_yellow, hue_angle);
+			//let colorfulness = chroma * vc.f_l.powf(0.25);
+			let colorfulness = vc.colorfulness(chroma);
+		//	let saturation = 100.0 * (colorfulness/brightness).sqrt();
+			let saturation = vc.saturation(brightness, colorfulness);
 			vdata.append(&mut vec![lightness, brightness, red_green, blue_yellow, chroma, colorfulness, saturation, hue_angle, hue_composition]);
 		}
 		let data = OMatrix::<f64, Const::<9>, Dynamic>::from_vec(vdata);
@@ -313,6 +359,73 @@ fn test_from_lab2(){
 	//];
 
 	println!("{}", cam.data);
+}
+pub struct CieJab<V = VcAvg, I = D65, C = DefaultObserver> {
+	pub data: OMatrix<f64, Const<3>, Dynamic>, 
+	v: PhantomData<*const V>,
+	i: PhantomData<*const I>,
+	c: PhantomData<*const C>,
+}
+impl<V, I, C> CieJab<V, I, C> {
+
+    pub fn new(data: OMatrix<f64, Const<3>, Dynamic>) -> Self { 
+		Self { data, i:PhantomData, c:PhantomData, v:PhantomData } 
+	}
+
+	pub fn len(&self) -> usize {
+        self.data.ncols()
+    }
+}
+
+impl<V,I,C,L> From<L> for CieJab<V,I,C>
+where
+	I: Default + Into<CieXYZ<C>>,
+	L: Into<CieLab<I,C>>,
+	C: StandardObserver,
+	V: Default + Into<CieCamViewParameters<I,C>>,
+{
+    fn from(samples: L) -> Self {
+		let vc: CieCamViewParameters<I,C> = V::default().into();
+
+		// Calculate XYZ values from CieLab input data
+		let lab: CieLab<I,C> = samples.into();
+		let n_samples = lab.len();
+		let xyz: CieXYZ<C> = lab.into();
+		let rgb_pa = vc.post_adaptation_cone_response_from_xyz(xyz);
+
+		// 9xX Matrix, with 9 correlates in rows J, Q, a, b, C, M, s, h, H for the number of input samples
+		let mut vdata: Vec<f64> = Vec::with_capacity(3*n_samples);
+		for j in 0..n_samples {
+
+			let [r, g, b] = [rgb_pa[(0,j)], rgb_pa[(1,j)], rgb_pa[(2,j)]];
+			let achromatic_response = (2.0 * r + g + b/20.0 - 0.305) * vc.n_bb; // achromatic response
+
+			// Lightness (J), Red-Greenness (a) and Blue-Yellowness (b)
+			let lightness = 100.0 * (achromatic_response/vc.a_w).powf(vc.c*vc.z);
+			let red_green = r - 12.0 * g/11.0 + b/11.0; // a
+			let blue_yellow = (r + g - 2.0 *  b) / 9.0; // b
+
+			// Hue angle (h)
+			let hue_angle = {
+				let theta = blue_yellow.atan2(red_green).to_degrees();
+				if theta<0.0 { theta + 360.0}
+				else {theta}
+			};
+
+			// Chroma (C), Colorfulness (M), and saturation (S)
+			let eccentricity = 0.25 * ((hue_angle.to_radians() + 2.0).cos() + 3.8);
+			let t = ((50_000.0/13.0 * vc.n_c * vc.n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(r + g + 21.0 * b/20.0);
+			let chroma = t.powf(0.9) * (lightness/100.0).sqrt() * (1.64 - 0.29f64.powf(vc.n)).powf(0.73);
+			let colorfulness = chroma * vc.f_l.powf(0.25);
+			let j_prime = 0.7 * lightness / (1.0 + 0.007 * lightness);
+			let m_prime = 43.8596 * (1.0 + 0.0228 * colorfulness).ln();
+			let a_prime = m_prime * hue_angle.cos();
+			let b_prime = m_prime * hue_angle.sin();
+			vdata.append(&mut vec![j_prime, a_prime, b_prime]);
+		}
+		let data = OMatrix::<f64, Const::<3>, Dynamic>::from_vec(vdata);
+		Self::new(data)
+    }
 }
 
 
