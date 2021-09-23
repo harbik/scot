@@ -1,9 +1,13 @@
-#![doc = include_str!("cam02.md")]
+#![doc = include_str!("./cam02/README.md")]
+
+pub mod cam;
+pub mod ucs;
+
 
 use core::panic;
 use std::{marker::PhantomData};
-use nalgebra::{Const, Dynamic, Matrix3x1, Matrix3xX, OMatrix, SMatrix, matrix};
-use crate::{DefaultObserver, illuminants::{D65, Illuminant}, linterp, observers::{
+use nalgebra::{Matrix3x1, Matrix3xX, MatrixSlice3x1, SMatrix, matrix};
+use crate::{illuminants::{ Illuminant}, linterp, observers::{
 		StandardObserver
 	}};
 use super::{CieLab, CieXYZ};
@@ -67,7 +71,7 @@ pub struct ViewConditions<const LA: usize, const YB: usize, const SR1000: usize,
  Parameters derived from viewconditions, needed to calculate the CieCamValues.
  */
  #[derive(Debug)]
-pub struct CieCamViewParameters<I, C> {
+pub struct CieCamEnv<I, C> {
 	// Surround
 	pub s_r: f64,
 	pub c: f64,
@@ -97,7 +101,7 @@ pub struct CieCamViewParameters<I, C> {
 	obs: PhantomData<*const C>,
 }
 
-impl<I, C: StandardObserver> CieCamViewParameters<I, C> {
+impl<I, C: StandardObserver> CieCamEnv<I, C> {
 	pub fn post_adaptation_cone_response_from_xyz(&self, xyz: CieXYZ<C>) -> Matrix3xX<f64> {
 		let n_samples = xyz.len();
 		let rgb = &MCAT02 * xyz.data;
@@ -110,18 +114,18 @@ impl<I, C: StandardObserver> CieCamViewParameters<I, C> {
 	}
 
 	// A: Achromatic Response
-	pub fn achromatic_response(&self, r:f64, g:f64, b:f64) -> f64 {
-			(2.0 * r + g + b/20.0 - 0.305) * self.n_bb // achromatic response
+	pub fn achromatic_response(&self, rgb:MatrixSlice3x1<f64>) -> f64 {
+			(2.0 * rgb.x + rgb.y + rgb.z/20.0 - 0.305) * self.n_bb // achromatic response
 	}  
 
 	// a: Redness-Greenness
-	pub fn red_green(&self, r:f64, g:f64, b:f64) -> f64 {
-		r - 12.0 * g/11.0 + b/11.0
+	pub fn red_green(&self, rgb:MatrixSlice3x1<f64>) -> f64 {
+		rgb.x - 12.0 * rgb.y/11.0 + rgb.z/11.0
 	}  
 
 	// b: Blueness-Yellowness
-	pub fn blue_yellow(&self, r:f64, g:f64, b:f64) -> f64 {
-		(r + g - 2.0 *  b) / 9.0
+	pub fn blue_yellow(&self, rgb:MatrixSlice3x1<f64>) -> f64 {
+		(rgb.x + rgb.y - 2.0 *  rgb.z) / 9.0
 	}  
 
 	pub fn hue_angle(&self, red_green:f64, blue_yellow:f64) -> f64 {
@@ -138,9 +142,9 @@ impl<I, C: StandardObserver> CieCamViewParameters<I, C> {
 		4.0/self.c * (lightness/100.0).sqrt() * (self.a_w + 4.0) * self.f_l.powf(0.25)
 	}
 
-	pub fn chroma(&self, r:f64, g:f64, b:f64, lightness:f64, red_green:f64, blue_yellow:f64, hue_angle:f64) -> f64 {
+	pub fn chroma(&self, rgb:MatrixSlice3x1<f64>, lightness:f64, red_green:f64, blue_yellow:f64, hue_angle:f64) -> f64 {
 		let eccentricity = 0.25 * ((hue_angle.to_radians() + 2.0).cos() + 3.8);
-		let t = ((50_000.0/13.0 * self.n_c * self.n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(r + g + 21.0 * b/20.0);
+		let t = ((50_000.0/13.0 * self.n_c * self.n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(rgb.x + rgb.y + 21.0 * rgb.z/20.0);
 		t.powf(0.9) * (lightness/100.0).sqrt() * (1.64 - 0.29f64.powf(self.n)).powf(0.73)
 	}
 
@@ -149,8 +153,39 @@ impl<I, C: StandardObserver> CieCamViewParameters<I, C> {
 	}
 
 	pub fn saturation(&self, brightness:f64, colorfulness:f64) -> f64 {
-		100.0 * (colorfulness/brightness).sqrt()}
+		100.0 * (colorfulness/brightness).sqrt()
 	}
+
+	pub fn ucs_j_prime(&self, lightness:f64) -> f64 {
+		0.7 * lightness / (1.0 + 0.007 * lightness)
+	}
+
+	pub fn ucs_m_prime(&self, colorfulness:f64) -> f64 {
+		43.8596 * (1.0 + 0.0228 * colorfulness).ln()
+	}
+
+	pub fn ucs_ab_prime(&self, colorfulness:f64, hue_angle:f64) -> (f64,f64) {
+		let (s,c) = hue_angle.sin_cos();
+		(colorfulness*c, colorfulness*s)
+	}
+
+	fn hue_composition(&self, hue_angle:f64) -> f64 {
+		let h = hue_angle;
+		if h>=20.14 && h<=90.0 {
+			(100.0*(h-20.14)/0.8)/(((h-20.14)/0.8)+(90.0-h)/0.7)
+		} else if h>=90.0 && h<=164.25 {
+			100.0+(100.0*(h-90.0)/0.7)/(((h-90.0)/0.7)+(164.25-h))
+		} else if h>=164.25 && h<=237.53 {
+			200.0+(100.0*(h-164.25))/((h-164.25)+((237.53-h)/1.2))
+		} else if h>=237.53 && h<=380.14 {
+			300.0+(100.0*(h-237.53) /1.2)/(((h-237.53)/1.2)+(380.14-h)/0.8)
+		} else if h<20.14 {
+			300.0+(100.0*((h+360.0)-237.53) /1.2)/((((h+360.0)-237.53)/1.2)+(380.14-(h+360.0))/0.8)
+		} else {
+			panic!("wrong hue angle")
+		} 
+	}
+}
 
 /*
 		Sr		 F		  c		 Nc
@@ -160,7 +195,7 @@ impl<I, C: StandardObserver> CieCamViewParameters<I, C> {
 */
 
 impl< C, I, const LA:usize, const YB:usize, const SR1000:usize, const D100:isize > 
-	From<ViewConditions<LA,YB,SR1000,D100>> for CieCamViewParameters<I, C> 
+	From<ViewConditions<LA,YB,SR1000,D100>> for CieCamEnv<I, C> 
 	where 
 		C: StandardObserver,
 		I: Illuminant + Default + Into<CieXYZ<C>> 
@@ -226,6 +261,8 @@ pub const SR_DARK: usize = 0;
 
 pub const D_AUTO: isize = -1;
 
+/*
+
 pub struct CieCam<V = VcAvg, I = D65, C = DefaultObserver> {
 	pub data: OMatrix<f64, Const<9>, Dynamic>, 
 	v: PhantomData<*const V>,
@@ -249,58 +286,27 @@ where
 	I: Default + Into<CieXYZ<C>>,
 	L: Into<CieLab<I,C>>,
 	C: StandardObserver,
-	V: Default + Into<CieCamViewParameters<I,C>>,
+	V: Default + Into<CieCamEnv<I,C>>,
 {
     fn from(samples: L) -> Self {
-		let vc: CieCamViewParameters<I,C> = V::default().into();
-
-		// Calculate XYZ values from CieLab input data
+		let cam: CieCamEnv<I,C> = V::default().into();
 		let lab: CieLab<I,C> = samples.into();
 		let n_samples = lab.len();
-		let xyz: CieXYZ<C> = lab.into();
-		let rgb_pa = vc.post_adaptation_cone_response_from_xyz(xyz);
+		let rgb_pa = cam.post_adaptation_cone_response_from_xyz(lab.into());
 
 		// 9xX Matrix, with 9 correlates in rows J, Q, a, b, C, M, s, h, H for the number of input samples
 		let mut vdata: Vec<f64> = Vec::with_capacity(9*n_samples);
-		for j in 0..n_samples {
-
-			let [r, g, b] = [rgb_pa[(0,j)], rgb_pa[(1,j)], rgb_pa[(2,j)]];
-			let achromatic_response = vc.achromatic_response(r, g, b); // achromatic response
-
-			// Lightness (J), Red-Greenness (a) and Blue-Yellowness (b)
-			//let lightness = 100.0 * (achromatic_response/vc.a_w).powf(vc.c*vc.z);
-			let lightness = vc.lightness(achromatic_response);
-			//let brightness = 4.0/vc.c * (lightness/100.0).sqrt() * (vc.a_w + 4.0) * vc.f_l.powf(0.25);
-			let brightness = vc.brightness(lightness);
-			//let red_green = r - 12.0 * g/11.0 + b/11.0; // a
-			let red_green = vc.red_green(r,g,b);
-			//let blue_yellow = (r + g - 2.0 *  b) / 9.0; // b
-			let blue_yellow = vc.blue_yellow(r,g,b);
-
-			// Hue angle (h)
-			/*
-			let hue_angle = {
-				let theta = blue_yellow.atan2(red_green).to_degrees();
-				if theta<0.0 { theta + 360.0}
-				else {theta}
-			};
-			 */
-			let hue_angle = vc.hue_angle(red_green, blue_yellow);
-			
-			// Hue composition (H)
-			let hue_composition = hue_composition_from_hue_angle(hue_angle);
-
-			// Chroma (C), Colorfulness (M), and saturation (S)
-			/*
-			let eccentricity = 0.25 * ((hue_angle.to_radians() + 2.0).cos() + 3.8);
-			let t = ((50_000.0/13.0 * vc.n_c * vc.n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(r + g + 21.0 * b/20.0);
-			let chroma = t.powf(0.9) * (lightness/100.0).sqrt() * (1.64 - 0.29f64.powf(vc.n)).powf(0.73);
-			 */
-			let chroma = vc.chroma(r, g, b, lightness, red_green, blue_yellow, hue_angle);
-			//let colorfulness = chroma * vc.f_l.powf(0.25);
-			let colorfulness = vc.colorfulness(chroma);
-		//	let saturation = 100.0 * (colorfulness/brightness).sqrt();
-			let saturation = vc.saturation(brightness, colorfulness);
+		for rgb in rgb_pa.column_iter() {
+			let achromatic_response = cam.achromatic_response(rgb); // achromatic response
+			let lightness = cam.lightness(achromatic_response); // J
+			let brightness = cam.brightness(lightness); // Q
+			let red_green = cam.red_green(rgb); // a
+			let blue_yellow = cam.blue_yellow(rgb); // b
+			let hue_angle = cam.hue_angle(red_green, blue_yellow); // h
+			let hue_composition = hue_composition_from_hue_angle(hue_angle); // H
+			let chroma = cam.chroma(rgb, lightness, red_green, blue_yellow, hue_angle); // /C
+			let colorfulness = cam.colorfulness(chroma); // M
+			let saturation = cam.saturation(brightness, colorfulness); // s
 			vdata.append(&mut vec![lightness, brightness, red_green, blue_yellow, chroma, colorfulness, saturation, hue_angle, hue_composition]);
 		}
 		let data = OMatrix::<f64, Const::<9>, Dynamic>::from_vec(vdata);
@@ -360,13 +366,15 @@ fn test_from_lab2(){
 
 	println!("{}", cam.data);
 }
-pub struct CieJab<V = VcAvg, I = D65, C = DefaultObserver> {
+ */
+/*
+pub struct CieCamUcs<V = VcAvg, I = D65, C = DefaultObserver> {
 	pub data: OMatrix<f64, Const<3>, Dynamic>, 
 	v: PhantomData<*const V>,
 	i: PhantomData<*const I>,
 	c: PhantomData<*const C>,
 }
-impl<V, I, C> CieJab<V, I, C> {
+impl<V, I, C> CieCamUcs<V, I, C> {
 
     pub fn new(data: OMatrix<f64, Const<3>, Dynamic>) -> Self { 
 		Self { data, i:PhantomData, c:PhantomData, v:PhantomData } 
@@ -377,73 +385,43 @@ impl<V, I, C> CieJab<V, I, C> {
     }
 }
 
-impl<V,I,C,L> From<L> for CieJab<V,I,C>
+impl<V,I,C,L> From<L> for CieCamUcs<V,I,C>
 where
 	I: Default + Into<CieXYZ<C>>,
 	L: Into<CieLab<I,C>>,
 	C: StandardObserver,
-	V: Default + Into<CieCamViewParameters<I,C>>,
+	V: Default + Into<CieCamEnv<I,C>>,
 {
     fn from(samples: L) -> Self {
-		let vc: CieCamViewParameters<I,C> = V::default().into();
+		let cam: CieCamEnv<I,C> = V::default().into();
 
 		// Calculate XYZ values from CieLab input data
 		let lab: CieLab<I,C> = samples.into();
 		let n_samples = lab.len();
 		let xyz: CieXYZ<C> = lab.into();
-		let rgb_pa = vc.post_adaptation_cone_response_from_xyz(xyz);
+		let rgb_pa = cam.post_adaptation_cone_response_from_xyz(xyz);
 
-		// 9xX Matrix, with 9 correlates in rows J, Q, a, b, C, M, s, h, H for the number of input samples
+		// 3xX Matrix, CIECAM-UCS (J', a', b')
 		let mut vdata: Vec<f64> = Vec::with_capacity(3*n_samples);
-		for j in 0..n_samples {
-
-			let [r, g, b] = [rgb_pa[(0,j)], rgb_pa[(1,j)], rgb_pa[(2,j)]];
-			let achromatic_response = (2.0 * r + g + b/20.0 - 0.305) * vc.n_bb; // achromatic response
-
-			// Lightness (J), Red-Greenness (a) and Blue-Yellowness (b)
-			let lightness = 100.0 * (achromatic_response/vc.a_w).powf(vc.c*vc.z);
-			let red_green = r - 12.0 * g/11.0 + b/11.0; // a
-			let blue_yellow = (r + g - 2.0 *  b) / 9.0; // b
-
-			// Hue angle (h)
-			let hue_angle = {
-				let theta = blue_yellow.atan2(red_green).to_degrees();
-				if theta<0.0 { theta + 360.0}
-				else {theta}
-			};
-
-			// Chroma (C), Colorfulness (M), and saturation (S)
-			let eccentricity = 0.25 * ((hue_angle.to_radians() + 2.0).cos() + 3.8);
-			let t = ((50_000.0/13.0 * vc.n_c * vc.n_cb) * eccentricity * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())/(r + g + 21.0 * b/20.0);
-			let chroma = t.powf(0.9) * (lightness/100.0).sqrt() * (1.64 - 0.29f64.powf(vc.n)).powf(0.73);
-			let colorfulness = chroma * vc.f_l.powf(0.25);
-			let j_prime = 0.7 * lightness / (1.0 + 0.007 * lightness);
-			let m_prime = 43.8596 * (1.0 + 0.0228 * colorfulness).ln();
-			let a_prime = m_prime * hue_angle.cos();
-			let b_prime = m_prime * hue_angle.sin();
+		for rgb in rgb_pa.column_iter() {
+			let achromatic_response = cam.achromatic_response(rgb); // A
+			let lightness = cam.lightness(achromatic_response); // J
+			let red_green = cam.red_green(rgb); // a
+			let blue_yellow = cam.blue_yellow(rgb); // b
+			let hue_angle = cam.hue_angle(red_green, blue_yellow); // h
+			let chroma = cam.chroma(rgb, lightness, red_green, blue_yellow, hue_angle); // C
+			let colorfulness = cam.colorfulness(chroma); // M
+			let j_prime = cam.ucs_j_prime(lightness); // CIECAM UCS J'
+			let (a_prime, b_prime) = cam.ucs_ab_prime(colorfulness, hue_angle); // CIECAM UCS (a',b')
 			vdata.append(&mut vec![j_prime, a_prime, b_prime]);
 		}
 		let data = OMatrix::<f64, Const::<3>, Dynamic>::from_vec(vdata);
 		Self::new(data)
     }
 }
+ */
 
 
- fn hue_composition_from_hue_angle(h:f64) -> f64 {
-	if h>=20.14 && h<=90.0 {
-		(100.0*(h-20.14)/0.8)/(((h-20.14)/0.8)+(90.0-h)/0.7)
-	} else if h>=90.0 && h<=164.25 {
-		100.0+(100.0*(h-90.0)/0.7)/(((h-90.0)/0.7)+(164.25-h))
-	} else if h>=164.25 && h<=237.53 {
-		200.0+(100.0*(h-164.25))/((h-164.25)+((237.53-h)/1.2))
-	} else if h>=237.53 && h<=380.14 {
-		300.0+(100.0*(h-237.53) /1.2)/(((h-237.53)/1.2)+(380.14-h)/0.8)
-	} else if h<20.14 {
-		300.0+(100.0*((h+360.0)-237.53) /1.2)/((((h+360.0)-237.53)/1.2)+(380.14-(h+360.0))/0.8)
-	} else {
-		panic!("wrong hue angle")
-	} 
- }
 
  #[inline]
  fn cone_adaptation(f_l:f64, x:f64) -> f64 {

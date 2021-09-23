@@ -1,8 +1,9 @@
 # CIECAM02 Color Model
 
-This is a complex model, and has many complex input and output parameters.
+This is a complex model, with many complex input and output parameters.
+Below is a summary of them; for a more comprehensive overview see ["Color Appearance Models" by Mark D. Fairchild][FAIRCHILD2013] and ["CIECAM02 and Its Recent Developments" by Luo et all.][CIECAM02LUO]
 
-The output of the model are six color appearance attributes, or color correlates, described by [By Luo et all in "CIECAM02 and Its Recent Developments"][CIECAM02LUO] as follows:
+The output of the model are six color appearance attributes, or color correlates, described by Luo as follows:
 
 <blockquote>
 
@@ -101,5 +102,5 @@ If D is larger than 0, a chromatic adaptation transform is applied to a target's
 
 
 
-
+[FAIRCHILD2013]: https://www.wiley.com/en-us/Color+Appearance+Models%2C+3rd+Edition-p-9781119967033 "Color Appearance Models, 3rd Edition, Mark D. Fairchild, ISBN: 978-1-119-96703-3"
 [CIECAM02LUO]: https://link.springer.com/chapter/10.1007/978-1-4419-6190-7_2 "C. Fernandez-Maloigne (ed.), Advanced Color Image Processing and Analysis,  DOI 10.1007/978-1-4419-6190-7 2, Springer Science+Business Media New York 2013"
