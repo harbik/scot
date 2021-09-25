@@ -1,3 +1,5 @@
+#![doc = include_str!("./models/README.md")]
+
 pub mod xyz;
 pub use crate::models::xyz::*;
 
