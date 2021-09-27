@@ -4,7 +4,7 @@
 	Hue-angle (h), and Hue-composition (H).
  */
 
-use std::{marker::PhantomData, ops::Deref};
+use std::{marker::PhantomData, };
 use nalgebra::{Const, Dynamic, OMatrix, };
 use crate::{DefaultObserver, illuminants::{D65, }, observers::{StandardObserver}};
 use super::{VcAvg, CieCamEnv, };
@@ -16,25 +16,6 @@ pub struct CieCam<V = VcAvg, I = D65, C = DefaultObserver> {
 	i: PhantomData<*const I>,
 	c: PhantomData<*const C>,
 }
-
-impl<V,I,C> Deref for CieCam<V, I,C> {
-    type Target = OMatrix<f64, Const<9>, Dynamic>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.data
-    }
-}
-
-#[test]
-fn test_ciecam_deref(){
-	use crate::swatches::ColorChecker;
-//	use crate::illuminants::D50;
-//	let cc = ColorChecker::default();
-	let cam: CieCam = ColorChecker::default().into();
-	println!("{}", (*cam).transpose()); // demonstrating dref here, direct access to matrix functions
-	println!("{}", (*cam).column(1)); // demonstrating dref here, direct access to matrix functions
-}
-
 
 impl<V, I, C> CieCam<V, I, C> {
 

@@ -7,7 +7,7 @@ pub mod jch; //JCh
 
 use core::panic;
 use std::{marker::PhantomData};
-use nalgebra::{Matrix3x1, Matrix3xX, MatrixSlice3x1, SMatrix, matrix, vector};
+use nalgebra::{Matrix3x1, Matrix3xX, MatrixSlice3x1, MatrixSliceMut3x1, SMatrix, matrix, vector};
 use crate::{DefaultObserver, illuminants::{D50, Illuminant}, linterp, observers::{StandardObserver}};
 use super::{CieLab, CieXYZ};
 
@@ -16,28 +16,51 @@ use super::{CieLab, CieXYZ};
    - CIECAT02 transform for non-cie1931 observer?
 */
 
+pub static MCAT02: SMatrix<f64, 3, 3> = matrix![
+     0.7328,  0.4296,  -0.1624;
+    -0.7036,  1.6975,   0.0061;
+     0.0030,  0.0136,   0.9834;
+];
+
 pub static MHPE: SMatrix<f64, 3, 3> = matrix![
      0.38971, 0.68898, -0.07868;
     -0.22981, 1.18340,  0.04641;
      0.00000, 0.00000,  1.00000;
 ];
 
-pub static MHPEINV: SMatrix<f64, 3, 3> = matrix![
+pub static MHPEINVLUO: SMatrix<f64, 3, 3> = matrix![
     1.910197, -1.112124,  0.201908;
     0.370950,  0.629054, -0.000008;
     0.000000,  0.000000,  1.000000;
 ];
 
-pub static MCAT02: SMatrix<f64, 3, 3> = matrix![
-     0.7328,  0.4296,  -0.1624;
-    -0.7036,  1.6975,   0.0061;
-     0.0030,  0.0136,   0.9834;
+pub static MHPEINV: SMatrix<f64, 3, 3> = matrix![
+    1.9101968340520348, -1.1121238927878747,  0.20190795676749937;
+    0.3709500882486886,  0.6290542573926132, -0.000008055142184359149;
+    0.0,  				 0.0,  				  1.0;
 ];
-pub static MCAT02INV: SMatrix<f64, 3, 3> = matrix![
+
+pub static MCAT02INVLUO: SMatrix<f64, 3, 3> = matrix![
      1.096124, -0.278869, 0.182745;
      0.454369,  0.473533, 0.072098;
     -0.009628, -0.005698, 1.015326;
 ];
+
+pub static MCAT02INV: SMatrix<f64, 3, 3> = matrix![
+	1.096123820835514, 		-0.2788690002182872, 	0.18274517938277304;
+	0.45436904197535916,	 0.4735331543074117,	0.0720978037172291;
+	-0.009627608738429353, 	-0.005698031216113419,	1.0153256399545427;
+];
+
+
+#[test]
+fn test_inv(){
+	println!("MCAT02*MCATO2INV {:.12}", &MCAT02*&MCAT02INV);
+	println!("MHPE*MHPEINV {:.12}", &MCAT02*&MCAT02INV);
+//	println!("MCAT02*MCATO2INV {}", &MCAT02*&MCAT02.try_inverse().unwrap());
+//	println!("MCATO2INV {}", &MCAT02.try_inverse().unwrap());
+//	println!("MHPE INV {}", &MHPE.try_inverse().unwrap());
+}
 
 /**
 # CieCam View conditions
@@ -106,9 +129,7 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
 		let rgb = &MCAT02 * xyz.data;
 		let d_rgbs = Matrix3xX::from_iterator(n_samples, self.d_rgb.as_slice().iter().cycle().take(3*n_samples).cloned()); // repeat columns
 		let rgb_c = d_rgbs.component_mul(&rgb);
-		let rgb_p = MHPE * MCAT02INV * rgb_c;
-		let rgb_p_a = rgb_p.map(|r|cone_adaptation(self.f_l, r));
-		rgb_p_a
+		(MHPE * MCAT02INV * rgb_c).map(|r|cone_adaptation(self.f_l, r))
 
 	}
 
@@ -209,38 +230,56 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
 	}
 
 
+	// Constants used in the reverse mode CieCam Transform
 	const P1C: f64 = 50_000.0/13.0;
 	const P3:f64 = 21.0/20.0;
-	const NOM:f64 = (2.0+Self::P3)*460.0/1403.0; // this is 1!!
-	const DEN1:f64 = (2.0+Self::P3)*220.0/1403.0;
-	const DEN2:f64 = 27.0/1403.0 - Self::P3 * 6300.0/1403.0;
+	const NOM:f64 =  1.0; // is listed in the standard as (2.0+Self::P3)*460.0/1403.0; // this is 1!! But his is in Luo step 3 as part of nominators
+	const DEN1:f64 = ((2.0+Self::P3)*220.0)/1403.0;
+	const DEN2:f64 = (Self::P3 * 6300.0 - 27.0)/1403.0;
+	const RCPR_9:f64 = 1.0/0.9;
 
-	pub fn xyz_from_jch(&self, jch: MatrixSlice3x1<f64>) -> Matrix3x1<f64> { // XYZ
+	pub fn transform_jch_to_xyz(&self, mut jch: MatrixSliceMut3x1<f64>) { // XYZ
 		let &[lightness, chroma, hue_angle]:&[f64;3] = jch.as_ref();
-		let t = ( chroma/( ( lightness/100.0).sqrt()*(1.64-0.29f64.powf(self.n)).powf(0.73))).powf(1.0/9.0);
-		let p1 = Self::P1C * self.n_c * self.n_cb * self.eccentricity(hue_angle)/t;
+		let t = ( chroma/( ( lightness/100.0).sqrt()*(1.64-0.29f64.powf(self.n)).powf(0.73))).powf(Self::RCPR_9);
+		let p1 = (Self::P1C * self.n_c * self.n_cb * self.eccentricity(hue_angle))/t; // NaN if t=0, but OK, as check on t==0.0 if used
 		let p2 = self.achromatic_response_from_lightness(lightness)/self.n_bb + 0.305;
-		let (hs, hc) = hue_angle.to_radians().sin_cos();
-		let (a,b) = if t==0.0 {
-			(0.0, 0.0)
-		} else if hs.abs()>=hc.abs() {
-			let b = p2 * Self::NOM/(p1/hs + Self::DEN1 * hc/hs - Self::DEN2);
-			(b * hc/hs, b)
-		} else {
-			let a = p2 * Self::NOM / (p1/hc + Self::DEN1 - Self::DEN2 * hs/hc);
-			(a, a * hs/hc)
+		let (a,b) =	 match hue_angle.to_radians().sin_cos() { 
+			(_,_) if t.is_nan() || t==0.0 => (0.0, 0.0),
+			(hs, hc) if hs.abs()>=hc.abs() =>  { let b = p2 * Self::NOM/(p1/hs + Self::DEN1 * hc/hs + Self::DEN2); (b * hc/hs, b)}
+			(hs, hc) => { let a = p2 * Self::NOM / (p1/hc + Self::DEN1 + Self::DEN2 * hs/hc); (a, a * hs/hc)}
 		};
 		let m =  matrix![ 460.0, 451.0, 288.0; 460.0, -891.0, -261.0; 460.0, -220.0, -6_300.0; ]/1_403.0;
-		let mut rgb = m * vector![p2,a,b];  // rbg_pa
-		rgb.apply(|x|inv_cone_adaptation(self.f_l, x)); // rgb_p
-		let rgb_c = (&MCAT02 * MHPEINV * rgb).component_div(&self.d_rgb);
-		MCAT02INV * rgb_c
+		let rgb_p = (m * vector![p2,a,b]).map(|x|inv_cone_adaptation(self.f_l, x)); // Step 4 & 5
+		let rgb_c = (MCAT02 * MHPEINV * rgb_p).component_div(&self.d_rgb); // Step 6 & 7
+		let xyz = MCAT02INV * rgb_c;
+		jch.x = xyz.x; jch.y = xyz.y; jch.z = xyz.z;
 	}
 
 }
 #[test]
-fn test_nom(){
-	println!("{}", CieCamEnv::<D50,DefaultObserver>::NOM);
+fn test_jch_to_xyz(){
+//	println!("{}", CieCamEnv::<D50,DefaultObserver>::NOM);
+	use crate::observers::CieObs1931;
+	use crate::illuminants::D50;
+	let vc: CieCamEnv<D50, CieObs1931> = ViewConditions::<318, 20, SR_AVG, D_AUTO>.into();
+	let mut m_jch = Matrix3xX::<f64>::from_vec(vec![
+			39.890206,	0.065758,	110.250459,
+			39.126848,	28.068355,	136.265379,
+			40.675788,	29.327191,	314.544438,
+			38.972361,	37.709782,	220.145277,
+			0.000000,	0.000000,	180.000000,
+			106.171077,	99.637157,	1.382338,
+			99.681887,	78.569894,	94.800651,
+			98.456360,	98.160627,	248.371519,
+			105.577618,	105.394956,	312.434013,
+	]);
+
+	let want = Matrix3xX::<f64>::from_vec(vec![
+		17.759618, 18.418648, 15.199176
+	]);
+	vc.transform_jch_to_xyz(m_jch.column_iter_mut().next().unwrap());
+	want.into_iter().zip(m_jch.iter()).for_each(|(w,jch)|println!("{} - {} {:.4}%", w, jch, (w/jch-1.0)*100.0));
+
 }
 
 
@@ -251,7 +290,7 @@ fn test_nom(){
 	0.0		0.8		0.525	0.8	Dark
 */
 
-impl< C, I, const LA:usize, const YB:usize, const SR1000:usize, const D100:isize > 
+impl< C, I, const LA:usize, const YB:usize, const SR1000:usize, const D100:isize> 
 	From<ViewConditions<LA,YB,SR1000,D100>> for CieCamEnv<I, C> 
 	where 
 		C: StandardObserver,
@@ -329,5 +368,5 @@ pub const D_AUTO: isize = -1;
  fn inv_cone_adaptation(f_l:f64, x:f64) -> f64 {
 	let x = x - 0.1;
 	let t = 27.13 * x.abs() / (400.0 - x.abs());
-	x.signum()* 100.0/f_l * t.powf(1.0/0.42)
+	x.signum()* ((100.0 * t.powf(1.0/0.42))/f_l)
  }

@@ -4,8 +4,8 @@
  */
 
 use super::{CieCamEnv, CieLab, CieXYZ, VcAvg, cam::CieCam};
-use crate::{DefaultObserver, illuminants::D65, observers::StandardObserver};
-use nalgebra::{Const, Dynamic, Matrix3xX, OMatrix};
+use crate::{DefaultObserver, illuminants::D65, models::xyz_to_lab, observers::{StandardObserver}};
+use nalgebra::{Const, Dynamic, OMatrix};
 use std::marker::PhantomData;
 
 
@@ -35,25 +35,24 @@ impl<V, I, C> CieCamJCh<V, I, C>
 
 		This follows the procedure as outlined by Luo, Appendix A, Part 2: The Reverse Mode.
 	*/
-	pub fn into_cielab(&self) -> CieLab<I,C> 
+	pub fn into_cielab(mut self) -> CieLab<I,C> 
 	where 
 		V: Default + Into<CieCamEnv<I, C>>,
+		I: Default + Into<CieXYZ<C>>,
 		C: StandardObserver,
 	{
 		// Can not use: impl<V,I,C> From<CieCamJCh<V,I,C>> for CieLab<I,C> 
 		// gets into a T From T error
 
         let cam: CieCamEnv<I, C> = V::default().into();
-        let mut vdata: Vec<f64> = Vec::with_capacity(3 * self.len());
-		for jch in self.data.column_iter(){
-			let xyz = cam.xyz_from_jch(jch);
-			vdata.extend(xyz.iter())
-		}
-		CieLab::<I,C>::new(Matrix3xX::<f64>::from_vec(vdata))
+		self.data.column_iter_mut().for_each(|jch| cam.transform_jch_to_xyz(jch));
+		let xyz_n: CieXYZ<C> = I::default().into();
+		xyz_to_lab(xyz_n.data.column(0), &mut self.data);	
+		CieLab::<I,C>::new(self.data)
     }
-		
-
 }
+
+
 
 impl<V, I, C, L> From<L> for CieCamJCh<V, I, C>
 where
@@ -99,8 +98,6 @@ impl<V,I,C> From<&CieCam> for CieCamJCh<V,I,C> {
     }
 }
 
-/*
-*/
 
 #[test]
 fn test_from_lab(){
@@ -137,6 +134,41 @@ fn test_from_lab(){
 	//println!("{:.3}", cam.data.transpose());
 	for (c,w) in cam.data.iter().zip(want.iter()){
 		assert_relative_eq!(c, w, epsilon=1E-3, max_relative=5E-4); // abs<1.E-3 or rel<5E-4
-
 	}
+}
+
+#[test]
+fn test_reverse(){
+	use nalgebra::Matrix3xX;
+	use crate::illuminants::D50;
+	use crate::observers::CieObs1931;
+	use approx::assert_abs_diff_eq;
+	let  m_jch = Matrix3xX::<f64>::from_vec(vec![
+			39.890206,	0.065758,	110.250459,
+			39.126848,	28.068355,	136.265379,
+			40.675788,	29.327191,	314.544438,
+			38.972361,	37.709782,	220.145277,
+			0.000000,	0.000000,	180.000000,
+			106.171077,	99.637157,	1.382338,
+			99.681887,	78.569894,	94.800651,
+			98.456360,	98.160627,	248.371519,
+			105.577618,	105.394956,	312.434013,
+	]);
+	let want = OMatrix::<f64,_,_>::from([
+		[50.0, 0.0, 0.0],
+		[50.0, -20.0, 20.0],
+		[50.0, 20.0, -20.0],
+		[50.0, -20.0, -20.0],
+		[0.0, 0.0, 0.0],
+		[100.0, 100.0, 0.0],
+		[100.0, 0.0, 100.0],
+		[100.0, 0.0, -100.0],
+		[100.0, 100.0, -100.0]
+]);
+
+	let jch: CieCamJCh<VcAvg, D50, CieObs1931> = CieCamJCh::new(m_jch);
+	let xyz = jch.into_cielab();
+//	println!("{}", xyz.data);
+	xyz.data.iter().zip(want.iter()).for_each(|(&v,&w)|assert_abs_diff_eq!(v,w,epsilon=4E-3));
+
 }

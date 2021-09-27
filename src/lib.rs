@@ -77,7 +77,7 @@ All rights reserved.
 */
 
 //#![allow(unused_imports)]
-
+#![allow(clippy::approx_constant)]
 pub type DefaultObserver = self::observers::CieObs1931;
 
 pub const ALL: usize = 0;
