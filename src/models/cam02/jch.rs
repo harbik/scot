@@ -47,8 +47,7 @@ impl<V, I, C> CieCamJCh<V, I, C>
         let cam: CieCamEnv<I, C> = V::default().into();
 		self.data.column_iter_mut().for_each(|jch| cam.transform_jch_to_xyz(jch));
 		let xyz_n: CieXYZ<C> = I::default().into();
-		xyz_to_lab(xyz_n.data.column(0), &mut self.data);	
-		CieLab::<I,C>::new(self.data)
+		CieLab::<I,C>::new(xyz_to_lab(xyz_n.data.column(0), self.data))
     }
 }
 
@@ -100,6 +99,13 @@ impl<V,I,C> From<&CieCam> for CieCamJCh<V,I,C> {
 
 
 #[test]
+/**
+	Test forward `CieCamJch` transform from  `CieLab` to `CieCamJCh` to `CieLab` coordinates, 
+	using JCh's `From<L>` or `From<impl Into<CieLab<I,C>>` implementation, for a set of 9 Jch and Lab values.
+
+	The test data are created using [CIECAM02.XLS](https://web.archive.org/web/20070109143710/http://www.cis.rit.edu/fairchild/files/CIECAM02.XLS)
+	spreadsheet, created by Eric Walowit and Grit O'Brien, with a revision data of July 28, 2004.
+ */
 fn test_from_lab(){
 	use crate::observers::CieObs1931;
 	use approx::assert_relative_eq;
@@ -138,6 +144,14 @@ fn test_from_lab(){
 }
 
 #[test]
+/**
+	Test reverse transform from `CieCamJCh` to `CieLab` coordinates, using JCh's into_cielab method,
+	for a set of 9 Jch and Lab values.
+
+	The test data are created using [CIECAM02.XLS](https://web.archive.org/web/20070109143710/http://www.cis.rit.edu/fairchild/files/CIECAM02.XLS)
+	spreadsheet, created by Eric Walowit and Grit O'Brien, with a revision data of July 28, 2004.
+
+ */
 fn test_reverse(){
 	use nalgebra::Matrix3xX;
 	use crate::illuminants::D50;

@@ -1,20 +1,18 @@
-
 /*
-   Copyright 2021, Harbers Bik LLC
+  Copyright 2021, Harbers Bik LLC
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+      http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 
 /*!
 Colorado is an open-source Color Science data and algorithms library written in the Rust programming language,
@@ -27,7 +25,7 @@ Colorado is free and open-source, and is released under dual MIT and Apache 2.0 
 It is being developed by Gerard Harbers from *Harbers Bik LLC*.
 
 Mathematical representations of spectral distributions are the base for many of color algorithms in this library,
-such spectral power distributions of lamps and displays, 
+such spectral power distributions of lamps and displays,
 and spectral reflectivity and spectral transmissivity distributions of surfaces and transparent materials:
 they are typically measured using spectrometers, or defined by international standards.
 This library has a large collection of these spectral distributions, and makes it easy to process them with various color models,
@@ -42,13 +40,13 @@ or to create your own models.
 - Calculate chromaticity coordinates and appearance correlates based on a number of color models.
 
 ## Disclaimer
-The data, methods, and algorithms in this library, 
-referencing Standard Organizations such as the International Commission on Illumination (CIE), or any other Standards Organizations, 
-have not been endorsed, qualified, or approved by these Standard Organizations. 
-Please consult their documentation and standards for authoritative methods, recommendations, and data. 
+The data, methods, and algorithms in this library,
+referencing Standard Organizations such as the International Commission on Illumination (CIE), or any other Standards Organizations,
+have not been endorsed, qualified, or approved by these Standard Organizations.
+Please consult their documentation and standards for authoritative methods, recommendations, and data.
 If you find any deviations or errors between the official standards and the implementations in this library, please report them as [issues](https://github.com/harbik/colorado/issues) on its GitHub page.
-Please be also aware that light and color measurements are difficult and depend on a lot of factors, 
-with many of them outside the scope of this library and its applications. 
+Please be also aware that light and color measurements are difficult and depend on a lot of factors,
+with many of them outside the scope of this library and its applications.
 If you have a professional lighting, display lighting, or color issue, please consult a specialist.
 
 
@@ -84,7 +82,7 @@ pub const ALL: usize = 0;
 
 /**
 
- */
+*/
 pub mod models;
 
 pub mod differences;
@@ -98,7 +96,7 @@ pub mod swatches;
 /**
 CIE Standard Observers
  */
-pub mod observers; 
+pub mod observers;
 
 pub mod domain;
 pub use self::domain::*;

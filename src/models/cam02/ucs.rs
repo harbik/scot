@@ -1,8 +1,8 @@
 /*!
-	`CieCamUcs`, the CIECAM Uniform Color Space model, using J', a', and b' correlates. 
- */
+   `CieCamUcs`, the CIECAM Uniform Color Space model, using J', a', and b' correlates.
+*/
 
-use super::{CieCamEnv, VcAvg, CieLab, CieXYZ};
+use super::{CieCamEnv, CieLab, CieXYZ, VcAvg};
 use crate::{illuminants::D65, observers::StandardObserver, DefaultObserver};
 use nalgebra::{Const, Dynamic, OMatrix};
 use std::marker::PhantomData;
