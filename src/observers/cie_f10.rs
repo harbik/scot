@@ -34,7 +34,7 @@ impl StandardObserver for CieObsF10 {
 		Meter: From<<L>::UnitValueType>
 	 {
 		//matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE_OBS_F10)
-		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), target, 3, Self::cmf())
 	}
 
 }

@@ -33,6 +33,10 @@ impl<C: StandardObserver> CieXYZ<C> {
         self.data.ncols()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+
     pub fn normalize(mut self, v: f64) -> Self {
         let mut ys: Vec<f64> = Vec::with_capacity(self.len());
         for i in 0..self.len() {

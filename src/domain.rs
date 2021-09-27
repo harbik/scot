@@ -104,6 +104,10 @@ where
         self.range.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.range.is_empty()
+    }
+
     pub fn iter(&self) -> IterDomain<S> {
         self.into_iter()
     }

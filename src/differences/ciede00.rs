@@ -258,17 +258,14 @@ fn de2000(l1: f64, a1: f64, b1: f64, l2: f64, a2: f64, b2: f64) -> f64 {
     let h_prime_sum = h_prime1 + h_prime2;
     if c_prime1 * c_prime2 == 0.0 {
         bar_h_prime = h_prime_sum;
+    } else if (h_prime1 - h_prime2).abs() <= 180f64.to_radians() {
+        bar_h_prime = h_prime_sum / 2.0;
+    } else if h_prime_sum < 360f64.to_radians() {
+        bar_h_prime = (h_prime_sum + 360f64.to_radians()) / 2.0;
     } else {
-        if (h_prime1 - h_prime2).abs() <= 180f64.to_radians() {
-            bar_h_prime = h_prime_sum / 2.0;
-        } else {
-            if h_prime_sum < 360f64.to_radians() {
-                bar_h_prime = (h_prime_sum + 360f64.to_radians()) / 2.0;
-            } else {
-                bar_h_prime = (h_prime_sum - 360f64.to_radians()) / 2.0;
-            }
-        }
+        bar_h_prime = (h_prime_sum - 360f64.to_radians()) / 2.0;
     }
+
     /* Equation 15 */
     let t = 1.0 - (0.17 * (bar_h_prime - 30f64.to_radians()).cos())
         + (0.24 * (2.0 * bar_h_prime).cos())
@@ -290,13 +287,11 @@ fn de2000(l1: f64, a1: f64, b1: f64, l2: f64, a2: f64, b2: f64) -> f64 {
     let r_t = -(2.0 * delta_theta).sin() * r_c;
 
     /* Equation 22 */
-    let de = ((delta_l_prime / (KL * s_l)).powi(2)
+    ((delta_l_prime / (KL * s_l)).powi(2)
         + (delta_c_prime / (KC * s_c)).powi(2)
         + (delta_h_prime / (KH * s_h)).powi(2)
         + (r_t * (delta_c_prime / (KC * s_c)) * (delta_h_prime / (KH * s_h))))
-        .sqrt();
-
-    return de;
+        .sqrt()
 }
 
 impl<I: Illuminant, C: StandardObserver> AsRef<DMatrix<f64>> for CieDE2000<I, C> {

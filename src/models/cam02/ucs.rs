@@ -26,6 +26,10 @@ impl<V, I, C> CieCamUcs<V, I, C> {
     pub fn len(&self) -> usize {
         self.data.ncols()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
 }
 
 impl<V, I, C, L> From<L> for CieCamUcs<V, I, C>

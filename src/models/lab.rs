@@ -30,8 +30,12 @@ impl<I, C> CieLab<I, C> {
         self.data.ncols()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+
     pub fn iter(&self) -> LabIterRef<I, C> {
-        (&self).into_iter()
+        self.into_iter()
     }
 }
 
@@ -153,7 +157,7 @@ impl<'a, C, I> IntoIterator for &'a CieLab<I, C> {
     type IntoIter = LabIterRef<'a, I, C>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Self::IntoIter { lab: &self, i: 0 }
+        Self::IntoIter { lab: self, i: 0 }
     }
 }
 
@@ -164,6 +168,11 @@ fn test_lab_iter() {
     use crate::illuminants::CieIllD50;
 
     let labs: CieLab<CieIllD50> = ColorChecker.into(); // using CieObs1931 and CieIllD65 as Default
+    for LabValues { l, a, b } in labs.iter() {
+        println!("{}, {}, {}", l, a, b);
+    }
+    println!();
+
     for LabValues { l, a, b } in labs {
         println!("{}, {}, {}", l, a, b);
     }

@@ -104,7 +104,11 @@ impl CctParameters {
     }
 
     pub fn len(&self) -> usize {
-        self.nrows()
+        self.0.nrows()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 }
 

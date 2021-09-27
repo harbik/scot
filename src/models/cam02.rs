@@ -20,37 +20,37 @@ use std::marker::PhantomData;
    - CIECAT02 transform for non-cie1931 observer?
 */
 
-pub static MCAT02: SMatrix<f64, 3, 3> = matrix![
+pub const MCAT02: SMatrix<f64, 3, 3> = matrix![
      0.7328,  0.4296,  -0.1624;
     -0.7036,  1.6975,   0.0061;
      0.0030,  0.0136,   0.9834;
 ];
 
-pub static MHPE: SMatrix<f64, 3, 3> = matrix![
+pub const MHPE: SMatrix<f64, 3, 3> = matrix![
      0.38971, 0.68898, -0.07868;
     -0.22981, 1.18340,  0.04641;
      0.00000, 0.00000,  1.00000;
 ];
 
-pub static MHPEINVLUO: SMatrix<f64, 3, 3> = matrix![
+pub const MHPEINVLUO: SMatrix<f64, 3, 3> = matrix![
     1.910197, -1.112124,  0.201908;
     0.370950,  0.629054, -0.000008;
     0.000000,  0.000000,  1.000000;
 ];
 
-pub static MHPEINV: SMatrix<f64, 3, 3> = matrix![
+pub const MHPEINV: SMatrix<f64, 3, 3> = matrix![
     1.9101968340520348, -1.1121238927878747,  0.20190795676749937;
     0.3709500882486886,  0.6290542573926132, -0.000008055142184359149;
     0.0,  				 0.0,  				  1.0;
 ];
 
-pub static MCAT02INVLUO: SMatrix<f64, 3, 3> = matrix![
+pub const MCAT02INVLUO: SMatrix<f64, 3, 3> = matrix![
      1.096124, -0.278869, 0.182745;
      0.454369,  0.473533, 0.072098;
     -0.009628, -0.005698, 1.015326;
 ];
 
-pub static MCAT02INV: SMatrix<f64, 3, 3> = matrix![
+pub const MCAT02INV: SMatrix<f64, 3, 3> = matrix![
     1.096123820835514, 		-0.2788690002182872, 	0.18274517938277304;
     0.45436904197535916,	 0.4735331543074117,	0.0720978037172291;
     -0.009627608738429353, 	-0.005698031216113419,	1.0153256399545427;
@@ -128,7 +128,7 @@ pub struct CieCamEnv<I = D50, C = DefaultObserver> {
 impl<I, C: StandardObserver> CieCamEnv<I, C> {
     pub fn post_adaptation_cone_response_from_xyz(&self, xyz: CieXYZ<C>) -> Matrix3xX<f64> {
         let n_samples = xyz.len();
-        let rgb = &MCAT02 * xyz.data;
+        let rgb = MCAT02 * xyz.data;
         let d_rgbs = Matrix3xX::from_iterator(
             n_samples,
             self.d_rgb
@@ -233,6 +233,7 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
         (colorfulness * c, colorfulness * s)
     }
 
+    /*
     fn hue_composition(&self, hue_angle: f64) -> f64 {
         let h = hue_angle;
         if h >= 20.14 && h <= 90.0 {
@@ -249,6 +250,18 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
                     / ((((h + 360.0) - 237.53) / 1.2) + (380.14 - (h + 360.0)) / 0.8)
         } else {
             panic!("wrong hue angle")
+        }
+    }
+     */
+
+    fn hue_composition(&self, hue_angle: f64) -> f64 {
+        match hue_angle {
+            h if (20.14..=90.0).contains(&h) => (100.0 * (h - 20.14) / 0.8) / (((h - 20.14) / 0.8) + (90.0 - h) / 0.7),
+            h if (90.0..=164.25).contains(&h) => 100.0 + (100.0 * (h - 90.0) / 0.7) / (((h - 90.0) / 0.7) + (164.25 - h)),
+            h if (164.25..= 237.53).contains(&h) => 200.0 + (100.0 * (h - 164.25)) / ((h - 164.25) + ((237.53 - h) / 1.2)),
+            h if (237.53..= 380.14).contains(&h) => 300.0 + (100.0 * (h - 237.53) / 1.2) / (((h - 237.53) / 1.2) + (380.14 - h) / 0.8),
+            h if h < 20.14 => 300.0 + (100.0 * ((h + 360.0) - 237.53) / 1.2) / ((((h + 360.0) - 237.53) / 1.2) + (380.14 - (h + 360.0)) / 0.8),
+            _ => panic!("wrong hue angle")
         }
     }
 
@@ -357,32 +370,17 @@ where
         let z = n.sqrt() + 1.48;
         let n_bb = 0.725 * n.powf(-0.2);
         let n_cb = n_bb;
-        let rgb_w = &MCAT02 * &xyz_w.data;
+        let rgb_w = MCAT02 * &xyz_w.data;
         let nom = Matrix3x1::from_element(d * y_w);
         let mut d_rgb = nom.component_div(&rgb_w);
         d_rgb.add_scalar_mut(1.0 - d);
         let rgb_wc = d_rgb.component_mul(&rgb_w);
-        let rgb_p_w = &MHPE * &MCAT02INV * rgb_wc;
+        let rgb_p_w = MHPE * MCAT02INV * rgb_wc;
         let rgb_p_aw = rgb_p_w.map(|r| cone_adaptation(f_l, r));
         let a_w = (2.0 * rgb_p_aw.x + rgb_p_aw.y + rgb_p_aw.z / 20.0 - 0.305) * n_bb;
 
         Self {
-            s_r,
-            c,
-            f,
-            n_c,
-            l_a,
-            k,
-            f_l,
-            d,
-            y_b,
-            y_w,
-            n,
-            z,
-            n_bb,
-            n_cb,
-            d_rgb,
-            a_w,
+            s_r, c, f, n_c, l_a, k, f_l, d, y_b, y_w, n, z, n_bb, n_cb, d_rgb, a_w,
             i: PhantomData,
             obs: PhantomData,
         }

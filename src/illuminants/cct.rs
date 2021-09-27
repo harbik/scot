@@ -124,6 +124,10 @@ impl<C: StandardObserver> CctDuv<C> {
     pub fn len(&self) -> usize {
         self.0.ncols()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
 
 impl<C> AbsDiffEq for CctDuv<C>
@@ -283,13 +287,12 @@ impl<C: StandardObserver> CctDuvCalc for Robertson<C> {
                 let d = (u - up).hypot(v - vp);
                 if d > 0.05 {
                     tdv.push(f64::NAN)
-                } else {
-                    if v < vp {
+                } else if v < vp {
                         tdv.push(-d)
                     } else {
                         tdv.push(d)
                     }
-                }
+                
             }
         }
         CctDuv(Matrix2xX::from_vec(tdv), PhantomData)

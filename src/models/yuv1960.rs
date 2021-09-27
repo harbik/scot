@@ -22,7 +22,16 @@ impl<C: StandardObserver> CieYuv1960<C> {
             _cmf: PhantomData,
         }
     }
+
+    pub fn len(&self) -> usize {
+        self.data.ncols()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
 }
+
 
 pub(crate) fn uv60(x: f64, y: f64, z: f64) -> [f64; 3] {
     let den = x + 15.0 * y + 3.0 * z;

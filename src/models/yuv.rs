@@ -18,6 +18,14 @@ impl<C: StandardObserver> CieYuv<C> {
             cmf: PhantomData,
         }
     }
+
+    pub fn len(&self) -> usize {
+        self.data.ncols()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
 }
 
 impl<C, X> From<X> for CieYuv<C>
