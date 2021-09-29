@@ -1,6 +1,3 @@
-//use crate::util::Domain;
-//use crate::util::{WavelengthStep, };
-
 const N: usize = 81;
 const M: usize = 5;
 illuminant!(

@@ -12,10 +12,17 @@ use nalgebra::{Const, DVector, DefaultAllocator, Dim, Matrix3xX, OMatrix};
     observers, using for example transforming back to a set of reference RGB spectra, and calculating the tristimulus
     values for a different observer. The standard observers have global (static) scope.
 
+
+    TODO 
+    - [ ] Convert data containter from Matrix3xX to OMatrix, the abstraction for a Vec or Array based container?
+          This to avoid new allocation and copy in case we have a static container, 
+
+
+
 */
 #[derive(Debug)]
 pub struct CieXYZ<C: StandardObserver = DefaultObserver> {
-    pub data: Matrix3xX<f64>,
+    pub data: Matrix3xX<f64>,  // use OMatrix here? 
     pub y: Option<DVector<f64>>,
     cmf: PhantomData<*const C>, // only used through C::Default(), but needed to mark the type
 }
@@ -53,7 +60,14 @@ impl<C: StandardObserver> CieXYZ<C> {
 }
 
 /**
-    Convert owned matrix to dynamic matrix
+    Convert static matrix to a dynamic matrix.
+
+    Both are owned matrice.
+    Copies from array storage, on the stack, to vector storage on the heap.
+
+    // TODO: This is not needed!!!
+    // Is here because of SpectralDistribution.xyz trait bound CieXYZ<C>:: From
+    // Would be better to also use OMatrix as basic container in CieXYZ
 */
 impl<O: StandardObserver, C: Dim> From<OMatrix<f64, Const<3>, C>> for CieXYZ<O>
 where

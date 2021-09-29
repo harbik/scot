@@ -1,8 +1,13 @@
 #![doc = include_str!("./cam02/README.md")]
 
 pub mod cam; // 8 correlates
-pub mod jch;
+pub use cam::*;
+
+pub mod jch; // JCh, Lightness, Chroma, and Hue-Angle
+pub use jch::*;
+
 pub mod ucs; // J'a'b' //JCh
+pub use ucs::*;
 
 use super::{CieLab, CieXYZ};
 use crate::{
@@ -25,6 +30,24 @@ pub const MCAT02: SMatrix<f64, 3, 3> = matrix![
     -0.7036,  1.6975,   0.0061;
      0.0030,  0.0136,   0.9834;
 ];
+
+pub fn cat02(x:f64, y:f64, z:f64) -> [f64;3] {[
+     0.7328 * x + 0.4296 * y - 0.1624 * z,
+    -0.7036 * x + 1.6975 * y + 0.0061 * z,
+     0.0030 * x + 0.0136 * y + 0.9834 * z
+]}
+
+pub const MCAT02INV: SMatrix<f64, 3, 3> = matrix![
+    1.096123820835514, 		-0.2788690002182872, 	0.18274517938277304;
+    0.45436904197535916,	 0.4735331543074117,	0.0720978037172291;
+    -0.009627608738429353, 	-0.005698031216113419,	1.0153256399545427;
+];
+
+pub fn cat02_inv(r:f64, g:f64, b:f64) -> [f64;3] {[
+     1.096123820835514 * r		- 0.2788690002182872 * g 	+ 0.18274517938277304 * b,
+     0.45436904197535916 * r	+ 0.4735331543074117 * g	+ 0.0720978037172291 * b,
+    -0.009627608738429353 * r 	- 0.005698031216113419 * g	+ 1.0153256399545427 * b
+]}
 
 pub const MHPE: SMatrix<f64, 3, 3> = matrix![
      0.38971, 0.68898, -0.07868;
@@ -50,19 +73,23 @@ pub const MCAT02INVLUO: SMatrix<f64, 3, 3> = matrix![
     -0.009628, -0.005698, 1.015326;
 ];
 
-pub const MCAT02INV: SMatrix<f64, 3, 3> = matrix![
-    1.096123820835514, 		-0.2788690002182872, 	0.18274517938277304;
-    0.45436904197535916,	 0.4735331543074117,	0.0720978037172291;
-    -0.009627608738429353, 	-0.005698031216113419,	1.0153256399545427;
-];
+
+pub fn hpe_cat02inv(r_c:f64, g_c:f64, b_c:f64) -> [f64;3] {[
+    0.740979097014 * r_c + 0.218025155676 * g_c + 0.041005747311 * b_c,
+    0.285353291686 * r_c + 0.624201574119 * g_c + 0.090445134195 * b_c,
+   -0.009627608738 * r_c - 0.005698031216 * g_c + 1.015325639955 * b_c
+]}
+
 
 #[test]
 fn test_inv() {
-    println!("MCAT02*MCATO2INV {:.12}", &MCAT02 * &MCAT02INV);
+    println!("MCAT02 {:.12}", MCAT02);
+    println!("MCAT02*MCATO2INV {:.12}", MCAT02 * MCAT02INV);
     println!("MHPE*MHPEINV {:.12}", &MCAT02 * &MCAT02INV);
     //	println!("MCAT02*MCATO2INV {}", &MCAT02*&MCAT02.try_inverse().unwrap());
     //	println!("MCATO2INV {}", &MCAT02.try_inverse().unwrap());
     //	println!("MHPE INV {}", &MHPE.try_inverse().unwrap());
+    println!("MHPE*MCAT02INV {:.12}", (MHPE * MCAT02INV));
 }
 
 /**
@@ -126,43 +153,22 @@ pub struct CieCamEnv<I = D50, C = DefaultObserver> {
 }
 
 impl<I, C: StandardObserver> CieCamEnv<I, C> {
-    pub fn post_adaptation_cone_response_from_xyz(&self, xyz: CieXYZ<C>) -> Matrix3xX<f64> {
-        let n_samples = xyz.len();
-        let rgb = MCAT02 * xyz.data;
-        let d_rgbs = Matrix3xX::from_iterator(
-            n_samples,
-            self.d_rgb
-                .as_slice()
-                .iter()
-                .cycle()
-                .take(3 * n_samples)
-                .cloned(),
-        ); // repeat columns
-        let rgb_c = d_rgbs.component_mul(&rgb);
-        (MHPE * MCAT02INV * rgb_c).map(|r| cone_adaptation(self.f_l, r))
-    }
-
-    // A: Achromatic Response
-    #[inline]
-    pub fn achromatic_response(&self, rgb: MatrixSlice3x1<f64>) -> f64 {
-        (2.0 * rgb.x + rgb.y + rgb.z / 20.0 - 0.305) * self.n_bb // achromatic response
-    }
 
     #[inline]
-    pub fn achromatic_response_from_lightness(&self, lightness: f64) -> f64 {
-        self.a_w * (lightness / 100.0).powf(1.0f64 / (self.c * self.z))
+    pub fn achromatic_response(&self, r:f64, g:f64, b:f64) -> f64 {
+        (2.0 * r + g + b / 20.0 - 0.305) * self.n_bb // achromatic response
     }
 
     // a: Redness-Greenness
     #[inline]
-    pub fn red_green(&self, rgb: MatrixSlice3x1<f64>) -> f64 {
-        rgb.x - 12.0 * rgb.y / 11.0 + rgb.z / 11.0
+    pub fn red_green(&self, r_pa:f64, g_pa:f64, b_pa:f64) -> f64 {
+        r_pa - 12.0 * g_pa/ 11.0 + b_pa / 11.0
     }
 
     // b: Blueness-Yellowness
     #[inline]
-    pub fn blue_yellow(&self, rgb: MatrixSlice3x1<f64>) -> f64 {
-        (rgb.x + rgb.y - 2.0 * rgb.z) / 9.0
+    pub fn blue_yellow(&self, r_pa:f64, g_pa:f64, b_pa:f64) -> f64 {
+        (r_pa + g_pa - 2.0 * b_pa) / 9.0
     }
 
     #[inline]
@@ -173,6 +179,20 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
         } else {
             theta
         }
+    }
+
+    #[inline]
+    pub fn chroma(&self,r:f64, g:f64, b:f64, lightness: f64, red_green: f64, blue_yellow: f64, hue_angle: f64) -> f64 {
+        let t = ((50_000.0 / 13.0 * self.n_c * self.n_cb)
+            * self.eccentricity(hue_angle)
+            * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())
+            / (r + g + 21.0 * b / 20.0);
+        t.powf(0.9) * (lightness / 100.0).sqrt() * (1.64 - 0.29f64.powf(self.n)).powf(0.73)
+    }
+
+    #[inline]
+    pub fn achromatic_response_from_lightness(&self, lightness: f64) -> f64 {
+        self.a_w * (lightness / 100.0).powf(1.0f64 / (self.c * self.z))
     }
 
     #[inline]
@@ -190,8 +210,39 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
         0.25 * ((hue_angle.to_radians() + 2.0).cos() + 3.8)
     }
 
+    /**
+        Converts a set of CieXYZ values, with CieXYZ a container to RGB'a
+     */
+    pub fn post_adaptation_cone_response_from_xyz(&self, xyz: CieXYZ<C>) -> Matrix3xX<f64> {
+        let n_samples = xyz.len();
+        let rgb = MCAT02 * xyz.data;
+        let d_rgbs = Matrix3xX::from_iterator( n_samples, self.d_rgb.as_slice().iter().cycle().take(3 * n_samples).cloned(),); // repeat columns
+        let rgb_c = d_rgbs.component_mul(&rgb);
+        (MHPE * MCAT02INV * rgb_c).map(|r| cone_adaptation(self.f_l, r))
+    }
+
+    // A: Achromatic Response
     #[inline]
-    pub fn chroma(
+    pub fn achromatic_response_mat_slice(&self, rgb: MatrixSlice3x1<f64>) -> f64 {
+    //    (2.0 * rgb.x + rgb.y + rgb.z / 20.0 - 0.305) * self.n_bb // achromatic response
+        self.achromatic_response(rgb.x, rgb.y, rgb.z)
+    }
+
+    // a: Redness-Greenness
+    #[inline]
+    pub fn red_green_mat_slice(&self, rgb: MatrixSlice3x1<f64>) -> f64 {
+        self.red_green(rgb.x, rgb.y, rgb.z)
+    }
+    
+
+    // b: Blueness-Yellowness
+    #[inline]
+    pub fn blue_yellow_mat_slice(&self, rgb: MatrixSlice3x1<f64>) -> f64 {
+        self.blue_yellow(rgb.x, rgb.y, rgb.z)
+    }
+
+    #[inline]
+    pub fn chroma_mat_slice(
         &self,
         rgb: MatrixSlice3x1<f64>,
         lightness: f64,
@@ -199,13 +250,9 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
         blue_yellow: f64,
         hue_angle: f64,
     ) -> f64 {
-        //	let eccentricity = 0.25 * ((hue_angle.to_radians() + 2.0).cos() + 3.8);
-        let t = ((50_000.0 / 13.0 * self.n_c * self.n_cb)
-            * self.eccentricity(hue_angle)
-            * (red_green.powi(2) + blue_yellow.powi(2)).sqrt())
-            / (rgb.x + rgb.y + 21.0 * rgb.z / 20.0);
-        t.powf(0.9) * (lightness / 100.0).sqrt() * (1.64 - 0.29f64.powf(self.n)).powf(0.73)
+        self.chroma(rgb.x, rgb.y, rgb.z, lightness, red_green, blue_yellow, hue_angle)
     }
+    
 
     #[inline]
     pub fn colorfulness(&self, chroma: f64) -> f64 {
@@ -219,41 +266,24 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
 
     #[inline]
     pub fn ucs_j_prime(&self, lightness: f64) -> f64 {
-        0.7 * lightness / (1.0 + 0.007 * lightness)
-    }
-
-    #[inline]
-    pub fn ucs_m_prime(&self, colorfulness: f64) -> f64 {
-        43.8596 * (1.0 + 0.0228 * colorfulness).ln()
-    }
-
-    #[inline]
-    pub fn ucs_ab_prime(&self, colorfulness: f64, hue_angle: f64) -> (f64, f64) {
-        let (s, c) = hue_angle.sin_cos();
-        (colorfulness * c, colorfulness * s)
+        1.7 * lightness / (1.0 + 0.007 * lightness)
     }
 
     /*
-    fn hue_composition(&self, hue_angle: f64) -> f64 {
-        let h = hue_angle;
-        if h >= 20.14 && h <= 90.0 {
-            (100.0 * (h - 20.14) / 0.8) / (((h - 20.14) / 0.8) + (90.0 - h) / 0.7)
-        } else if h >= 90.0 && h <= 164.25 {
-            100.0 + (100.0 * (h - 90.0) / 0.7) / (((h - 90.0) / 0.7) + (164.25 - h))
-        } else if h >= 164.25 && h <= 237.53 {
-            200.0 + (100.0 * (h - 164.25)) / ((h - 164.25) + ((237.53 - h) / 1.2))
-        } else if h >= 237.53 && h <= 380.14 {
-            300.0 + (100.0 * (h - 237.53) / 1.2) / (((h - 237.53) / 1.2) + (380.14 - h) / 0.8)
-        } else if h < 20.14 {
-            300.0
-                + (100.0 * ((h + 360.0) - 237.53) / 1.2)
-                    / ((((h + 360.0) - 237.53) / 1.2) + (380.14 - (h + 360.0)) / 0.8)
-        } else {
-            panic!("wrong hue angle")
-        }
+    #[inline]
+    pub fn ucs_m_prime(&self, colorfulness: f64) -> f64 {
+        43.859649 * (1.0 + 0.0228 * colorfulness).ln()
     }
      */
 
+    #[inline]
+    pub fn ucs_ab_prime(&self, colorfulness: f64, hue_angle: f64) -> (f64, f64) {
+        let m_p = 43.859649 * (1.0 + 0.0228 * colorfulness).ln();
+        let (s, c) = (hue_angle.to_radians()).sin_cos();
+        (m_p * c, m_p * s)
+    }
+
+    #[inline]
     fn hue_composition(&self, hue_angle: f64) -> f64 {
         match hue_angle {
             h if (20.14..=90.0).contains(&h) => (100.0 * (h - 20.14) / 0.8) / (((h - 20.14) / 0.8) + (90.0 - h) / 0.7),
@@ -274,7 +304,6 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
     const RCPR_9: f64 = 1.0 / 0.9;
 
     pub fn transform_jch_to_xyz(&self, mut jch: MatrixSliceMut3x1<f64>) {
-        // XYZ
         let &[lightness, chroma, hue_angle]: &[f64; 3] = jch.as_ref();
         let t = (chroma / ((lightness / 100.0).sqrt() * (1.64 - 0.29f64.powf(self.n)).powf(0.73)))
             .powf(Self::RCPR_9);
@@ -299,6 +328,26 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
         jch.x = xyz.x;
         jch.y = xyz.y;
         jch.z = xyz.z;
+    }
+
+    pub fn transform_xyz_to_jab_prime(&self, mut xyz: MatrixSliceMut3x1<f64>) {
+        let [x,y,z]: &mut [f64; 3] = xyz.as_mut();
+        let [r, g, b] = cat02(*x, *y, *z); // Step 1
+        let &[d_r, d_g, d_b]:&[f64;3] = self.d_rgb.as_ref();
+        let rgb_p = hpe_cat02inv(r*d_r, g*d_g, b*d_b); // Step 2 and 3
+        let [r_pa, g_pa, b_pa] = rgb_p.map(|x|cone_adaptation(self.f_l, x));
+        let achromatic_response = self.achromatic_response(r_pa, g_pa, b_pa);
+        let lightness = self.lightness(achromatic_response);
+        let red_green = self.red_green(r_pa, g_pa, b_pa);
+        let blue_yellow = self.blue_yellow(r_pa, g_pa, b_pa);
+        let hue_angle = self.hue_angle(red_green, blue_yellow);
+        let chroma = self.chroma(r_pa, g_pa, b_pa, lightness, red_green, blue_yellow, hue_angle);
+        let colorfulness = self.colorfulness(chroma);
+        let (ap, bp) = self.ucs_ab_prime(colorfulness, hue_angle);
+        *x = self.ucs_j_prime(lightness);
+        *y = ap;
+        *z = bp;
+        println!("J' {} a' {} b' {}", *x, *y, *z);
     }
 }
 #[test]
@@ -387,7 +436,8 @@ where
     }
 }
 
-type VcAvg = ViewConditions<318, 20, SR_AVG, D_AUTO>;
+pub type VcAvg = ViewConditions<318, 20, SR_AVG, D_AUTO>;
+pub type VcTm30 = ViewConditions<100, 20, SR_AVG, 100>;
 
 pub const SR_AVG: usize = 0.150E3 as usize;
 pub const SR_DIM: usize = 0.075E3 as usize;

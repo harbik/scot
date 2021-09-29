@@ -7,12 +7,8 @@
 
 //use nalgebra::Matrix3xX;
 
-//use crate::Meter;
+
 use crate::SpectralDistribution;
-//use crate::Step;
-//use crate::Unit;
-//use crate::models::CieXYZ;
-//use crate::observers::StandardObserver;
 
 pub mod cct;
 pub use self::cct::*;
@@ -31,12 +27,25 @@ Represents a type with a single spectral distrution, which values can be accesse
 by using its default constructor, and getting its first, and single row vector.
 */
 
-pub trait Illuminant: SpectralDistribution + Default
-//where
-//Self: SpectralDistribution,
-//	Self: Default,
+pub trait Illuminant: SpectralDistribution + Default {}
+/*
+where
+    Self: SpectralDistribution,
+	Self: Default,
 {
+    // xyz data for illuminants can normalized to 100.0
+    fn xyz<C>(&self) -> CieXYZ<C>
+    where 
+        C: StandardObserver,
+        Meter: From<<<Self as SpectralDistribution>::StepType as Step>::UnitValueType>,
+        Matrix3xX<f64>: Mul<Self::MatrixType>, // 
+        <Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output: Mul<f64>,
+        CieXYZ<C>: From< <<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output as Mul< f64, >>::Output, >,
+    {
+        <Self as SpectralDistribution>::xyz(&self).normalize(100.0)
+    }
 }
+ */
 
 #[macro_export]
 macro_rules! illuminant {
@@ -74,9 +83,7 @@ macro_rules! illuminant {
             for $crate::models::CieXYZ<C>
         {
             fn from(ill: $ILL<I>) -> Self {
-                //use $crate::illuminants::Illuminant;
-                use $crate::spectra::SpectralDistribution;
-                ill.xyz().normalize(100.0)
+                $crate::spectra::SpectralDistribution::xyz(&ill)
             }
         }
     };
@@ -113,7 +120,6 @@ macro_rules! illuminant {
 
         impl<C: $crate::observers::StandardObserver> From<$ILL> for $crate::models::CieXYZ<C> {
             fn from(ill: $ILL) -> Self {
-                //use $crate::illuminants::Illuminant;
                 use $crate::spectra::SpectralDistribution;
                 ill.xyz().normalize(100.0)
             }
@@ -152,7 +158,6 @@ macro_rules! illuminant {
 
         impl<C: $crate::observers::StandardObserver> From<$ILL> for $crate::models::CieXYZ<C> {
             fn from(ill: $ILL) -> Self {
-                //use $crate::illuminants::Illuminant;
                 use $crate::spectra::SpectralDistribution;
                 ill.xyz().normalize(100.0)
             }
@@ -174,61 +179,6 @@ macro_rules! illuminant_single_test {
         }
     };
 }
-/*
-
-macro_rules! all_illuminants_from_static_slice {
-    ($ILL:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident, $KEYS:ident) => {
-
-        #[derive(Debug, Default)]
-        pub struct $ILL;
-
-        impl crate::SpectralDistribution for $ILL {
-            type MatrixType = nalgebra::SMatrixSlice<'static, f64, $N, $M>;
-            type StepType = WavelengthStep;
-
-            fn len(&self) -> usize {$M}
-
-            fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-                (
-                    $DOMAIN,
-                    <Self as crate::SpectralDistribution>::MatrixType::from_slice(&$DATA),
-                )
-            }
-
-            fn keys(&self) -> Option<Vec<String>> {
-                Some($KEYS.iter().map(|s| s.to_string()).collect())
-            }
-
-            fn description(&self) -> Option<String> {
-                Some(format!($DESC))
-            }
-        }
-
-        impl<C: crate::observers::StandardObserver> crate::illuminants::Illuminant<C> for $ILL {}
-
-        impl<C: crate::observers::StandardObserver> From<$ILL> for crate::models::CieXYZ<C> {
-            fn from(ill: $ILL) -> Self {
-                use crate::illuminants::Illuminant;
-                ill.xyz()
-            }
-        }
-
-    };
-}
-*/
-
-/*
-    Optional illuminant data libraries, which can be excluded by feature flags.
-    This libraries are big in size, so a user might want to exlude them if small packages are
-    required. They are included by default, to make it easy to use the library for general
-    color science work.
-*/
-
-//#[cfg(feature="ies_tm30_incandescent_illuminants")]
-//pub mod incandescent_ies_tm30;
-
-//#[cfg(feature="ies_tm30_incandescent_illuminants")]
-//pub use self::incandescent_ies_tm30::*;
 
 #[cfg(feature = "cie_fluorescent_illuminants")]
 pub mod fluorescent_cie;

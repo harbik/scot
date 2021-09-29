@@ -74,12 +74,12 @@ where
         // 3xX Matrix, CIECAM-JCh (J, C, h), Lightness, Chroma, and hue angle.
         let mut vdata: Vec<f64> = Vec::with_capacity(3 * n_samples);
         for rgb in rgb_pa.column_iter() {
-            let achromatic_response = cam.achromatic_response(rgb); // A
+            let achromatic_response = cam.achromatic_response_mat_slice(rgb); // A
             let lightness = cam.lightness(achromatic_response); // J
-            let red_green = cam.red_green(rgb); // a
-            let blue_yellow = cam.blue_yellow(rgb); // b
+            let red_green = cam.red_green_mat_slice(rgb); // a
+            let blue_yellow = cam.blue_yellow_mat_slice(rgb); // b
             let hue_angle = cam.hue_angle(red_green, blue_yellow); // h
-            let chroma = cam.chroma(rgb, lightness, red_green, blue_yellow, hue_angle); // C
+            let chroma = cam.chroma_mat_slice(rgb, lightness, red_green, blue_yellow, hue_angle); // C
             vdata.append(&mut vec![lightness, chroma, hue_angle]);
         }
         let data = OMatrix::<f64, Const<3>, Dynamic>::from_vec(vdata);

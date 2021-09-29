@@ -10,8 +10,8 @@ automatic transformations between the different mathematical representations of 
 pub mod cie1931;
 pub use cie1931::*;
 
-//pub mod cie1964;
-//pub use cie1964::*;
+pub mod cie1964;
+pub use cie1964::*;
 
 pub mod cie_f2;
 pub use cie_f2::*;

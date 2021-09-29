@@ -118,7 +118,7 @@ impl Illuminant for CieDaylight {}
 
 impl<C: StandardObserver> From<CieDaylight> for CieXYZ<C> {
     fn from(d: CieDaylight) -> Self {
-        d.xyz()
+        d.xyz().normalize(100.0)
     }
 }
 
@@ -142,7 +142,7 @@ impl<const T: usize> SpectralDistribution for D<T> {
 
 impl<C: StandardObserver, const T: usize> From<D<T>> for CieXYZ<C> {
     fn from(d: D<T>) -> Self {
-        d.xyz()
+        d.xyz().normalize(100.0)
     }
 }
 

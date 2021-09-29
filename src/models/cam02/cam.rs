@@ -52,14 +52,14 @@ where
         // 9xX Matrix, with 9 correlates in rows J, Q, a, b, C, M, s, h, H for the number of input samples
         let mut vdata: Vec<f64> = Vec::with_capacity(9 * n_samples);
         for rgb in rgb_pa.column_iter() {
-            let achromatic_response = cam.achromatic_response(rgb); // achromatic response
+            let achromatic_response = cam.achromatic_response_mat_slice(rgb); // achromatic response
             let lightness = cam.lightness(achromatic_response); // J
             let brightness = cam.brightness(lightness); // Q
-            let red_green = cam.red_green(rgb); // a
-            let blue_yellow = cam.blue_yellow(rgb); // b
+            let red_green = cam.red_green_mat_slice(rgb); // a
+            let blue_yellow = cam.blue_yellow_mat_slice(rgb); // b
             let hue_angle = cam.hue_angle(red_green, blue_yellow); // h
             let hue_composition = cam.hue_composition(hue_angle); // H
-            let chroma = cam.chroma(rgb, lightness, red_green, blue_yellow, hue_angle); // /C
+            let chroma = cam.chroma_mat_slice(rgb, lightness, red_green, blue_yellow, hue_angle); // /C
             let colorfulness = cam.colorfulness(chroma); // M
             let saturation = cam.saturation(brightness, colorfulness); // s
             vdata.append(&mut vec![

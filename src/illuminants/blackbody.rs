@@ -152,26 +152,13 @@ impl SpectralDistribution for Planckian {
     {
         let xyz =
             C::cmf() * self.map_domain(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
-        CieXYZ::<C>::new(xyz)
+        CieXYZ::<C>::new(xyz).normalize(100.0)
     }
 }
-
-/*
-impl Illuminant for Planckian {
-    fn xyz<C>(&self) -> CieXYZ<C>
-    where
-        C: StandardObserver
-    {
-        let xyz =
-            C::cmf() * self.map_domain(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
-        CieXYZ::<C>::new(xyz)
-    }
-}
- */
 
 impl<C: StandardObserver> From<Planckian> for CieXYZ<C> {
     fn from(p: Planckian) -> Self {
-        p.xyz().normalize(100.0)
+        p.xyz()
     }
 }
 
@@ -204,7 +191,7 @@ where
     C: StandardObserver,
 {
     fn from(_: BB<T>) -> Self {
-        Self::from(Planckian::new(T))
+        Self::from(Planckian::new(T)).normalize(100.0)
     }
 }
 

@@ -154,22 +154,9 @@ impl SpectralDistribution for LedOhno2005 {
     {
         let xyz =
             C::cmf() * self.map_domain(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
-        CieXYZ::<C>::new(xyz)
+        CieXYZ::<C>::new(xyz).normalize(100.0)
     }
 }
-
-/*
-impl Illuminant for LedOhno2005 {
-    fn xyz<C>(&self) -> CieXYZ<C>
-    where
-        C: StandardObserver
-    {
-        let xyz =
-            C::cmf() * self.map_domain(C::domain()) * C::K * C::domain().step.unitvalue(1).value();
-        CieXYZ::<C>::new(xyz)
-    }
-}
- */
 
 impl<C: StandardObserver> From<LedOhno2005> for CieXYZ<C> {
     fn from(l: LedOhno2005) -> Self {

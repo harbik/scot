@@ -126,17 +126,13 @@ pub trait SpectralDistribution {
     where
         C: StandardObserver,
         Meter: From<<<Self as SpectralDistribution>::StepType as Step>::UnitValueType>,
-        Matrix3xX<f64>: Mul<Self::MatrixType>,
+        Matrix3xX<f64>: Mul<Self::MatrixType>, // 
         <Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output: Mul<f64>,
-        CieXYZ<C>: From<
-            <<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output as Mul<
-                f64,
-            >>::Output,
-        >,
+        CieXYZ<C>: From< <<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output as Mul< f64, >>::Output, >,
     {
         let (d, s) = self.spd();
         let xyz = (C::values(&d) * s) * (C::K * C::domain().step.unitvalue(1).value());
-        CieXYZ::<C>::from(xyz)
+        CieXYZ::<C>::from(xyz) // xyz can be an static matrix here too.
     }
 }
 

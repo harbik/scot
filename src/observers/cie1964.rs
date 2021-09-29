@@ -1,8 +1,8 @@
 use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice};
 use crate::interp_lin_cmf;
 use crate::{observers::StandardObserver};
-use crate::util::{Domain};
-use crate::util::{NM5, WavelengthStep, Meter, Step, NM};
+use crate::{Domain};
+use crate::{NM5, WavelengthStep, Meter, Step, NM};
 
 
 
@@ -73,13 +73,12 @@ impl StandardObserver for CieObs1964 {
 fn test_cmf(){
 	use crate::observers::{CieObs1931};
 	use crate::models::CieLab;
-	use crate::swatches::ColorChecker;
+	use crate::swatches::ColorCheckerSwatch;
 	use crate::illuminants::D65;
-//	let c = CieObs1964::default().cmf(&Domain::new(4,7,WavelengthScale { size: 1,  exp: -7}));
 
-	let lab31: CieLab::<D65, CieObs1931> = ColorChecker::<13>.into();
-	let lab64: CieLab::<D65, CieObs1964> = ColorChecker::<13>.into();
-	println!("{} {}", lab31, lab64);
+	let lab31: CieLab::<D65, CieObs1931> = ColorCheckerSwatch::<13>.into();
+	let lab64: CieLab::<D65, CieObs1964> = ColorCheckerSwatch::<13>.into();
+	println!("{} {}", lab31.data, lab64.data);
 	
 }
 
