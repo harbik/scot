@@ -17,7 +17,7 @@ use crate::{
     DefaultObserver,
 };
 use core::panic;
-use nalgebra::{matrix, vector, Matrix3x1, Matrix3xX, MatrixSlice3x1, MatrixSliceMut3x1, SMatrix};
+use nalgebra::{matrix, vector, Matrix3x1, Matrix3xX, MatrixSlice3x1, SMatrix};
 use std::marker::PhantomData;
 
 /*
@@ -25,29 +25,52 @@ use std::marker::PhantomData;
    - CIECAT02 transform for non-cie1931 observer?
 */
 
-pub const MCAT02: SMatrix<f64, 3, 3> = matrix![
-     0.7328,  0.4296,  -0.1624;
-    -0.7036,  1.6975,   0.0061;
-     0.0030,  0.0136,   0.9834;
-];
 
+/**
+    CIECAT02, Convert XYZ Tristimulus Values into LMS/RGB Cone Response Values
+
+    This form is used for in-place modification of XYZ values, by iterating through all the XYZ values
+    in a set of CieXYZ matrix values, for example to produce a set of CieUcs values, without new memory
+    allocation.
+*/
 pub fn cat02(x:f64, y:f64, z:f64) -> [f64;3] {[
      0.7328 * x + 0.4296 * y - 0.1624 * z,
     -0.7036 * x + 1.6975 * y + 0.0061 * z,
      0.0030 * x + 0.0136 * y + 0.9834 * z
 ]}
 
+/**
+    CIECAT02 as an nalgebra's `SMatrix`, a Compile Time Constant
+
+    This can be used to directly apply the transform on a large number values in CieXYZ container directly.
+
+ */
+pub const MCAT02: SMatrix<f64, 3, 3> = matrix![
+     0.7328,  0.4296,  -0.1624;
+    -0.7036,  1.6975,   0.0061;
+     0.0030,  0.0136,   0.9834;
+];
+
+/**
+    Inverse CIECAT02 Chromatic Adaptation Equationas a Matrix
+
+ */
+pub fn cat02_inv(r:f64, g:f64, b:f64) -> [f64;3] {[
+     1.096123820835514 * r		- 0.2788690002182872 * g 	+ 0.18274517938277304 * b,
+     0.45436904197535916 * r	+ 0.4735331543074117 * g	+ 0.0720978037172291 * b,
+    -0.009627608738429353 * r 	- 0.005698031216113419 * g	+ 1.0153256399545427 * b
+]}
+
+
+/**
+    Inverse CIECAT02 Chromatic Adaptation as a Matrix
+ */
 pub const MCAT02INV: SMatrix<f64, 3, 3> = matrix![
     1.096123820835514, 		-0.2788690002182872, 	0.18274517938277304;
     0.45436904197535916,	 0.4735331543074117,	0.0720978037172291;
     -0.009627608738429353, 	-0.005698031216113419,	1.0153256399545427;
 ];
 
-pub fn cat02_inv(r:f64, g:f64, b:f64) -> [f64;3] {[
-     1.096123820835514 * r		- 0.2788690002182872 * g 	+ 0.18274517938277304 * b,
-     0.45436904197535916 * r	+ 0.4735331543074117 * g	+ 0.0720978037172291 * b,
-    -0.009627608738429353 * r 	- 0.005698031216113419 * g	+ 1.0153256399545427 * b
-]}
 
 pub const MHPE: SMatrix<f64, 3, 3> = matrix![
      0.38971, 0.68898, -0.07868;
@@ -74,6 +97,11 @@ pub const MCAT02INVLUO: SMatrix<f64, 3, 3> = matrix![
 ];
 
 
+/**
+    Hunt-Pointer-Esetevez Response
+
+    RGB' = M_<sub>HPE</sub>·M<sup>-1</sup><sub>CAT02</sub>·RGB<sub>C</sub>
+*/
 pub fn hpe_cat02inv(r_c:f64, g_c:f64, b_c:f64) -> [f64;3] {[
     0.740979097014 * r_c + 0.218025155676 * g_c + 0.041005747311 * b_c,
     0.285353291686 * r_c + 0.624201574119 * g_c + 0.090445134195 * b_c,
@@ -295,16 +323,62 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
         }
     }
 
-    // Constants used in the reverse mode CieCam Transform
-    const P1C: f64 = 50_000.0 / 13.0;
-    const P3: f64 = 21.0 / 20.0;
-    const NOM: f64 = 1.0; // is listed in the standard as (2.0+Self::P3)*460.0/1403.0; // this is 1!! But his is in Luo step 3 as part of nominators
-    const DEN1: f64 = ((2.0 + Self::P3) * 220.0) / 1403.0;
-    const DEN2: f64 = (Self::P3 * 6300.0 - 27.0) / 1403.0;
-    const RCPR_9: f64 = 1.0 / 0.9;
+    /*
+        Calculates the 5 "base" CieCam values, which are either directly dependent on the RGB'<sub>a</sub>
+        values, or which are required to calculate the base JCh representation.
+     */
+    pub(super) fn xyz_into_jchab(&self, x:f64, y:f64, z:f64)-> [f64; 5] {
+        let [r, g, b] = cat02(x, y, z); // Step 1
+        let &[d_r, d_g, d_b]:&[f64;3] = self.d_rgb.as_ref();
+        let rgb_p = hpe_cat02inv(r*d_r, g*d_g, b*d_b); // Step 2 and 3
+        let [r_pa, g_pa, b_pa] = rgb_p.map(|x|cone_adaptation(self.f_l, x));
+        let achromatic_response = self.achromatic_response(r_pa, g_pa, b_pa);
+        let lightness = self.lightness(achromatic_response);
+        let red_green = self.red_green(r_pa, g_pa, b_pa);
+        let blue_yellow = self.blue_yellow(r_pa, g_pa, b_pa);
+        let hue_angle = self.hue_angle(red_green, blue_yellow);
+        let chroma = self.chroma(r_pa, g_pa, b_pa, lightness, red_green, blue_yellow, hue_angle);
+        [lightness, chroma, hue_angle, red_green, blue_yellow]
+    }
 
-    pub fn transform_jch_to_xyz(&self, mut jch: MatrixSliceMut3x1<f64>) {
-        let &[lightness, chroma, hue_angle]: &[f64; 3] = jch.as_ref();
+    pub(super) fn xyz_into_ucs_jab(&self, x:f64, y:f64, z:f64) -> [f64;3] {
+        let [lightness, chroma, hue_angle, ..] = self.xyz_into_jchab(x, y, z);
+        /*
+        let [r, g, b] = cat02(x, y, z); // Step 1
+        let &[d_r, d_g, d_b]:&[f64;3] = self.d_rgb.as_ref();
+        let rgb_p = hpe_cat02inv(r*d_r, g*d_g, b*d_b); // Step 2 and 3
+        let [r_pa, g_pa, b_pa] = rgb_p.map(|x|cone_adaptation(self.f_l, x));
+        let achromatic_response = self.achromatic_response(r_pa, g_pa, b_pa);
+        let lightness = self.lightness(achromatic_response);
+        let red_green = self.red_green(r_pa, g_pa, b_pa);
+        let blue_yellow = self.blue_yellow(r_pa, g_pa, b_pa);
+        let hue_angle = self.hue_angle(red_green, blue_yellow);
+        let chroma = self.chroma(r_pa, g_pa, b_pa, lightness, red_green, blue_yellow, hue_angle);
+         */
+
+        let colorfulness = self.colorfulness(chroma);
+        let (ap, bp) = self.ucs_ab_prime(colorfulness, hue_angle);
+        [self.ucs_j_prime(lightness), ap, bp]
+    }
+
+    // Constants used in the reverse mode CieCam Transform
+    const P1C:f64 = 50_000.0 / 13.0;
+    const P3:f64 = 21.0 / 20.0;
+    const NOM:f64 = 1.0; // is listed in the standard as (2.0+Self::P3)*460.0/1403.0; // this is 1!! But his is in Luo step 3 as part of nominators
+    const DEN1:f64 = ((2.0 + Self::P3) * 220.0) / 1403.0;
+    const DEN2:f64 = (Self::P3 * 6300.0 - 27.0) / 1403.0;
+    const RCPR_9:f64 = 1.0 / 0.9;
+    pub const UCS_KL:f64 = 1.0;
+    pub const UCS_C1:f64 = 0.007;
+    pub const UCS_C2:f64 = 0.0228;
+
+
+    /**
+        Transform JCh MatrixSlice Values Into XYZ Values In Place, Without Allocation
+
+        Uses the backward CIECAM calculation.
+     */
+    pub(super) fn jch_into_xyz(&self, lightness:f64, chroma: f64, hue_angle:f64) -> [f64;3] {
         let t = (chroma / ((lightness / 100.0).sqrt() * (1.64 - 0.29f64.powf(self.n)).powf(0.73)))
             .powf(Self::RCPR_9);
         let p1 = (Self::P1C * self.n_c * self.n_cb * self.eccentricity(hue_angle)) / t; // NaN if t=0, but OK, as check on t==0.0 if used
@@ -325,50 +399,28 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
         let rgb_p = (m * vector![p2, a, b]).map(|x| inv_cone_adaptation(self.f_l, x)); // Step 4 & 5
         let rgb_c = (MCAT02 * MHPEINV * rgb_p).component_div(&self.d_rgb); // Step 6 & 7
         let xyz = MCAT02INV * rgb_c;
-        jch.x = xyz.x;
-        jch.y = xyz.y;
-        jch.z = xyz.z;
+        [xyz.x, xyz.y, xyz.z]
     }
 
-    pub fn transform_xyz_to_jab_prime(&self, mut xyz: MatrixSliceMut3x1<f64>) {
-        let [x,y,z]: &mut [f64; 3] = xyz.as_mut();
-        let [r, g, b] = cat02(*x, *y, *z); // Step 1
-        let &[d_r, d_g, d_b]:&[f64;3] = self.d_rgb.as_ref();
-        let rgb_p = hpe_cat02inv(r*d_r, g*d_g, b*d_b); // Step 2 and 3
-        let [r_pa, g_pa, b_pa] = rgb_p.map(|x|cone_adaptation(self.f_l, x));
-        let achromatic_response = self.achromatic_response(r_pa, g_pa, b_pa);
-        let lightness = self.lightness(achromatic_response);
-        let red_green = self.red_green(r_pa, g_pa, b_pa);
-        let blue_yellow = self.blue_yellow(r_pa, g_pa, b_pa);
-        let hue_angle = self.hue_angle(red_green, blue_yellow);
-        let chroma = self.chroma(r_pa, g_pa, b_pa, lightness, red_green, blue_yellow, hue_angle);
-        let colorfulness = self.colorfulness(chroma);
-        let (ap, bp) = self.ucs_ab_prime(colorfulness, hue_angle);
-        *x = self.ucs_j_prime(lightness);
-        *y = ap;
-        *z = bp;
-        println!("J' {} a' {} b' {}", *x, *y, *z);
+    /**
+        Transform JCh MatrixSlice Values Into XYZ Values In Place, Without Allocation
+
+        Uses the backward CIECAM calculation.
+     */
+    
+    
+    
+    pub(super) fn ucs_lab_into_xyz(&self, j_prime:f64, a_prime: f64, b_prime:f64) -> [f64;3] {
+        let lightness = j_prime /(1.7 - Self::UCS_C1 * j_prime);
+        let m_prime = a_prime.hypot(b_prime);
+        let hue_angle = self.hue_angle(a_prime, b_prime);
+        let chroma = ((Self::UCS_C2 * m_prime).exp()  - 1.0)/ (Self::UCS_C2 * self.f_l.powf(0.25));
+        self.jch_into_xyz(lightness, chroma, hue_angle)
     }
 }
-#[test]
-fn test_jch_to_xyz() {
-    //	println!("{}", CieCamEnv::<D50,DefaultObserver>::NOM);
-    use crate::illuminants::D50;
-    use crate::observers::CieObs1931;
-    let vc: CieCamEnv<D50, CieObs1931> = ViewConditions::<318, 20, SR_AVG, D_AUTO>.into();
-    let mut m_jch = Matrix3xX::<f64>::from_vec(vec![
-        39.890206, 0.065758, 110.250459, 39.126848, 28.068355, 136.265379, 40.675788, 29.327191,
-        314.544438, 38.972361, 37.709782, 220.145277, 0.000000, 0.000000, 180.000000, 106.171077,
-        99.637157, 1.382338, 99.681887, 78.569894, 94.800651, 98.456360, 98.160627, 248.371519,
-        105.577618, 105.394956, 312.434013,
-    ]);
 
-    let want = Matrix3xX::<f64>::from_vec(vec![17.759618, 18.418648, 15.199176]);
-    vc.transform_jch_to_xyz(m_jch.column_iter_mut().next().unwrap());
-    want.into_iter()
-        .zip(m_jch.iter())
-        .for_each(|(w, jch)| println!("{} - {} {:.4}%", w, jch, (w / jch - 1.0) * 100.0));
-}
+
+
 
 /*
         Sr		 F		  c		 Nc
@@ -447,8 +499,8 @@ pub const D_AUTO: isize = -1;
 
 #[inline]
 fn cone_adaptation(f_l: f64, x: f64) -> f64 {
-    let t = (f_l * x / 100.0).powf(0.42);
-    400.0 * (t / (t + 27.13)) + 0.1
+    let t = (f_l * x.abs() / 100.0).powf(0.42);
+    x.signum() * 400.0 * (t / (t + 27.13)) + 0.1
 }
 
 #[inline]

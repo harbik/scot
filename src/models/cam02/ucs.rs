@@ -3,7 +3,7 @@
 */
 
 use super::{CieCamEnv, CieLab, CieXYZ, VcAvg};
-use crate::{DefaultObserver, illuminants::D65, observers::{StandardObserver}};
+use crate::{DefaultObserver, illuminants::D65, models::xyz_to_lab, observers::{StandardObserver}};
 use nalgebra::{Const, Dynamic, OMatrix};
 use std::{marker::PhantomData, };
 
@@ -30,6 +30,32 @@ impl<V, I, C> CieCamUcs<V, I, C> {
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
+
+        /**
+        Inverse Transform, Back To `Cielab<I,C>`.
+
+        This follows the procedure as outlined by Luo, Appendix A, Part 2: The Reverse Mode.
+        Consumes (moves) CieCamJch, and overwrites data in wrapper.
+    */
+    pub fn into_cielab(mut self) -> CieLab<I, C>
+    where
+        V: Default + Into<CieCamEnv<I, C>>,
+        I: Default + Into<CieXYZ<C>>,
+        C: StandardObserver,
+    {
+        // Can not use: impl<V,I,C> From<CieCamJCh<V,I,C>> for CieLab<I,C>
+        // gets into a T From T error
+
+        let cam: CieCamEnv<I, C> = V::default().into();
+        for mut lab_p in self.data.column_iter_mut(){
+            let [j_p,a_p,b_p]: &mut [f64;3] = lab_p.as_mut();
+            let [x,y,z] = cam.ucs_lab_into_xyz(*j_p, *a_p, *b_p);
+            *j_p = x; *a_p = y; *b_p = z; // overwrite data
+        }
+        // move data into CieLab container after calculating lab values
+        let xyz_n: CieXYZ<C> = I::default().into();
+        CieLab::<I, C>::new(xyz_to_lab(xyz_n.data.column(0), self.data))
+    }
 }
 
 impl<V, I, C, L> From<L> for CieCamUcs<V, I, C>
@@ -39,50 +65,54 @@ where
     C: StandardObserver,
     V: Default + Into<CieCamEnv<I, C>>,
 {
-    /* 
     fn from(samples: L) -> Self {
         // Calculate Viewing Environment Parameters
         let view: CieCamEnv<I, C> = V::default().into();
-
-        // Calculate XYZ values from CieLab input data
         let lab: CieLab<I, C> = samples.into();
-        let n_samples = lab.len();
-        let xyz: CieXYZ<C> = lab.into();
-        let rgb_pa = view.post_adaptation_cone_response_from_xyz(xyz);
-
-        // 3xX Matrix, CIECAM-UCS (J', a', b')
-        let mut vdata: Vec<f64> = Vec::with_capacity(3 * n_samples);
-        for rgb in rgb_pa.column_iter() {
-            let achromatic_response = view.achromatic_response_mat_slice(rgb); // A
-            let lightness = view.lightness(achromatic_response); // J
-            let red_green = view.red_green_mat_slice(rgb); // a
-            let blue_yellow = view.blue_yellow_mat_slice(rgb); // b
-            let hue_angle = view.hue_angle(red_green, blue_yellow); // h
-            let chroma = view.chroma_mat_slice(rgb, lightness, red_green, blue_yellow, hue_angle); // C
-            let colorfulness = view.colorfulness(chroma); // M
-            let j_prime = view.ucs_j_prime(lightness); // CIECAM UCS J'
-            let (a_prime, b_prime) = view.ucs_ab_prime(colorfulness, hue_angle); // CIECAM UCS (a',b')
-            vdata.append(&mut vec![j_prime, a_prime, b_prime]);
-        }
-        let data = OMatrix::<f64, Const<3>, Dynamic>::from_vec(vdata);
-        Self::new(data)
-    }
-    */
-
-    fn from(samples: L) -> Self {
-        // Calculate Viewing Environment Parameters
-        let view: CieCamEnv<I, C> = V::default().into();
-
-        // Calculate XYZ values from CieLab input data
-        let lab: CieLab<I, C> = samples.into();
-   //     println!("{}", lab.data.transpose());
         let mut m_xyz: CieXYZ<C> = lab.into();
-   //     println!("{}", m_xyz.data.transpose());
-
-        for xyz in m_xyz.data.column_iter_mut(){
-            view.transform_xyz_to_jab_prime(xyz);
+        for mut xyz in m_xyz.data.column_iter_mut(){
+            let [x,y,z]: &mut [f64;3] = xyz.as_mut();
+            let [j,a,b] = view.xyz_into_ucs_jab(*x, *y, *z);
+            *x = j; *y = a; *z = b;
         }
-        Self::new(m_xyz.data)
+        Self::new(m_xyz.data) // move data in CieCamCucs container
     }
+}
+
+// For forward test see test_tm30_data.rs in colorado-tm30: ces_us
+
+#[test]
+/**
+    Test Reverse CieCamUcs By Round Trip 
+    `CieLab<D50,CieObs1931>` -> `CieCamUcs<VcAvg, D50, CieObs1931` -> `CieLab<D50,CieObs1931>`
+    For A Set of CieLab Test Values
+ */
+fn test_reverse_ucs_jab(){
+    use crate::illuminants::D50; 
+    use nalgebra::Matrix3xX;
+    use crate::observers::CieObs1931;
+    use approx::assert_abs_diff_eq;
+
+    let lab: CieLab<D50,CieObs1931> = CieLab::new(Matrix3xX::from_vec(vec![
+        0.0,   0.0,    0.0,
+        1.0,   10.0,   0.0,
+        1.0,   10.0,  10.0,
+        50.0,    0.0,  0.0, 
+        50.0,  -20.0,  20.0, 
+        50.0,   20.0, -20.0, 
+        50.0,  -20.0, -20.0, 
+        100.0, 100.0,    0.0, 
+        100.0,   0.0,  100.0, 
+        100.0,   0.0, -100.0, 
+        100.0, 100.0, -100.0,
+    ]));
+    let ucs: CieCamUcs<VcAvg, D50, CieObs1931> = lab.clone().into();
+    let lab_calc = ucs.into_cielab();
+    println!("{:.4}", lab_calc.data.transpose());
+    lab_calc.data
+        .iter()
+        .zip(lab.data.iter())
+        .for_each(|(&v, &w)| assert_abs_diff_eq!(v, w, epsilon = 1E-6));
+
 }
 

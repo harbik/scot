@@ -22,13 +22,10 @@ fn ces_ucs(){
     use colorado_tm30::ces::Ces;
     use colorado_tm30::samples::{TM30Illuminant, CieF1};
     use nalgebra::{SMatrix, matrix};
-    
-    let jab: CieCamUcs<VcTm30, CieF1, CieObs1964> = Ces::default().into();
-    println!("{:.2}", jab.data.transpose());
-
-
+    use approx::assert_abs_diff_eq;
 
     // Data for F1 Illuminant, from ANSI-IES-TM30-18 Advanced Calculation Tool V2.0
+    // Values 99 (J', a', and b')
     let want: SMatrix<f64, 3, 99> = matrix![
         84.47803641, 58.31960581, 29.81095962, 68.11998788, 44.68788472, 49.23607619, 37.24951104, 36.69455937,
         28.58219827, 71.20466107, 54.3859311, 59.86628863, 40.50774198, 73.56095324, 69.73652655, 45.01716981,
@@ -70,4 +67,10 @@ fn ces_ucs(){
         -19.45114432, -1.387634592, -12.82765777, -9.389378234, -13.37693116, -9.451799332, -7.889454495, -6.547897988,
         -5.562518279, -6.937316356;
     ];
+
+    let jab: CieCamUcs<VcTm30, CieF1, CieObs1964> = Ces::default().into();
+    //println!("{:.2}", jab.data.transpose());
+    for (c, w) in jab.data.iter().zip(want.iter()) {
+        assert_abs_diff_eq!(c, w, epsilon = 1E-4); 
+    }
 }

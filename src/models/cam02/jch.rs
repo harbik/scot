@@ -33,9 +33,10 @@ impl<V, I, C> CieCamJCh<V, I, C> {
     }
 
     /**
-        Inverse transform, back to `CieLab<I,C>`.
+        Inverse Transform, Back To `Cielab<I,C>`.
 
         This follows the procedure as outlined by Luo, Appendix A, Part 2: The Reverse Mode.
+        Consumes (moves) CieCamJch, and overwrites data in wrapper.
     */
     pub fn into_cielab(mut self) -> CieLab<I, C>
     where
@@ -47,10 +48,13 @@ impl<V, I, C> CieCamJCh<V, I, C> {
         // gets into a T From T error
 
         let cam: CieCamEnv<I, C> = V::default().into();
-        self.data
-            .column_iter_mut()
-            .for_each(|jch| cam.transform_jch_to_xyz(jch));
         let xyz_n: CieXYZ<C> = I::default().into();
+        for mut jch in self.data.column_iter_mut(){
+            let [j,c,h]: &mut [f64;3] = jch.as_mut();
+            let [x,y,z] = cam.jch_into_xyz(*j, *c, *h);
+            *j = x; *c = y; *h = z; // overwrite data
+        }
+        // move data into CieLab container after calculating lab values
         CieLab::<I, C>::new(xyz_to_lab(xyz_n.data.column(0), self.data))
     }
 }
@@ -67,35 +71,13 @@ where
 
         // Calculate XYZ values from CieLab input data
         let lab: CieLab<I, C> = samples.into();
-        let n_samples = lab.len();
-        let xyz: CieXYZ<C> = lab.into();
-        let rgb_pa = cam.post_adaptation_cone_response_from_xyz(xyz);
-
-        // 3xX Matrix, CIECAM-JCh (J, C, h), Lightness, Chroma, and hue angle.
-        let mut vdata: Vec<f64> = Vec::with_capacity(3 * n_samples);
-        for rgb in rgb_pa.column_iter() {
-            let achromatic_response = cam.achromatic_response_mat_slice(rgb); // A
-            let lightness = cam.lightness(achromatic_response); // J
-            let red_green = cam.red_green_mat_slice(rgb); // a
-            let blue_yellow = cam.blue_yellow_mat_slice(rgb); // b
-            let hue_angle = cam.hue_angle(red_green, blue_yellow); // h
-            let chroma = cam.chroma_mat_slice(rgb, lightness, red_green, blue_yellow, hue_angle); // C
-            vdata.append(&mut vec![lightness, chroma, hue_angle]);
+        let mut m_xyz: CieXYZ<C> = lab.into();
+        for mut xyz in m_xyz.data.column_iter_mut() {
+            let [x,y,z]: &mut [f64;3] = xyz.as_mut();
+            let [j,c,h, ..] = cam.xyz_into_jchab(*x, *y, *z);
+            *x = j; *y=c; *z=h;
         }
-        let data = OMatrix::<f64, Const<3>, Dynamic>::from_vec(vdata);
-        Self::new(data)
-    }
-}
-
-impl<V, I, C> From<&CieCam> for CieCamJCh<V, I, C> {
-    fn from(ciecam: &CieCam) -> Self {
-        let mut vdata: Vec<f64> = Vec::with_capacity(3 * ciecam.len());
-        for ciecam_data in ciecam.data.column_iter() {
-            let &[lightness, _, _, _, chroma, _, _, hue_angle, _]: &[f64; 9] = ciecam_data.as_ref();
-            vdata.append(&mut vec![lightness, chroma, hue_angle]);
-        }
-        let data = OMatrix::<f64, Const<3>, Dynamic>::from_vec(vdata);
-        Self::new(data)
+        Self::new(m_xyz.data)
     }
 }
 
@@ -107,27 +89,44 @@ impl<V, I, C> From<&CieCam> for CieCamJCh<V, I, C> {
    The test data are created using [CIECAM02.XLS](https://web.archive.org/web/20070109143710/http://www.cis.rit.edu/fairchild/files/CIECAM02.XLS)
    spreadsheet, created by Eric Walowit and Grit O'Brien, with a revision data of July 28, 2004.
 */
-fn test_from_lab() {
+fn test_from_lab_for_ciecam_jch() {
     use super::{ViewConditions, D_AUTO, SR_AVG};
     use crate::illuminants::D50;
     use crate::observers::CieObs1931;
     use approx::assert_relative_eq;
     use nalgebra::Matrix3xX;
     let lab: CieLab<D50> = CieLab::new(Matrix3xX::from_vec(vec![
-        50.0, 0.0, 0.0, 50.0, -20.0, 20.0, 50.0, 20.0, -20.0, 50.0, -20.0, -20.0, 0.0, 0.0, 0.0,
-        100.0, 100.0, 0.0, 100.0, 0.0, 100.0, 100.0, 0.0, -100.0, 100.0, 100.0, -100.0,
+         0.0,   0.0,    0.0,
+         1.0,   10.0,   0.0,
+         1.0,   10.0,  10.0,
+        50.0,    0.0,  0.0, 
+        50.0,  -20.0,  20.0, 
+        50.0,   20.0, -20.0, 
+        50.0,  -20.0, -20.0, 
+       100.0, 100.0,    0.0, 
+       100.0,   0.0,  100.0, 
+       100.0,   0.0, -100.0, 
+       100.0, 100.0, -100.0,
     ]));
     let cam: CieCamJCh<ViewConditions<32, 20, SR_AVG, D_AUTO>, D50, CieObs1931> = lab.into();
     // From ciecam02.xls by Eric Walowit and Grit O'Brien <https://web.archive.org/web/20070109143710/http://www.cis.rit.edu/fairchild/files/CIECAM02.XLS>
-    // see also cielab.xyz
+    // see also cielab.xyz, calculated using XYZ<sub>W</sub>=[96.42150, 100.0, 82.52099]
     let want = OMatrix::<f64, Const<3>, Dynamic>::from_vec(vec![
-        39.614, 1.104, 112.539, 38.867, 28.643, 135.844, 40.378, 28.455, 315.552, 38.683, 37.260,
-        218.554, 0.000, 0.000, 180.000, 106.226, 100.220, 1.993, 99.751, 79.525, 95.020, 98.294,
-        97.974, 248.127, 105.470, 105.655, 312.958,
+         0.0000,   0.0000, 180.0000, 
+         2.6795,  40.8822,   0.7837,
+         2.4800, 394.7046,  43.9344,
+        39.6135,   1.1042, 112.5431,
+        38.8666,  28.6425, 135.8441, 
+        40.3782,  28.4553, 315.5517, 
+        38.6828,  37.2596, 218.5544, 
+       106.2265, 100.2295,   1.9929,
+        99.7506,  79.5249,  95.0197, 
+        98.2934,  97.9738, 248.1272, 
+       105.4703, 105.6546, 312.9581,
     ]);
-    //println!("{:.3}", cam.data.transpose());
+    println!("{:.4}", cam.data.transpose());
     for (c, w) in cam.data.iter().zip(want.iter()) {
-        assert_relative_eq!(c, w, epsilon = 1E-3, max_relative = 5E-4); // abs<1.E-3 or rel<5E-4
+        assert_relative_eq!(c, w, epsilon = 1E-4, max_relative = 5E-4); // abs<1.E-3 or rel<5E-4
     }
 }
 
@@ -165,9 +164,26 @@ fn test_reverse() {
 
     let jch: CieCamJCh<VcAvg, D50, CieObs1931> = CieCamJCh::new(m_jch);
     let xyz = jch.into_cielab();
-    //	println!("{}", xyz.data);
+    //println!("{}", xyz.data);
     xyz.data
         .iter()
         .zip(want.iter())
         .for_each(|(&v, &w)| assert_abs_diff_eq!(v, w, epsilon = 4E-3));
+}
+
+/**
+    Create Jch Values From A Set Of Ciecam Values.
+
+    This borrows the CieCam data, and collects the JCh values in a new Jch container.
+ */
+impl<V, I, C> From<&CieCam> for CieCamJCh<V, I, C> {
+    fn from(ciecam: &CieCam) -> Self {
+        let mut vdata: Vec<f64> = Vec::with_capacity(3 * ciecam.len());
+        for ciecam_data in ciecam.data.column_iter() {
+            let &[lightness, _, _, _, chroma, _, _, hue_angle, _]: &[f64; 9] = ciecam_data.as_ref();
+            vdata.append(&mut vec![lightness, chroma, hue_angle]);
+        }
+        let data = OMatrix::<f64, Const<3>, Dynamic>::from_vec(vdata);
+        Self::new(data)
+    }
 }

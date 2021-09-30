@@ -51,7 +51,7 @@ where
 macro_rules! illuminant {
     // a single illuminant from static slice column
     ($ILL:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident) => {
-        #[derive(Debug, Default)]
+        #[derive(Debug, Default, Clone)]
         pub struct $ILL<const I: usize>;
 
         impl<const I: usize> $crate::SpectralDistribution for $ILL<I> {
@@ -89,7 +89,7 @@ macro_rules! illuminant {
     };
     // all illuminants as array with keys
     ($ILL:ident, $N:expr, $M:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident, $KEYS:ident) => {
-        #[derive(Debug, Default)]
+        #[derive(Debug, Default, Clone)]
         pub struct $ILL;
 
         impl $crate::SpectralDistribution for $ILL {
@@ -127,7 +127,7 @@ macro_rules! illuminant {
     };
     // single data illuminant
     ($ILL:ident, $N:expr, $DESC:literal, $DOMAIN:expr, $DATA:ident) => {
-        #[derive(Debug, Default)]
+        #[derive(Debug, Default, Clone)]
         pub struct $ILL;
 
         impl $crate::SpectralDistribution for $ILL {
