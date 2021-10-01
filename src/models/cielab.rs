@@ -1,4 +1,5 @@
 /*!
+
     A collection of a Lab values, associated with a standard observer and a reference white illuminant.
 
 */

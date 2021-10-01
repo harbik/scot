@@ -33,7 +33,7 @@ impl<V, I, C> CieCamJCh<V, I, C> {
     }
 
     /**
-        Inverse Transform, Back To `Cielab<I,C>`.
+        Inverse Transform, `CieCamJCh<V,I,C>` Back To `Cielab<I,C>`.
 
         This follows the procedure as outlined by Luo, Appendix A, Part 2: The Reverse Mode.
         Consumes (moves) CieCamJch, and overwrites data in wrapper.
@@ -45,7 +45,7 @@ impl<V, I, C> CieCamJCh<V, I, C> {
         C: StandardObserver,
     {
         // Can not use: impl<V,I,C> From<CieCamJCh<V,I,C>> for CieLab<I,C>
-        // gets into a T From T error
+        // gets into a cyclical T From T error
 
         let cam: CieCamEnv<I, C> = V::default().into();
         let xyz_n: CieXYZ<C> = I::default().into();

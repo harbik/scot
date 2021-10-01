@@ -1,35 +1,57 @@
 # Color Models
 
 *Color Models* are mathematical models to describe the appearance of a color,
-*using models of human vision as a basis, as a set of typically
-three of four values, or color components, which form a three or four
-dimensional *Color Space*.
+ *using models of human vision as a basis, 
+ as a set of typically three of four values, or color components, 
+ which form a three or four dimensional *Color Space*.
+All the models in this module are mathematical, 
+ human vision based, 
+ color models.
 
-A color model can be considered a *Color Order System*, based on physical,
-physiological, and psychological models of human color vision, with colors
-ordered along continuous valued axis, representing an infinite number of
-appearances of color.
+Currently, this library implements the following mathematical models:
+- CIE XYZ Tristimulus values colorspace &amp; (x,y) chromaticity,
+- CIE 1960 UCS or UVW color space &amp;  (u,v) chromaticity,
+- CIE 1964 U<sup>*</sup>V<sup>*</sup>W<sup>*</sup> color space,
+- 1976 CIELUV L<sup>*</sup>u<sup>*</sup>v<sup>*</sup>, and (u',v') chromaticity,
+- CIELAB L<sup>*</sup>a<sup>*</sup>b<sup>*</sup> [CieLab][crate::models::cielab] color space
+- CIECAM02
+
+
+A color model can be considered a *Color Order System* 
+ with colors ordered along continuous valued axis, 
+ representing an infinite number of appearances of color.
+
+A *Color Naming System* is a color order system which does not use mathematical scales for it axis,
+ or has no clear axis at all.
+
+# Color Order Systems
 A color order system is a systematic and rational method to arrange color samples,
-with the samples given a descriptive term or number.
-Non-mathematical order systems typically use physical samples of colorants (e.g.
-pigments, or dyes), applied to a carrier such a piece of paper, or thread, as in
-textiles, and arrangements of these samples are collected in a *Color Atlas* or
-*Color Book*, and made available by dye manufacturers.
-Samples are made by mixing multiple colorants or dyes, with varying
-concentrations of each.
-Examples of these are the *ICI Color Atlas* (1969), consisting of 1379 original colors,
-and 27_580 variations, all printed on paper.
+ with the samples given a descriptive term or number.
+Non-mathematical order systems typically use physical samples of colorants 
+ (e.g.  pigments, or dyes), 
+ applied to a carrier such a piece of paper, or a piece of textile, 
+ and arrangements of these samples are collected in a *Color Atlas* or *Color Book*, 
+ typically made available by dye manufacturers to their customers.
+Samples are made by mixing multiple colorants or dyes, 
+ with varying concentrations of each.
+Examples of these are the *ICI Color Atlas* (1969), 
+ containing 1379 original colors,
+ and 27_580 variations, 
+ all printed on paper.
 
-When random color samples are ordered, with the samples not related to each other by 
-mixing fractions and colorant types, or by comparing color samples of unknown composition,
-a color order system can be considered to be a "Color Naming System". 
+# Color Naming Systems
+When random color samples are ordered, 
+ with the samples not related to each other by mixing fractions and colorant types, 
+ or by comparing color samples of unknown composition, 
+ a color order system is said to be a "Color Naming System". 
 The ordering in these does not have a continuous scale.
-An example of a "Color Naming System" is the Pantone system, which is popular in the 
-graphic art and textile industry, and has dedicated color atlases for use with textiles,
-plastics, architecture and interiors; they use a six digit notation and a color name to 
-specify a color.
+An example of a "Color Naming System" is the Pantone system, 
+which is popular in the graphic art and textile industry, 
+and has dedicated color atlases for use with textiles,
+plastics, architecture and interiors; 
+in this system a six digit notation and a color name is used to specify a color.
 
-All the models in this section are mathematical, human vision inspired, color models.
+# Color Spaces
 For representations of color order systems see the *Swatches* section in this library.
 
 Most common are three dimensional color models, with a color described by three
@@ -40,6 +62,7 @@ photoreceptors: the cone cells, referred to the L, M, and S cone cells, with L
 being the more long wavelength sensitive type, M the medium wavelength sensitive
 type, and S the short wavelength sensitive cone cell type.
 
+# Color Diagrams
 Two dimensional representations of color spaces are used as *Color Diagrams* or
 *Color Charts*: these are cross sections of a color space.
 A good example is the CIE 1931 chromaticity diagram, where a cross
@@ -49,6 +72,7 @@ Another example of a category of color charts are the *Color Circles*, such as a
 CIELAB diagram, with chromaticity coordinates a and b, with a fixed value of
 L=50, represented as a circle or disk.
 
+# Uniform Color Spaces (UCS)
 Uniform Color Spaces, or UCS color spaces, are designed to be perceptual
 uniform, with distances between two points in such a space representing the
 actual perceived color difference, as observed with our eyes, independent of the
@@ -63,6 +87,7 @@ Achieving uniformity in a color space is hard, as a color model needs to model
 how colors are processed and appear in our mind: advanced models are called
 *color appearance models*.
 
+# CIECAM02 Color Appearance Model
 The CIECAM02 color appearance model uses up to nine parameters, or correlates, to
 describe color, such as Brightness, Lightness, Chroma, and Saturation.
 These parameters don't form a multi-dimensional color space: they can be

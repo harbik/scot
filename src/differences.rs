@@ -1,4 +1,7 @@
 /*!
+
+    # Color Difference Formulas
+
     Calculate color differences between spectral color sets, and match color for selected observers.
 
     In color science the color difference between two color points is expressed as a single number,

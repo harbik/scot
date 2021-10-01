@@ -1,4 +1,4 @@
-#![doc = include_str!("./cam02/README.md")]
+#![doc = include_str!("./ciecam02/ciecam02.md")]
 
 pub mod cam; // 8 correlates
 pub use cam::*;

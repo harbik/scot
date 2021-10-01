@@ -126,8 +126,8 @@ pub trait SpectralDistribution {
     where
         C: StandardObserver,
         Meter: From<<<Self as SpectralDistribution>::StepType as Step>::UnitValueType>,
-        Matrix3xX<f64>: Mul<Self::MatrixType>, // 
-        <Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output: Mul<f64>,
+        Matrix3xX<f64>: Mul<Self::MatrixType>, // move to type bound above
+        <Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output: Mul<f64>, // move to type bound above
         CieXYZ<C>: From< <<Matrix3xX<f64> as Mul<<Self as SpectralDistribution>::MatrixType>>::Output as Mul< f64, >>::Output, >,
     {
         let (d, s) = self.spd();
