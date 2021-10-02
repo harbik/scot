@@ -11,6 +11,7 @@ It was officially published by the [CIE][CIECAM02] in 2002,
 Although the title indicates that the model is intended for color management systems, 
  it is also used in the characterization of lamps, 
  in the *IES Method for Evaluating Light Source Color Rendition*, [ANSI/IES TM30-20][TM30-20].
+
 The model consists of a *chromatic adaptation transform*, CIECAT02, 
  and methods to calculate mathematic correlates for the color appearance dimensions:
  - brightness (Q), 

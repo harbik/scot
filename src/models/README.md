@@ -11,9 +11,9 @@ All the models in this module are mathematical,
 Currently, this library implements the following mathematical models:
 - CIE XYZ Tristimulus values colorspace &amp; (x,y) chromaticity,
 - CIE 1960 UCS or UVW color space &amp;  (u,v) chromaticity,
-- CIE 1964 U<sup>*</sup>V<sup>*</sup>W<sup>*</sup> color space,
-- 1976 CIELUV L<sup>*</sup>u<sup>*</sup>v<sup>*</sup>, and (u',v') chromaticity,
-- CIELAB L<sup>*</sup>a<sup>*</sup>b<sup>*</sup> [CieLab][crate::models::cielab] color space
+- CIE 1964 U<sup>\*</sup>V<sup>\*</sup>W<sup>*</sup> color space,
+- 1976 CIELUV L<sup>\*</sup>u<sup>\*</sup>v<sup>\*</sup>, and (u',v') chromaticity,
+- CIELAB L<sup>\*</sup>a<sup>\*</sup>b<sup>\*</sup> [CieLab][mod@crate::models::cielab] color space
 - CIECAM02
 
 
