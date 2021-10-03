@@ -18,6 +18,7 @@ From [Paul Centore]'s article:
 
  */
 
+ #![allow(clippy::approx_constant)]
 
  pub mod gloss;
  pub use gloss::*;

@@ -26,7 +26,7 @@ It has been superseded by the CIELAB colorspace in 1976,
 
  */
 
-use std::{borrow::Borrow, marker::PhantomData};
+use std::{marker::PhantomData};
 use crate::{DefaultObserver, illuminants::{Illuminant, }, observers::StandardObserver};
 use nalgebra::Matrix3xX;
 use super::{CieLab, CieXYZ, lab_to_xyz, uv60};

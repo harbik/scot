@@ -149,7 +149,7 @@ All the spectral distributions in this category are measured examples of commerc
 - A 75W A19 Halogen-A lamp, an A19 shaped bulb with a mains voltage Halogen lamp as source inside (`Inc75WA19HalogenA`)
 - A 75W A19 Incandescent lamp, with its light filtered by Neodymium coating on the in size of the bulb (`Inc75WA19Neodymium`)
 - Another 75W A19 Incandescent lamp example, in this case one of the so-called "Rough House" variety,
-	which has a stronger filament design  (`Inc75WA19RoughHouse`)
+    which has a stronger filament design  (`Inc75WA19RoughHouse`)
 - And a 75W A19 "Softer White" sample (`Inc75WA19SofterWhite`)
 - Krypton Incandescent (`KryptonInc`)
 - Neodymium Incandescent (`NeodymiumInc`)

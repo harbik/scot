@@ -1,5 +1,5 @@
 [package]
-name = "colorado-tm30"
+name = "colorado-checker"
 version = "0.1.0"
 edition = "2018"
 description = "Color Sience algorithms and datasets, for research and color management in lighting, graphic arts, and displays"
@@ -12,7 +12,3 @@ license = "MIT OR Apache-2.0"
 nalgebra = "0.27"
 colorado = { path="../" }
 approx = "0.5"
-
-[features]
-default = ["samples"]
-samples = []

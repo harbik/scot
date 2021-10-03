@@ -11,82 +11,15 @@ BabelColor is a Registered Trademark of The BabelColor Company.
 ColorChecker and X-Rite are Trademarks of X-Rite Incorporated.
 */
 
+pub use colorado::swatch;
 
 
 const N: usize = 36;
 const M: usize = 24;
 
-swatch!(ColorCheckerSwatch, N, M, "Color Checker Swatch {}", crate::Domain::new(380/10, 730/10, crate::NM10), COLOR_CHECKER_DATA);
-swatch!(ColorChecker, N, M, "Color Checker", crate::Domain::new(380/10, 730/10, crate::NM10), COLOR_CHECKER_DATA, CHECKER_KEYS);
+swatch!(ColorCheckerSwatch, N, M, "Color Checker Swatch {}", colorado::Domain::new(380/10, 730/10, colorado::NM10), COLOR_CHECKER_DATA);
+swatch!(ColorChecker, N, M, "Color Checker", colorado::Domain::new(380/10, 730/10, colorado::NM10), COLOR_CHECKER_DATA, CHECKER_KEYS);
 
-
-
-/*
-pub const COLOR_CHECKER: ColorChecker::<ALL> = ColorChecker::<ALL>;
-
-#[derive(Default)]
-pub struct ColorChecker<const I:usize>;
-
-impl<const I: usize> SpectralTable for ColorChecker<I> {
-    type StepType = WavelengthStep;
-
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		match I {
-			ALL => {
-				let data = SMatrix::<f64, N, M>::from_data(ArrayStorage::<f64, N, M>(COLOR_CHECKER_DATA));
-				sprague_cols(&self.domain(), &domain, &data)
-			}
-			i@1..=M => {
-				let data = SVectorSlice::<f64, N>::from_slice(&COLOR_CHECKER_DATA[i-1]);
-				sprague_cols(&self.domain(), &domain, &data)
-			}
-			_ => panic!("Illegal Index in Fluorescent Illuminant")
-		}
-    }
-
-    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
-        Domain::new(38, 73, NM10)
-    }
-
-	fn keys(&self) -> Option<Vec<String>> {
-		Some(vec![
-			"dark skin".to_string(),
-			"light skin".to_string(),
-			"blue sky".to_string(),
-			"foliage".to_string(),
-			"blue flower".to_string(),
-			"bluish green".to_string(),
-			"orange".to_string(),
-			"purplish blue".to_string(),
-			"moderate red".to_string(),
-			"purple".to_string(),
-			"yellow green".to_string(),
-			"orange yellow".to_string(),
-			"blue".to_string(),
-			"green".to_string(),
-			"red".to_string(),
-			"yellow".to_string(),
-			"magenta".to_string(),
-			"cyan".to_string(),
-			"white 9.5 (.05 D)".to_string(),
-			"neutral 8 (.23 D)".to_string(),
-			"neutral 6.5 (.44 D)".to_string(),
-			"neutral 5 (.70 D)".to_string(),
-			"neutral 3.5 (1.05 D)".to_string(),
-			"black 2 (1.5 D)".to_string(),
-		])
-	}
-
-
-	fn description(&self) -> Option<String> {
-		Some("Approximate Color Checker Spectra".to_string())
-	}
-}
-*/
 
 
 
@@ -193,4 +126,3 @@ static COLOR_CHECKER_DATA: [f64;N*M] = [
 	0.03191, 0.03194, 0.03202, 0.03212, 0.03222, 0.03223, 0.03224, 0.03233, 0.03237, 0.03250
 ];
 
-// for test see lab.rs, where the colorchecker's cielab coordinates are calculated, and checked against BabelColor's data.

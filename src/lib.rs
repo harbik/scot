@@ -16,7 +16,6 @@
 */
 
 
-//#![allow(unused_imports)]
 #![allow(clippy::approx_constant)]
 pub type DefaultObserver = self::observers::CieObs1931;
 
