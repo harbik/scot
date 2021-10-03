@@ -1,4 +1,4 @@
-#![doc = include_str!("./ciecam02/ciecam02.md")]
+#![doc = include_str!("mod.md")]
 
 pub mod cam; // 8 correlates
 pub use cam::*;
@@ -142,7 +142,7 @@ fn test_inv() {
     Set your own value, if you want to experiment.
 
 */
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct ViewConditions<const LA: usize, const YB: usize, const SR1000: usize, const D100: isize>;
 
 /**
@@ -343,19 +343,6 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
 
     pub(super) fn xyz_into_ucs_jab(&self, x:f64, y:f64, z:f64) -> [f64;3] {
         let [lightness, chroma, hue_angle, ..] = self.xyz_into_jchab(x, y, z);
-        /*
-        let [r, g, b] = cat02(x, y, z); // Step 1
-        let &[d_r, d_g, d_b]:&[f64;3] = self.d_rgb.as_ref();
-        let rgb_p = hpe_cat02inv(r*d_r, g*d_g, b*d_b); // Step 2 and 3
-        let [r_pa, g_pa, b_pa] = rgb_p.map(|x|cone_adaptation(self.f_l, x));
-        let achromatic_response = self.achromatic_response(r_pa, g_pa, b_pa);
-        let lightness = self.lightness(achromatic_response);
-        let red_green = self.red_green(r_pa, g_pa, b_pa);
-        let blue_yellow = self.blue_yellow(r_pa, g_pa, b_pa);
-        let hue_angle = self.hue_angle(red_green, blue_yellow);
-        let chroma = self.chroma(r_pa, g_pa, b_pa, lightness, red_green, blue_yellow, hue_angle);
-         */
-
         let colorfulness = self.colorfulness(chroma);
         let (ap, bp) = self.ucs_ab_prime(colorfulness, hue_angle);
         [self.ucs_j_prime(lightness), ap, bp]
@@ -489,6 +476,8 @@ where
 }
 
 pub type VcAvg = ViewConditions<318, 20, SR_AVG, D_AUTO>;
+pub type VcDim = ViewConditions<318, 20, SR_DIM, D_AUTO>;
+pub type VcDark = ViewConditions<318, 20, SR_DARK, D_AUTO>;
 pub type VcTm30 = ViewConditions<100, 20, SR_AVG, 100>;
 
 pub const SR_AVG: usize = 0.150E3 as usize;

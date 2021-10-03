@@ -1,4 +1,4 @@
-#![doc = include_str!("./models/README.md")]
+#![doc = include_str!("mod.md")]
 
 pub mod xyz;
 pub use crate::models::xyz::*;
@@ -14,3 +14,6 @@ pub use crate::models::yuv::*;
 
 pub mod ciecam02;
 pub use crate::models::ciecam02::*;
+
+pub mod uvw;
+pub use crate::models::uvw::*;

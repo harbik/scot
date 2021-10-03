@@ -33,6 +33,7 @@ impl<C: StandardObserver> CieYuv1960<C> {
 }
 
 
+#[inline]
 pub(crate) fn uv60(x: f64, y: f64, z: f64) -> [f64; 3] {
     let den = x + 15.0 * y + 3.0 * z;
     [y, 4.0 * x / den, 6.0 * y / den]

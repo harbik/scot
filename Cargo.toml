@@ -7,7 +7,7 @@ repository = "https://github.com/harbik/colorado"
 keywords = ["color science", "CIE", "chromaticity", "CRI", "CIECAM"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
-readme = "src/README.md"
+#readme = "src/README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

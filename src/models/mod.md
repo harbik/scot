@@ -10,11 +10,11 @@ All the models in this module are mathematical,
 
 Currently, this library implements the following mathematical models:
 - CIE XYZ Tristimulus values colorspace &amp; (x,y) chromaticity,
-- CIE 1960 UCS or UVW color space &amp;  (u,v) chromaticity,
+- [CIE 1960 UCS][crate::models::yuv1960], a.k.a UVW color space, represented by [CieUVW][crate::models::CieUVW] &amp;   [CieYuv1960][crate::models::CieYuv1960],
 - CIE 1964 U<sup>\*</sup>V<sup>\*</sup>W<sup>*</sup> color space,
-- 1976 CIELUV L<sup>\*</sup>u<sup>\*</sup>v<sup>\*</sup>, and (u',v') chromaticity,
+- [1976 CIELUV][crate::models::yuv] L<sup>\*</sup>u<sup>\*</sup>v<sup>\*</sup>, and [CieYuv][crate::models::CieYuv] chromaticity model,
 - CIELAB L<sup>\*</sup>a<sup>\*</sup>b<sup>\*</sup> [CieLab][mod@crate::models::cielab] color space
-- CIECAM02
+- [CIECAM02][crate::models::ciecam02] Color Appearance Models [CieCam][crate::models::CieCam], [CieCamJCh][crate::models::CieCamJCh], and [CieCamUcs][crate::models::CieCamUcs].
 
 
 A color model can be considered a *Color Order System* 

@@ -8,6 +8,7 @@ use crate::{illuminants::D65, models::xyz_to_lab, observers::StandardObserver, D
 use nalgebra::{Const, Dynamic, OMatrix};
 use std::marker::PhantomData;
 
+#[derive(Clone)]
 pub struct CieCamJCh<V = VcAvg, I = D65, C = DefaultObserver> {
     pub data: OMatrix<f64, Const<3>, Dynamic>,
     v: PhantomData<*const V>,
@@ -33,29 +34,31 @@ impl<V, I, C> CieCamJCh<V, I, C> {
     }
 
     /**
-        Inverse Transform, `CieCamJCh<V,I,C>` Back To `Cielab<I,C>`.
+        Transforms `CieCamJCh<V,I,C>` in to `Cielab<I2,C>`, with view conditions V2, and reference white illuminant I2.
+        Does not (and cannot, here, as spectraldata is unavailable here) change the observer.
 
         This follows the procedure as outlined by Luo, Appendix A, Part 2: The Reverse Mode.
         Consumes (moves) CieCamJch, and overwrites data in wrapper.
+
     */
-    pub fn into_cielab(mut self) -> CieLab<I, C>
+    pub fn into_cielab<V2, I2>(mut self) -> CieLab<I2, C>
     where
-        V: Default + Into<CieCamEnv<I, C>>,
-        I: Default + Into<CieXYZ<C>>,
+        V2: Default + Into<CieCamEnv<I2, C>>,
+        I2: Default + Into<CieXYZ<C>>,
         C: StandardObserver,
     {
         // Can not use: impl<V,I,C> From<CieCamJCh<V,I,C>> for CieLab<I,C>
         // gets into a cyclical T From T error
 
-        let cam: CieCamEnv<I, C> = V::default().into();
-        let xyz_n: CieXYZ<C> = I::default().into();
+        let cam: CieCamEnv<I2, C> = V2::default().into();
+        let xyz_n: CieXYZ<C> = I2::default().into();
         for mut jch in self.data.column_iter_mut(){
             let [j,c,h]: &mut [f64;3] = jch.as_mut();
             let [x,y,z] = cam.jch_into_xyz(*j, *c, *h);
             *j = x; *c = y; *h = z; // overwrite data
         }
         // move data into CieLab container after calculating lab values
-        CieLab::<I, C>::new(xyz_to_lab(xyz_n.data.column(0), self.data))
+        CieLab::<I2, C>::new(xyz_to_lab(xyz_n.data.column(0), self.data))
     }
 }
 
@@ -142,6 +145,7 @@ fn test_from_lab_for_ciecam_jch() {
 fn test_reverse() {
     use crate::illuminants::D50;
     use crate::observers::CieObs1931;
+    use crate::models::VcDark;
     use approx::assert_abs_diff_eq;
     use nalgebra::Matrix3xX;
     let m_jch = Matrix3xX::<f64>::from_vec(vec![
@@ -163,9 +167,12 @@ fn test_reverse() {
     ]);
 
     let jch: CieCamJCh<VcAvg, D50, CieObs1931> = CieCamJCh::new(m_jch);
-    let xyz = jch.into_cielab();
-    //println!("{}", xyz.data);
-    xyz.data
+    let lab_self = jch.clone().into_cielab::<VcAvg, D50>();
+    println!("{}", lab_self.data);
+    let lab2 = jch.into_cielab::<VcDark, D65>();
+    println!("{}", lab_self.data);
+    println!("{}", lab2.data);
+    lab_self.data
         .iter()
         .zip(want.iter())
         .for_each(|(&v, &w)| assert_abs_diff_eq!(v, w, epsilon = 4E-3));
