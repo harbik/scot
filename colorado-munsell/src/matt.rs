@@ -1,14 +1,14 @@
 /*!
-	Munsell Matt Spectral Data
+ *
+Munsell Matt Spectral Data
 
-	Data derived from data measured by a team from the University of Eastern Finland, using a Perkin-Elmer lambda 9 UV/VIS/NIR spectrofotometer,
-	for 1269 matt Munsell chips.
-	The original spectral data ranges from 380 to 800, with steps of 1nm, but here this dataset was reduced to a range from 380 to 780nm, 
-	with steps of 5nm, by averaging, to improve calculation speed, and reduce program size.
-	These are measured data, for the specific Munsell chips, and by no means can be considered to be the nominal, or average spectral distribution
-	for all Munsell chips: please use it as an approximate representation, with unknown spectral deviation from the avarge reflection spectra of Munsell
-	chips. 
-	
+Data derived from data measured by a team from the University of Eastern Finland, using a Perkin-Elmer lambda 9 UV/VIS/NIR spectrofotometer,
+for 1269 matt Munsell chips.
+The original spectral data ranges from 380 to 800, with steps of 1nm, but here this dataset was reduced to a range from 380 to 780nm, 
+with steps of 5nm, by averaging, to improve calculation speed, and reduce program size.
+These are measured data, for the specific Munsell chips, and by no means can be considered to be the nominal, or average spectral distribution
+for all Munsell chips: please use it as an approximate representation, with unknown spectral deviation from the avarge reflection spectra of Munsell
+chips. 
 
 */
 

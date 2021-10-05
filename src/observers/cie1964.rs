@@ -29,7 +29,7 @@ impl StandardObserver for CieObs1964Classic {
 	 {
 		//let data = SMatrix::from_data(ArrayStorage(CIE1964NM5));
 		//convert(sprague_rows(&self.domain(), &target, &data))
-		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), target, 3, Self::cmf())
 	}
 }
 
@@ -58,7 +58,7 @@ impl StandardObserver for CieObs1964 {
 		Meter: From<<L>::UnitValueType>
 	 {
 		//matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE1964NM1)
-		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), target, 3, Self::cmf())
 	}
 
 	fn domain() -> Domain<WavelengthStep> {

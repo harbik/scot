@@ -1,3 +1,9 @@
+
+
+#![allow(
+    clippy::approx_constant,
+)]
+
 #[cfg(feature="samples")]
 pub mod samples;
 

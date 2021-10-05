@@ -209,6 +209,7 @@ impl<I, C: StandardObserver> CieCamEnv<I, C> {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     #[inline]
     pub fn chroma(&self,r:f64, g:f64, b:f64, lightness: f64, red_green: f64, blue_yellow: f64, hue_angle: f64) -> f64 {
         let t = ((50_000.0 / 13.0 * self.n_c * self.n_cb)
