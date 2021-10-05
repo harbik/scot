@@ -12,7 +12,7 @@ fn test_cielab_colorchecker() {
     use colorado::illuminants::CieIllD50;
     use colorado::models::CieLab;
     use colorado::observers::CieObs1931;
-    use colorado::swatches::checker::ColorChecker;
+    use colorado_checker::CheckerBabel;
     use colorado::swatches::{G18, White};
 	use colorado::models::LabValues;
 
@@ -33,7 +33,7 @@ fn test_cielab_colorchecker() {
 	assert_abs_diff_eq!(a, 0.0, epsilon = 0.00001);
 	assert_abs_diff_eq!(b, 0.0, epsilon = 0.00001);
 
-    let checker_lab: CieLab<CieIllD50, CieObs1931> = ColorChecker::default().into();
+    let checker_lab: CieLab<CieIllD50, CieObs1931> = CheckerBabel::default().into();
     let babel = matrix![
         38.44, 13.61, 14.53;
         65.95, 17.91, 17.87;

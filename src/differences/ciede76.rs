@@ -9,10 +9,10 @@ It has been superseeded by the color difference metrics CIE &Delta;E<sub>1994</s
 Calculate the CIE DE1976 color differences between Color Checker Swatch #13, and
 the CIE CES color samples.
 ```
-    use crate::observers::Cie1931;
-    use crate::illuminants::CieD65;
-    use crate::swatches::{ColorCheckerSwatch, Ces};
-    let de = CieDE1976::<Cie1931, CieD65>::new(ColorCheckerSwatch::<13>, Ces);
+    use colorado::observers::CieObs1931;
+    use colorado::illuminants::D65;
+    use colorado::swatches::{ColorCheckerSwatch, Ces};
+    let de = CieDE1976::<CieObs1931, D65>::new(ColorCheckerSwatch::<13>, Ces);
     println!("{:.1}", de.0);
 ```
 This will print a matrix, with 16 rows, each row corresponding to one of the
@@ -23,9 +23,9 @@ best match of a color checker sample to one of the IES CES samples.
 The same color sample sets can also be evaluated using the CIE 2015 2º color matching functions,
 and using a D50 white point:
 ```
-    use crate::observers::{Cie2015};
-    use crate::illuminants::{CieD50};
-    use crate::swatches::{ColorChecker, IesTm30Ces};
+    use colorado::observers::{CieObsF2};
+    use colorado::illuminants::{CieD50};
+    use colorado::swatches::{ColorChecker, IesTm30Ces};
     let de = CieDE1976::<Cie2015, CieD50>::new(ColorChecker, IesTm30Ces);
     println!("{:.1}", de.0);
 ```

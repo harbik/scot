@@ -83,6 +83,22 @@ where
     }
 }
 
+/// Convenience from array function to define values manualy
+impl<C:StandardObserver, const M:usize> From<[[f64; 3]; M]>  for CieXYZ<C> {
+    fn from(m: [[f64;3];M]) -> Self {
+        let data = Matrix3xX::<f64>::from_fn(M, |i,j| m[j][i]);
+        Self::new(data)
+    }
+}
+
+/// Ditto from array reference
+impl<C:StandardObserver, const M:usize> From<&[[f64; 3]; M]>  for CieXYZ<C> {
+    fn from(m: &[[f64;3];M]) -> Self {
+        let data = Matrix3xX::<f64>::from_fn(M, |i,j| m[j][i]);
+        Self::new(data)
+    }
+}
+
 /**
    Calculate XYZ tristimilus value from spectral distributions.
 
@@ -97,11 +113,10 @@ where
    use colorado::observers::CieObs1931;
    use colorado::models::CieXYZ;
 
-   let bb = CieXYZ::<CieObs1931>::from(Planckianh::new(3000));
+   let bb = CieXYZ::<CieObs1931>::from(Planckian::new(3000));
    println!("{}",bb);
    ```
 */
-
 impl<C: StandardObserver> Display for CieXYZ<C> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "XYZ<{}>: {:.5}", C::NAME, self.data)

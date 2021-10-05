@@ -8,7 +8,7 @@ or a domain of photon energies (photons),
 and is probably most familiar for you in form spectral plot,
 such as the spectral distribution of daylight, shown below.
 
-    Add D65 spectral plot, and how it is generated
+ TODO: Add D65 spectral plot, and how it is generated
 
 In this case it has a domain, shown along the horizontal axis, with a wavelength scale,
 with values from 380 to 780 nanometer,

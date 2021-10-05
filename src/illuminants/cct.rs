@@ -53,11 +53,12 @@ Here is an example, calculating the cct and Duv values for the CIE FL1 illuminan
 ```
     use colorado::illuminants::{Ohno2014, FL};
     use colorado::observers::CieObs1931;
+    use colorado::illuminants::CctDuvCalc;
 
     let ohno2014 = Ohno2014::<CieObs1931>::default();
 
     let cct = ohno2014.cct_duv(FL::<1>);
-    println!("{}", cct.0);
+    println!("{}", cct);
 ```
 
 
@@ -73,11 +74,12 @@ To use Ohno's Cascade method to calculate the CCT and Duv values for the CIE FL1
 ```
     use colorado::illuminants::{Ohno2014Cascade, FL};
     use colorado::observers::CieObs1931;
+    use colorado::illuminants::CctDuvCalc;
 
     let ohno2014_cascade = Ohno2014Cascade::<CieObs1931>::default();
 
     let cct = ohno2014_cascade.cct_duv(FL::<1>);
-    println!("{}", cct.0);
+    println!("{}", cct);
 ```
 
 

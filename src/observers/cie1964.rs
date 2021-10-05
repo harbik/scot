@@ -69,19 +69,6 @@ impl StandardObserver for CieObs1964 {
 }
 
 
-#[test]
-fn test_cmf(){
-	use crate::observers::{CieObs1931};
-	use crate::models::CieLab;
-	use crate::swatches::ColorCheckerSwatch;
-	use crate::illuminants::D65;
-
-	let lab31: CieLab::<D65, CieObs1931> = ColorCheckerSwatch::<13>.into();
-	let lab64: CieLab::<D65, CieObs1964> = ColorCheckerSwatch::<13>.into();
-	println!("{} {}", lab31.data, lab64.data);
-	
-}
-
 const N: usize =  95;
 
 static CIE1964NM5: [f64;3*N] = [ // 360-830-5nm

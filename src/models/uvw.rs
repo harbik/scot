@@ -68,7 +68,6 @@ impl<I: Illuminant, C: StandardObserver> CieUVW<I, C> {
 /*
 Calculate `CieUVW<I,C>` color space coordinates from any `CieLab<I,C>` producer.
 
-Non need to move the data here, so only borrowed, as they can be quite big.
 */
 impl<'a, I, C, L> From<L> for CieUVW<I, C>
 where
@@ -104,12 +103,8 @@ where
 fn cie_uvw(){
     use crate::illuminants::D65;
     use crate::observers::CieObs1931;
-    use nalgebra::Matrix3xX;
     use crate::swatches::Gray;
-    let lab: CieLab<D65, CieObs1931> = CieLab::new(Matrix3xX::<f64>::from_vec(vec![50.0, -20.0, 20.0]));
-   // let uvw: CieUVW<D65, CieObs1931> = lab.into();
-    let  g = &Gray::<50>::default();
-    let uvw: CieUVW<D65, CieObs1931> = g.into();
-  //  let uvw = CieUVW::<D65, CieObs1931>::from(&g);
+    let lab = CieLab::<D65, CieObs1931>::from([[50.0, -20.0, 20.0]]);
+    let uvw: CieUVW<D65, CieObs1931> = lab.into();
     println!("{}", uvw.data);
 }

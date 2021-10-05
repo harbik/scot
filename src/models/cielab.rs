@@ -40,29 +40,33 @@ impl<I, C> CieLab<I, C> {
     }
 }
 
+
+impl<I,C, const M:usize> From<[[f64; 3]; M]>  for CieLab<I,C> {
+    fn from(m: [[f64;3];M]) -> Self {
+        let data = Matrix3xX::<f64>::from_fn(M, |i,j| m[j][i]);
+        Self::new(data)
+    }
+}
+
+impl<I,C, const M:usize> From<&[[f64; 3]; M]>  for CieLab<I,C> {
+    fn from(m: &[[f64;3];M]) -> Self {
+        let data = Matrix3xX::<f64>::from_fn(M, |i,j| m[j][i]);
+        Self::new(data)
+    }
+}
+
+#[test]
+fn test_cielab_from_array(){
+    let lab : CieLab = [[50.0,20.0,0.0], [100.0, 0.0, 30.0]].into();
+    println!("{}", lab.data);
+}
+
 impl<I, C> From<CieLab<I, C>> for CieXYZ<C>
 where
     C: StandardObserver,
     I: Default,
     I: Into<CieXYZ<C>>,
 {
-    // Scaled to Yn = 100
-    /*
-    fn from(lab: CieLab<I, C>) -> Self {
-        let ill = I::default();
-        let xyz: CieXYZ<C> = ill.into();
-        let XYZValues { x: xn, y: yn, z: zn, } = xyz.into_iter().next().unwrap();
-        let mut v: Vec<f64> = Vec::with_capacity(lab.data.len());
-        for LabValues { l, a, b } in lab {
-            let s = (l + 16f64) / 116f64;
-            v.push(100.0 * xn / yn * lab_finv(s + a / 500f64));
-            v.push(100.0 * lab_finv(s));
-            v.push(100.0 * zn / yn * lab_finv(s - b / 200f64));
-        }
-        Self::new(Matrix3xX::from_vec(v))
-    }
-     */
-
     fn from(lab: CieLab<I, C>) -> Self {
         let xyz_n: CieXYZ<C> = I::default().into();
         Self::new(lab_to_xyz(xyz_n.data.column(0), lab.data))
@@ -75,9 +79,13 @@ fn test_lab_to_xyz() {
     use crate::observers::CieObs1931Classic;
     use approx::assert_abs_diff_eq;
     use nalgebra::OMatrix;
-    let lab: CieLab<D50, CieObs1931Classic> = CieLab::new(Matrix3xX::<f64>::from_vec(vec![
-        100.0, 100.0, -100.0, 100.0, 50.0, 0.0, 100.0, 0.0, 50.0, 0.0, 0.0, 0.0, 20.0, 100.0, -50.0,
-    ]));
+    let lab =  CieLab::<D50, CieObs1931Classic>::from([
+        [100.0, 100.0, -100.0], 
+        [100.0, 50.0, 0.0],
+        [100.0, 0.0, 50.0], 
+        [0.0, 0.0, 0.0], 
+        [20.0, 100.0, -50.0]
+    ]);
 
     // CIECAM02.XLS spreadsheet, with XYZ_W [96.42150208438176, 100.0, 82.52098537603804], as I get with
     // my D50 CieObsClassic calculation
@@ -162,22 +170,6 @@ impl<'a, C, I> IntoIterator for &'a CieLab<I, C> {
     }
 }
 
-#[test]
-fn test_lab_iter() {
-    use crate::swatches::checker::ColorChecker;
-    //use crate::observers::CieObs1931;
-    use crate::illuminants::CieIllD50;
-
-    let labs: CieLab<CieIllD50> = ColorChecker.into(); // using CieObs1931 and CieIllD65 as Default
-    for LabValues { l, a, b } in labs.iter() {
-        println!("{}, {}, {}", l, a, b);
-    }
-    println!();
-
-    for LabValues { l, a, b } in labs {
-        println!("{}, {}, {}", l, a, b);
-    }
-}
 
 const DELTA: f64 = 24f64 / 116f64;
 const DELTA_POW2: f64 = DELTA * DELTA;

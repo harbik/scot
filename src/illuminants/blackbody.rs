@@ -36,26 +36,6 @@ use crate::{Domain, Step, Unit, WavelengthStep};
    let pl = Planckian::new(3000);
    let xyz = XYZ::<CieObs1931>::from(pl);
    ```
-
-   # Examples
-
-   A blackbody radiator, with a temperature of 3000K, and an illuminance of 0.1W/m<sup>2</sup>.
-   Here a single integer valued argument is used to specify a blackbody's temperature.
-
-   ```
-   use colorado::illuminants::Planckian;
-   use colorado::observers::CieObs1931;
-   use colorado::util::domain::Domain;
-   use colorado::spectra::SpectralDistribution;
-   use colorado::cie::XYZ;
-   use colorado::util::units::DEV; // dEv
-   use approx::assert_abs_diff_eq;
-
-   let sd = Planckian::new([[6500.0,0.1]]);
-   let v = sd.values(Domain::new(15, 33, DEV)); // values for Planckian radiator from 1.5 (826.56nm) to 3.3 eV (375.709)
-   let val : Vec<f64> = v.into_iter().cloned().collect();
-   assert_eq!(val, vec![]);
-   ```
 */
 
 #[derive(Debug)]
