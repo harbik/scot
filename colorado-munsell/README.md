@@ -8,14 +8,54 @@
 </div>
 
 
-Colorado is an open-source Color Science data and algorithms library written in the Rust programming language,
-targeting applications such as color management and quality control for displays, graphic arts, and architectural lighting.
-It implements methods and standards as defined by international standard organizations,
-such as the **CIE**, the *International Commission on Illumination*,
-and also includes many other color algorithms and datasets.
+Colorado is an open-source Color Science library written in the Rust programming language,
+ implementing recommended methods and standards as defined by for example the **CIE** 
+ (International Commission on Illumination)
+ the ICC (International Color Consortium),
+ the IES (Illumination Engineering Society),
+ and many others.
+It intended use is for scientists, engineers, and any other (semi)professionals,
+ working in the field of color imaging,
+ graphic arts, architectural lighting,
+ and color engineering in general.
 
 Colorado is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
 It is being developed by Gerard Harbers from *Harbers Bik LLC*.
+
+Why another color library? And why Rust?
+There is already an excellent color library written in Python, as documented at <http:://colour-science.org>.
+And, if you like to use MatLab, there is [ColorLab](https://www.uv.es/vista/vistavalencia/software/colorlab.html).
+
+Colorado, written in Rust, has the following benefits:
+
+- Compared to Python it is fast, with a performance comparable to C++ applications.
+- The main reason -for me- is that Rust code can be directly compile to WebAssembly, 
+   which means that all the algorithms will run in a Web browser,
+   at near-native performance.
+  Using this library,
+   and other existing Rust libraries,
+   complex color calculations can be performed in the browsers,
+   without installing and frequently updating programs,
+   on *any system* which runs a modern web browser.
+- And if you're not interested in online color applications,
+   Rust has excellent cross-platform development and support tools,
+   allowing you to develop native applications for Linux, MacOS, Windows, and many other platforms.
+- Rust has an amazing build tool,
+  called cargo, and a large collection of Rust packages in the <http://crates.io> package registry,
+  with a very good code documentation system.
+  Using cargo, crates.io, and the Rust documentation system,
+  it is very easy to re-use code written by others.
+- Rust uses static typing,
+   and has an excellent and strict compiler,
+   which not only helps to avoid writing erroneous or unsafe code,
+   but also allows you to use the compiler to write code for you.
+  When I started writing Rust,
+   I you got frustrated with the compiler initially,
+   but quickly started to enjoy the experience that if a program compiles,
+   if often runs as expected.
+
+
+ 
 
 Mathematical representations of spectral distributions are the base many of color algorithms in this library,
 such spectral power distributions of lamps and displays, 

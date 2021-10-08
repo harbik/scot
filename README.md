@@ -1,26 +1,82 @@
   
-
-<div align="center">
-    <img src="https://www.harbik.com/img/daniel-norris.jpg" alt="Colorful Colorado" width="500"/>
-</div>
-
 # Colorado: Rust Color Science Library
 
-Colorado is an open-source Color Science data and algorithms library written in the Rust programming language,
-targeting applications such as color management and quality control for displays, graphic arts, and architectural lighting.
-It implements methods and standards as defined by international standard organizations,
-such as the **CIE**, the *International Commission on Illumination*,
-and also includes many other color algorithms and datasets.
+<div align="center">
+
+![Colorful Colorado](daniel-norris.jpg)
+
+</div>
+
+
+Colorado is an open-source Color Science library written in the Rust programming language,
+ implementing recommended methods and standards as defined by for example the *CIE* 
+ (International Commission on Illumination)
+ the *ICC* (International Color Consortium),
+ the *IES* (Illumination Engineering Society),
+ and many more.
+It intended use is for light and color engineers, and other (semi)professionals,
+ working in the field of color imaging,
+ graphic arts, architectural lighting,
+ and color engineering in general.
 
 Colorado is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
 It is being developed by Gerard Harbers from *Harbers Bik LLC*.
 
-Mathematical representations of spectral distributions are the base many of color algorithms in this library,
-such spectral power distributions of lamps and displays, 
-and spectral reflectivity and spectral transmissivity distributions of surfaces and transparent materials:
-they are typically measured using spectrometers, or defined by international standards.
-This library has a large collection of these spectral distribution, and makes it easy to process them with various color models,
-or to create your own models.
+Why another color library? And why Rust?
+There are already many other excellent color libraries written in for example Python, as documented at <http:://colour-science.org>.
+And, if you like to use MatLab, there is [ColorLab](https://www.uv.es/vista/vistavalencia/software/colorlab.html).
+
+Colorado, written in Rust, has the following benefits:
+
+- Compared to Python it is fast, with a performance comparable to C++ applications:
+ it is a system programming language designed for memory safety and speed.
+- Rust code can be directly compiled to WebAssembly, 
+   which means that all the algorithms will run in a Web browser,
+   at near-native performance.
+  Using this library,
+   and other existing Rust libraries,
+   complex color calculations can be performed
+   –without installing and frequently updating programs–
+   on *any system* which runs a modern web browser.
+- And –if you're not interested in online applications–
+   Rust has excellent cross-platform development and support tools,
+   allowing you to write –single code base– native applications for Linux, MacOS, Windows, and many other platforms.
+- Rust has an amazing build tool,
+  called cargo, and a large collection of Rust packages in the <http://crates.io> package registry,
+  with a very good code documentation system.
+  Using cargo, crates.io, and the Rust documentation system,
+  it is very easy to re-use code written by others.
+- Rust uses static typing,
+   and has an excellent and strict compiler,
+   which not only helps to avoid writing erroneous or unsafe code,
+   but also allows you to use the compiler to write code for you.
+  When I started writing Rust,
+   I you got frustrated with the compiler initially,
+   but quickly started to enjoy the experience that if a program compiles,
+   if often runs as expected.
+
+Colorado is a **spectral color** library,
+ which means that –whenever possible– 
+ color stimuli are represented by spectral power distributions.
+Which –and that is another big benefit– 
+ enables correcting and representing color for non-standard,
+ individual, observers;
+ it is time to retire the -good old, but failing- CIE 1931 observer!
+For this purpose the library has a large collection of spectral data collections,
+ and spectral composition algorithms,
+ and a set of different colorimetric observers, and colorimetric observer composition tools,
+ mostly build on top of the CIE cone fundamentals.
+
+To work with the large amount of spectrometric and colorimetric data,
+ the Rust [`nalgebra`](https://nalgebra.org) linear algebra library is used extensively;
+ almost any component in the library is a wrapper for a general matrix type.
+If you only want to use the library at high level,
+ you won't need to get familiar with this,
+ but if you are interested to start working with the data itself,
+ it allows you to crunch-the-numbers with a few lines of code, in the Matlab-style.
+
+
+## Examples
 
 ## Features:
 - Spectral power distributions library for a lamps and illuminants, such as fluorescent and LED lamps.
@@ -48,7 +104,7 @@ Licensed under either of
  * Apache License, Version 2.0
    ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
  * MIT license
-   ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
+   ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>?)
 
 at your option.
 

@@ -99,6 +99,8 @@ From [Wikipedia](https://en.wikipedia.org/wiki/IT8):
   four-color (cyan, magenta, yellow and black) halftone image files to enable a color transformation to be undertaken when
   required
 
+[McCamy]: https://home.cis.rit.edu/~cnspci/references/mccamy1976.pdf "C.S. McCamy, H. Marcus, J.G. Davidson, “A Color-Rendition Chart,” J. Appl. Phot. Eng., Vol. 2, No. 3, Summer 1976, pp. 95-99, Society of Photographic Scientists and Engineers"
+[XRite]: https://www.xrite.com/categories/calibration-profiling/colorchecker-classic
  
 
 # Colorado: Rust Color Science Library
@@ -122,12 +124,13 @@ or to create your own models.
 
 # Disclaimer
 The data, methods, and algorithms in this library, 
-referencing Standard Organizations such as the International Commission on Illumination (CIE), or any other Standards Organizations, 
-have not been endorsed, qualified, or approved by these Standard Organizations. 
+ referencing Standard Organizations such as the International Commission on Illumination (CIE), or any other Standards Organization, 
+ have not been endorsed, qualified, or approved by these Standard Organizations. 
 Please consult their documentation and standards for authoritative methods, recommendations, and data. 
-If you find any deviations or errors between the official standards and the implementations in this library, please report them as [issues](https://github.com/harbik/colorado/issues) on its GitHub page.
-Please be also aware that light and color measurements are difficult and depend on a lot of factors, 
-with many of them outside the scope of this library and its applications. 
+If you find any deviations or errors between the official standards and the implementations in this library, 
+ please report them as [issues](https://github.com/harbik/colorado/issues) on its GitHub page.
+Please be also aware that light and color measurements are difficult and depend on many factors, 
+ with many of them outside the scope of this library and its applications. 
 If you have a professional lighting, display lighting, or color issue, please consult a specialist.
 
 
@@ -151,6 +154,3 @@ dual licensed as above, without any additional terms or conditions.
 ## Credits
 
 Colorado Photo (top) made by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/colorado">Unsplash</a>
-
-[McCamy]: https://home.cis.rit.edu/~cnspci/references/mccamy1976.pdf "C.S. McCamy, H. Marcus, J.G. Davidson, “A Color-Rendition Chart,” J. Appl. Phot. Eng., Vol. 2, No. 3, Summer 1976, pp. 95-99, Society of Photographic Scientists and Engineers"
-[XRite]: https://www.xrite.com/categories/calibration-profiling/colorchecker-classic
