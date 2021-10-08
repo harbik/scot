@@ -19,8 +19,10 @@ Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 const N: usize = 95; // number of points in a spectral distributions, and the number of rows in the column major spectral matrix
 const M: usize = 15; // number of spectra in the set, or the number of columns in the spectral matrix
 
-swatch!(TcsSwatch, N, M, "TCS{}", crate::Domain::new(360/5, 830/5, crate::NM5), TCS_DATA);
-swatch!(Tcs, N, M, "TCS", crate::Domain::new(360/5, 830/5, crate::NM5), TCS_DATA, TCS_KEYS);
+pub use colorado::swatch;
+
+swatch!(TcsSwatch, N, M, "TCS{}", colorado::Domain::new(360/5, 830/5, colorado::NM5), TCS_DATA);
+swatch!(Tcs, N, M, "TCS", colorado::Domain::new(360/5, 830/5, colorado::NM5), TCS_DATA, TCS_KEYS);
 
 static TCS_KEYS: [&str;M] = [
 	"7.5 R 6/4|light greyish red",

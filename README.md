@@ -1,12 +1,10 @@
   
-# Colorado: Rust Color Science Library
 
 <div align="center">
-
-![Colorful Colorado](daniel-norris.jpg)
-
+    <img src="https://www.harbik.com/img/daniel-norris.jpg" alt="Colorful Colorado" width="500"/>
 </div>
 
+# Colorado: Rust Color Science Library
 
 Colorado is an open-source Color Science data and algorithms library written in the Rust programming language,
 targeting applications such as color management and quality control for displays, graphic arts, and architectural lighting.
@@ -48,9 +46,9 @@ If you have a professional lighting, display lighting, or color issue, please co
 Licensed under either of
 
  * Apache License, Version 2.0
-   ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+   ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
  * MIT license
-   ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+   ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
 

@@ -9,22 +9,19 @@ As reference for such a thermal source a blackbody radiator is used.
 The correlated color temperature of a source is the physical temperature of a blackbody radiator, which matches the color of the source best.
 */
 
-
-use nalgebra::{DVector};
+use nalgebra::DVector;
 
 /**
 A collection tmperature (in kelvin) and radiant exitance values (in watt per square meter), both qualified to be positive and greater than 0.0.
 Used as input to create `Blackbody` and `CIEDaylight` collections.
 */
-#[derive(Debug,Clone)]
-pub struct CctParameters (
-	pub DVector<f64>
-);
+#[derive(Debug, Clone)]
+pub struct CctParameters(pub DVector<f64>);
 
 impl Default for CctParameters {
-	fn default() -> Self {
-		CctParameters::new(3000.0)
-	}
+    fn default() -> Self {
+        CctParameters::new(3000.0)
+    }
 }
 
 impl std::ops::Deref for CctParameters {
@@ -36,82 +33,84 @@ impl std::ops::Deref for CctParameters {
 }
 
 impl CctParameters {
-	/**
-		Construct a collection of correlated temperature and radiant exitance values.
-		It accepts a range of arguments, such as a single `f64` absolute temperature value, arrays and vectors of `f64` temperature values, defaulting to radiant exitance values of 1W/m2.
-		To specify temperature and power, use arrays and vectors of `\[f64;2\]' values, with the first value of the
-		`\[f64;2\]` array being an absolute temperature, and the second being the radiante exitance specification.
+    /**
+        Construct a collection of correlated temperature and radiant exitance values.
+        It accepts a range of arguments, such as a single `f64` absolute temperature value, arrays and vectors of `f64` temperature values, defaulting to radiant exitance values of 1W/m2.
+        To specify temperature and power, use arrays and vectors of `\[f64;2\]' values, with the first value of the
+        `\[f64;2\]` array being an absolute temperature, and the second being the radiante exitance specification.
 
-		# Examples
-		From a single temperature value, and using a default value for power of 1.0W:
-		```
-		use colorado::illuminants::CctParameters;
+        # Examples
+        From a single temperature value, and using a default value for power of 1.0W:
+        ```
+        use colorado::illuminants::CctParameters;
 
-		let ccts = CctParameters::new(3000.0);
-		assert_eq!(ccts.0[0], 3000.0);
-		```
-		```
-		use colorado::illuminants::CctParameters;
+        let ccts = CctParameters::new(3000.0);
+        assert_eq!(ccts.0[0], 3000.0);
+        ```
+        ```
+        use colorado::illuminants::CctParameters;
 
-		let ccts = CctParameters::new(vec![3000.0, 4000.0, 5000.0]);
-		assert_eq!(ccts.0[0], 3000.0);
-		assert_eq!(ccts.0[1], 4000.0);
-		assert_eq!(ccts.0[2], 5000.0);
-		```
-	*/
+        let ccts = CctParameters::new(vec![3000.0, 4000.0, 5000.0]);
+        assert_eq!(ccts.0[0], 3000.0);
+        assert_eq!(ccts.0[1], 4000.0);
+        assert_eq!(ccts.0[2], 5000.0);
+        ```
+    */
 
-	pub fn new(t: impl Into<CctParameters>) -> CctParameters {
-		t.into()
+    pub fn new(t: impl Into<CctParameters>) -> CctParameters {
+        t.into()
+    }
 
-	}
+    /**
+     */
+    pub fn keys(&self) -> Option<Vec<String>> {
+        if self.nrows() > 0 {
+            let mut v: Vec<String> = Vec::with_capacity(self.nrows());
+            for r in self.0.row_iter() {
+                v.push(format!("{}", r[0]));
+            }
+            Some(v)
+        } else {
+            None
+        }
+    }
 
-	/**
-	 */
-	 pub fn keys(&self) -> Option<Vec<String>> {
-		 if self.nrows() > 0 {
-			let mut v : Vec<String> = Vec::with_capacity(self.nrows());
-			for r in self.0.row_iter() {
-				v.push(format!("{}", r[0]));
-			}
-			Some(v)
-		 } else {
-			 None
-		 }
-	 }
+    /**
+        The minimum value of temperatures in a CCT collection.
+        # Example
+        ```
+        use colorado::illuminants::CCTs;
 
-	/**
-		The minimum value of temperatures in a CCT collection.
-		# Example
-		```
-		use colorado::illuminants::CCTs;
+        let cct_min = CCTs::new([5000.0, 8000.0, 3000.0]).min();
+        assert_eq!(cct_min, 3000.0);
+        ```
+    */
+    pub fn min(&self) -> f64 {
+        self.0.min()
+    }
 
-		let cct_min = CCTs::new([5000.0, 8000.0, 3000.0]).min();
-		assert_eq!(cct_min, 3000.0);
-		```
-	*/
-	pub fn min(&self) -> f64 {
-		self.0.min()
-	}
+    /**
+        The maximum value of temperatures in a CCT collection.
+        # Example
+        ```
+        use colorado::illuminants::CctParameters;
 
-	/**
-		The maximum value of temperatures in a CCT collection.
-		# Example
-		```
-		use colorado::illuminants::CctParameters;
+        let cct_max = CctParameters::new([5000.0, 8000.0, 3000.0]).max();
+        assert_eq!(cct_max, 8000.0);
+        ```
+    */
+    pub fn max(&self) -> f64 {
+        self.0.max()
+    }
 
-		let cct_max = CctParameters::new([5000.0, 8000.0, 3000.0]).max();
-		assert_eq!(cct_max, 8000.0);
-		```
-	*/
-	pub fn max(&self) -> f64 {
-		self.0.max()
-	}
+    pub fn len(&self) -> usize {
+        self.0.nrows()
+    }
 
-	pub fn len(&self) -> usize {
-		self.nrows()
-	}
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
 }
-
 
 impl<'a> IntoIterator for &'a CctParameters {
     type Item = f64;
@@ -119,73 +118,66 @@ impl<'a> IntoIterator for &'a CctParameters {
     type IntoIter = CctIterator<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
-		CctIterator {
-			ccts: &self.0,
-			i: 0,
-			end: self.len(),
-		}
+        CctIterator {
+            ccts: &self.0,
+            i: 0,
+            end: self.len(),
+        }
     }
 }
 
 pub struct CctIterator<'a> {
-	ccts: &'a DVector<f64>,
-	i: usize,
-	end: usize,
+    ccts: &'a DVector<f64>,
+    i: usize,
+    end: usize,
 }
 
 impl<'a> Iterator for CctIterator<'a> {
-	type Item = f64;
+    type Item = f64;
 
-	fn next (&mut self) -> Option<Self::Item> {
-		let c = self.i;
-		if c< self.end {
-			self.i += 1;
-			Some(self.ccts[c])
-		} else {
-			None
-		}
-	}
-
+    fn next(&mut self) -> Option<Self::Item> {
+        let c = self.i;
+        if c < self.end {
+            self.i += 1;
+            Some(self.ccts[c])
+        } else {
+            None
+        }
+    }
 }
 
-
-
 #[test]
-fn test_cct_iterator(){
-	let ccts = CctParameters::new([3000.0, 4000.0, 5000.0]);
-	println!("{}", ccts.0);
+fn test_cct_iterator() {
+    let ccts = CctParameters::new([3000.0, 4000.0, 5000.0]);
+    println!("{}", ccts.0);
 }
 
 impl From<Vec<f64>> for CctParameters {
-
-	/// Creates a CCTs array from a vector of temperatures, each with a power of 1W
-	fn from(t: Vec<f64>) -> Self {
-		Self(DVector::from_vec(t))
-	}
+    /// Creates a CCTs array from a vector of temperatures, each with a power of 1W
+    fn from(t: Vec<f64>) -> Self {
+        Self(DVector::from_vec(t))
+    }
 }
 
 // From a float value
 impl From<f64> for CctParameters {
-
-	/// CCTs array from a single temperature
-	fn from(t: f64) -> Self {
-		Self::new(vec![t])
-	}
+    /// CCTs array from a single temperature
+    fn from(t: f64) -> Self {
+        Self::new(vec![t])
+    }
 }
 
 // From a single, positive, integer value
 impl From<usize> for CctParameters {
-
-	/// CCTs array from a single temperature
-	fn from(t: usize) -> Self {
-		Self::new(vec![t as f64])
-	}
+    /// CCTs array from a single temperature
+    fn from(t: usize) -> Self {
+        Self::new(vec![t as f64])
+    }
 }
 
 // From array of temperature values
-impl <const N: usize> From<[f64; N]> for CctParameters {
-
-	fn from(t:[f64;N]) -> Self {
-		CctParameters::from(t.to_vec())
-	}
+impl<const N: usize> From<[f64; N]> for CctParameters {
+    fn from(t: [f64; N]) -> Self {
+        CctParameters::from(t.to_vec())
+    }
 }

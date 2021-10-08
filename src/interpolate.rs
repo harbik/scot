@@ -10,15 +10,10 @@
     performed correctly.
 */
 
-
-
-
-
-
 use std::ops::Index;
 
-use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice3xX, OMatrix, VecStorage, };
-use nalgebra::{storage::Storage, DMatrix, Dim, Matrix,};
+use nalgebra::{storage::Storage, DMatrix, Dim, Matrix};
+use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice3xX, OMatrix, VecStorage};
 
 use crate::Domain;
 use crate::{Step, Unit};
@@ -28,94 +23,117 @@ use super::IterInterpolateType;
 pub fn matrix_from_data_by_lin_row_int<S1, S2, const R: usize, const C: usize>(
     from_domain: &Domain<S1>,
     to_domain: &Domain<S2>,
-    data: &[[f64; R]; C], // 
-) -> Matrix<f64, Const<R>, Dynamic, VecStorage<f64, Const<R>, Dynamic>> // MatrixNxX
+    data: &[[f64; R]; C], //
+) -> Matrix<f64, Const<R>, Dynamic, VecStorage<f64, Const<R>, Dynamic>>
+// MatrixNxX
 where
     S1: Step + Clone + Copy,
     S2: Step + Clone + Copy,
     S1::UnitValueType: From<<S2>::UnitValueType>, // need to be able to express a value in domain S2 as a value in domain S1
 {
+    if *from_domain == *to_domain {
+        Matrix::<f64, Const<R>, Dynamic, _>::from_iterator(
+            to_domain.len(),
+            data.iter().flat_map(|v| *v),
+        )
+    } else {
+        let mut values = Vec::<f64>::with_capacity(to_domain.len() * R);
 
-	if  *from_domain== *to_domain {
-		Matrix::<f64, Const<R>, Dynamic, _>::from_iterator(to_domain.len(), data.iter().flat_map(|v|*v))
-	} else {
+        let start = from_domain.step.unitvalue(from_domain.range.start).value();
+        let div = from_domain.step.unitvalue(1).value();
 
-		let mut values = Vec::<f64>::with_capacity(to_domain.len() * R);
-
-		let start = from_domain.step.unitvalue(from_domain.range.start).value();
-		let div = from_domain.step.unitvalue(1).value();
-
-		for ut in to_domain {
-			let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
-			let index = from_domain_interval.floor() as usize;
-			if (index==0 && from_domain_interval<0.0) || index>C-1 {
-				for _r in 0..R {
-					values.push(0.0)
-				}
-			} else {
-				let frac = from_domain_interval.fract();
-				if index==C-1 && frac<1E-6 { // end point
-					for r in 0..R {
-						//println!("{:?}", data[0][r]);
-						values.push(data[index][r]);
-					}
-				} else {
-					for r in 0..R {
-						//println!("{:?}", data[0][r]);
-						values.push(data[index][r]*(1.0-frac)+data[index+1][r]*frac);
-					}
-				}
-			}
-		}
-		Matrix::<f64, Const<R>, Dynamic, _>::from_vec(values)
-	}
+        for ut in to_domain {
+            let from_domain_interval = (Into::<S1::UnitValueType>::into(ut).value() - start) / div;
+            let index = from_domain_interval.floor() as usize;
+            if (index == 0 && from_domain_interval < 0.0) || index > C - 1 {
+                for _r in 0..R {
+                    values.push(0.0)
+                }
+            } else {
+                let frac = from_domain_interval.fract();
+                if index == C - 1 && frac < 1E-6 {
+                    // end point
+                    for r in 0..R {
+                        //println!("{:?}", data[0][r]);
+                        values.push(data[index][r]);
+                    }
+                } else {
+                    for r in 0..R {
+                        //println!("{:?}", data[0][r]);
+                        values.push(data[index][r] * (1.0 - frac) + data[index + 1][r] * frac);
+                    }
+                }
+            }
+        }
+        Matrix::<f64, Const<R>, Dynamic, _>::from_vec(values)
+    }
 }
 
 #[test]
-fn test_lin_row(){
-	use super::{NONE5, NONE};
-	use approx::assert_abs_diff_eq;
-	use nalgebra::Matrix1xX;
-	let dfrom = Domain::new(0,2, NONE5);
-	let dto = Domain::new(0,10, NONE);
-	let data = [[0.0], [5.0], [10.0]]; // column major array in nalgebra
-	let m = matrix_from_data_by_lin_row_int(&dfrom, &dto, &data);
-	//println!("{}", m);
-	assert_abs_diff_eq!(m, Matrix1xX::from_vec(vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]));
+fn test_lin_row() {
+    use super::{NONE, NONE5};
+    use approx::assert_abs_diff_eq;
+    use nalgebra::Matrix1xX;
+    let dfrom = Domain::new(0, 2, NONE5);
+    let dto = Domain::new(0, 10, NONE);
+    let data = [[0.0], [5.0], [10.0]]; // column major array in nalgebra
+    let m = matrix_from_data_by_lin_row_int(&dfrom, &dto, &data);
+    //println!("{}", m);
+    assert_abs_diff_eq!(
+        m,
+        Matrix1xX::from_vec(vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0])
+    );
 }
 
-pub fn interp_lin_cmf<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nr: usize, mfr: MatrixSlice3xX<'a, f64>) -> Matrix3xX<f64>
+pub fn interp_lin_cmf<'a, S1, S2>(
+    from_domain: &Domain<S1>,
+    to_domain: &Domain<S2>,
+    nr: usize,
+    mfr: MatrixSlice3xX<'a, f64>,
+) -> Matrix3xX<f64>
 where
     S1: Step + Clone + Copy,
     S2: Step + Clone + Copy,
-    S1::UnitValueType: From<<S2>::UnitValueType>, 
+    S1::UnitValueType: From<<S2>::UnitValueType>,
 {
-	let mut mto = Matrix3xX::<f64>::zeros(to_domain.len());
-	for ip in from_domain.iter_interpolate(to_domain) {
-		match ip {
-			IterInterpolateType::Interpolate(j,i,h) => (0..nr).into_iter().for_each(|r|mto[(r,j)] = mfr[(r, i)]*(1.0-h)+mfr[(r, i+1)]*h),
-			IterInterpolateType::RangeEnd(j,i) => (0..nr).into_iter().for_each(|r|mto[(r,j)] = mfr[(r, i)]),
-			_ => () // extrapolation with 0.0 in this case, by default in mto
-		}
-	}
-	mto
+    let mut mto = Matrix3xX::<f64>::zeros(to_domain.len());
+    for ip in from_domain.iter_interpolate(to_domain) {
+        match ip {
+            IterInterpolateType::Interpolate(j, i, h) => (0..nr)
+                .into_iter()
+                .for_each(|r| mto[(r, j)] = mfr[(r, i)] * (1.0 - h) + mfr[(r, i + 1)] * h),
+            IterInterpolateType::RangeEnd(j, i) => {
+                (0..nr).into_iter().for_each(|r| mto[(r, j)] = mfr[(r, i)])
+            }
+            _ => (), // extrapolation with 0.0 in this case, by default in mto
+        }
+    }
+    mto
 }
 
-pub fn interp_lin_cmf2<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, mfr: MatrixSlice3xX<'a, f64>) -> OMatrix<f64, Const<3>, Dynamic>
+pub fn interp_lin_cmf2<'a, S1, S2>(
+    from_domain: &Domain<S1>,
+    to_domain: &Domain<S2>,
+    mfr: MatrixSlice3xX<'a, f64>,
+) -> OMatrix<f64, Const<3>, Dynamic>
 where
     S1: Step + Clone + Copy,
     S2: Step + Clone + Copy,
-    S1::UnitValueType: From<<S2>::UnitValueType>, 
+    S1::UnitValueType: From<<S2>::UnitValueType>,
 {
-		let mut mto = OMatrix::<f64, Const<3>, Dynamic>::zeros(to_domain.len());
-		for ip in from_domain.iter_interpolate(to_domain) {
-			match ip {
-				IterInterpolateType::Interpolate(j,i,h) => (0..3).into_iter().for_each(|r|mto[(r,j)] = mfr[(r, i)]*(1.0-h)+mfr[(r, i+1)]*h),
-				IterInterpolateType::RangeEnd(j,i) => (0..3).into_iter().for_each(|r|mto[(r,j)] = mfr[(r, i)]),
-				_ => () // extrapolation with 0.0 in this case, by default in mto
-			}
-		}
-		mto
+    let mut mto = OMatrix::<f64, Const<3>, Dynamic>::zeros(to_domain.len());
+    for ip in from_domain.iter_interpolate(to_domain) {
+        match ip {
+            IterInterpolateType::Interpolate(j, i, h) => (0..3)
+                .into_iter()
+                .for_each(|r| mto[(r, j)] = mfr[(r, i)] * (1.0 - h) + mfr[(r, i + 1)] * h),
+            IterInterpolateType::RangeEnd(j, i) => {
+                (0..3).into_iter().for_each(|r| mto[(r, j)] = mfr[(r, i)])
+            }
+            _ => (), // extrapolation with 0.0 in this case, by default in mto
+        }
+    }
+    mto
 }
 
 /*
@@ -123,83 +141,100 @@ pub fn interp_cols<'a, S1, S2>( from_domain: &Domain<S1>, to_domain: &Domain<S2>
 where
     S1: Step + Clone + Copy,
     S2: Step + Clone + Copy,
-    S1::UnitValueType: From<<S2>::UnitValueType>, 
+    S1::UnitValueType: From<<S2>::UnitValueType>,
 {
-	if *from_domain== *to_domain {
-		DMatrix::<f64>::from_iterator(to_domain.len(), nc, data.iter().cloned())
-	} else {
-		let mfr = MatrixSlice::from_slice_generic(data, Dynamic::new(from_domain.len()), Dynamic::new(nc));
-		let mut mto = DMatrix::<f64>::zeros(to_domain.len(), nc);
-		for ip in from_domain.iter_interpolate(to_domain) {
-			match ip {
-				IterInterpolateType::Interpolate(j,i,h) => (0..nc).into_iter().for_each(|c|mto[(j,c)] = mfr[(i, c)]*(1.0-h)+mfr[(i+1,c)]*h),
-				IterInterpolateType::RangeEnd(j,i) => (0..nc).into_iter().for_each(|c|mto[(j,c)] = mfr[(i, c)]),
-				_ => () // extrapolation with 0.0 in this case, by default in mto
-			}
-		}
-		mto
-	}
+    if *from_domain== *to_domain {
+        DMatrix::<f64>::from_iterator(to_domain.len(), nc, data.iter().cloned())
+    } else {
+        let mfr = MatrixSlice::from_slice_generic(data, Dynamic::new(from_domain.len()), Dynamic::new(nc));
+        let mut mto = DMatrix::<f64>::zeros(to_domain.len(), nc);
+        for ip in from_domain.iter_interpolate(to_domain) {
+            match ip {
+                IterInterpolateType::Interpolate(j,i,h) => (0..nc).into_iter().for_each(|c|mto[(j,c)] = mfr[(i, c)]*(1.0-h)+mfr[(i+1,c)]*h),
+                IterInterpolateType::RangeEnd(j,i) => (0..nc).into_iter().for_each(|c|mto[(j,c)] = mfr[(i, c)]),
+                _ => () // extrapolation with 0.0 in this case, by default in mto
+            }
+        }
+        mto
+    }
 }
 */
 
-pub fn lin_interp_mat_col<S1, S2, I>( from_domain: &Domain<S1>, to_domain: &Domain<S2>, nc: usize, data: I  ) -> OMatrix<f64, Dynamic, Dynamic>
+pub fn lin_interp_mat_col<S1, S2, I>(
+    from_domain: &Domain<S1>,
+    to_domain: &Domain<S2>,
+    nc: usize,
+    data: I,
+) -> OMatrix<f64, Dynamic, Dynamic>
 where
     S1: Step + Clone + Copy,
     S2: Step + Clone + Copy,
-    S1::UnitValueType: From<<S2>::UnitValueType>, 
-	I: Index<(usize, usize), Output = f64>,
+    S1::UnitValueType: From<<S2>::UnitValueType>,
+    I: Index<(usize, usize), Output = f64>,
 {
-	let mut mto = OMatrix::<f64, Dynamic, Dynamic>::zeros(to_domain.len(), nc);
-	for ip in from_domain.iter_interpolate(to_domain) {
-		match ip {
-			IterInterpolateType::Interpolate(j,i,h) => (0..nc).into_iter().for_each(|c|mto[(j,c)] = data[(i, c)]*(1.0-h)+data[(i+1,c)]*h),
-			IterInterpolateType::RangeEnd(j,i) => (0..nc).into_iter().for_each(|c|mto[(j,c)] = data[(i, c)]),
-			_ => () // extrapolation with 0.0 in this case, by default in mto
-		}
-	}
-	mto
-}
-
-
-#[test]
-fn test_interp_col(){
-	use super::{NONE5, NONE};
-	use approx::assert_abs_diff_eq;
-	use nalgebra::dvector;
-	
-	let dfrom = Domain::new(0,2, NONE5);
-	let dto = Domain::new(0,10, NONE);
-	let min = dvector![0.0, 5.0, 10.0];
-	let m = lin_interp_mat_col(&dfrom, &dto, 1, min);
-//	println!("{}", m);
-	assert_abs_diff_eq!(m, DMatrix::<f64>::from_vec(11, 1, vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]));
+    let mut mto = OMatrix::<f64, Dynamic, Dynamic>::zeros(to_domain.len(), nc);
+    for ip in from_domain.iter_interpolate(to_domain) {
+        match ip {
+            IterInterpolateType::Interpolate(j, i, h) => (0..nc)
+                .into_iter()
+                .for_each(|c| mto[(j, c)] = data[(i, c)] * (1.0 - h) + data[(i + 1, c)] * h),
+            IterInterpolateType::RangeEnd(j, i) => {
+                (0..nc).into_iter().for_each(|c| mto[(j, c)] = data[(i, c)])
+            }
+            _ => (), // extrapolation with 0.0 in this case, by default in mto
+        }
+    }
+    mto
 }
 
 #[test]
-fn test_interp_col2(){
-	use super::{NONE5, NONE};
-	use approx::assert_abs_diff_eq;
-	use nalgebra::dmatrix;
-	let dfrom = Domain::new(0,2, NONE5);
-	let dto = Domain::new(0,10, NONE);
-	let data = dmatrix![
-		0.0, 0.0; 
-		5.0, 50.0;  
-		10.0, 100.0;
-	];
-	let m = lin_interp_mat_col(&dfrom, &dto, 2, data);
-	//println!("{}", m);
-	assert_abs_diff_eq!(m, DMatrix::<f64>::from_vec(
-		22, 
-		1, 
-		vec![
-			0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,
-			0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0,
-			]),
-	/*epsilon = 1E-9*/);
+fn test_interp_col() {
+    use super::{NONE, NONE5};
+    use approx::assert_abs_diff_eq;
+    use nalgebra::dvector;
+
+    let dfrom = Domain::new(0, 2, NONE5);
+    let dto = Domain::new(0, 10, NONE);
+    let min = dvector![0.0, 5.0, 10.0];
+    let m = lin_interp_mat_col(&dfrom, &dto, 1, min);
+    //	println!("{}", m);
+    assert_abs_diff_eq!(
+        m,
+        DMatrix::<f64>::from_vec(
+            11,
+            1,
+            vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+        )
+    );
 }
 
-
+#[test]
+fn test_interp_col2() {
+    use super::{NONE, NONE5};
+    use approx::assert_abs_diff_eq;
+    use nalgebra::dmatrix;
+    let dfrom = Domain::new(0, 2, NONE5);
+    let dto = Domain::new(0, 10, NONE);
+    let data = dmatrix![
+        0.0, 0.0;
+        5.0, 50.0;
+        10.0, 100.0;
+    ];
+    let m = lin_interp_mat_col(&dfrom, &dto, 2, data);
+    //println!("{}", m);
+    assert_abs_diff_eq!(
+        m,
+        DMatrix::<f64>::from_vec(
+            22,
+            1,
+            vec![
+                0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 0.0, 10.0, 20.0, 30.0,
+                40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0,
+            ]
+        ),
+        /*epsilon = 1E-9*/
+    );
+}
 
 /**
 Sprague interpolation, using a 5th order polynomial fitted through 6 points.
@@ -245,8 +280,8 @@ pub fn sprague_rows<S1, S2, R, C, S>(
     data: &Matrix<f64, R, C, S>,
 ) -> DMatrix<f64>
 where
-    S1: Step + Clone + Copy/* + Eq + PartialEq */,
-    S2: Step + Clone + Copy/* + Eq + PartialEq */,
+    S1: Step + Clone + Copy,                      /* + Eq + PartialEq */
+    S2: Step + Clone + Copy,                      /* + Eq + PartialEq */
     S1::UnitValueType: From<<S2>::UnitValueType>, // need to be able to express a value in domain S2, as a value in domain S1
     R: Dim,
     C: Dim,
@@ -268,12 +303,62 @@ where
         for r in 0..n {
             // number of vectors
             values.push(match (index, undex, frac) {
-                (_, u, h) if u >= 2 && u <= m - 3 => sprague( h, [ data[(r, u - 2)], data[(r, u - 1)], data[(r, u)], data[(r, u + 1)], data[(r, u + 2)], data[(r, u + 3)], ],), // most frequent condition
+                (_, u, h) if u >= 2 && u <= m - 3 => sprague(
+                    h,
+                    [
+                        data[(r, u - 2)],
+                        data[(r, u - 1)],
+                        data[(r, u)],
+                        data[(r, u + 1)],
+                        data[(r, u + 2)],
+                        data[(r, u + 3)],
+                    ],
+                ), // most frequent condition
                 (i, _, _) if i < 0 => 0.0,
-                (_, 0, h) => sprague( h, [ data[(r, 0)], data[(r, 0)], data[(r, 0)], data[(r, 1)], data[(r, 2)], data[(r, 3)], ],),
-                (_, 1, h) => sprague( h, [ data[(r, 0)], data[(r, 0)], data[(r, 1)], data[(r, 2)], data[(r, 3)], data[(r, 4)], ],),
-                (_, u, h) if u == m - 2 => sprague( h, [ data[(r, m - 4)], data[(r, m - 3)], data[(r, m - 2)], data[(r, m - 1)], data[(r, m)], data[(r, m)], ],),
-                (_, u, h) if u == m - 1 => sprague( h, [ data[(r, m - 3)], data[(r, m - 2)], data[(r, m - 1)], data[(r, m)], data[(r, m)], data[(r, m)], ],),
+                (_, 0, h) => sprague(
+                    h,
+                    [
+                        data[(r, 0)],
+                        data[(r, 0)],
+                        data[(r, 0)],
+                        data[(r, 1)],
+                        data[(r, 2)],
+                        data[(r, 3)],
+                    ],
+                ),
+                (_, 1, h) => sprague(
+                    h,
+                    [
+                        data[(r, 0)],
+                        data[(r, 0)],
+                        data[(r, 1)],
+                        data[(r, 2)],
+                        data[(r, 3)],
+                        data[(r, 4)],
+                    ],
+                ),
+                (_, u, h) if u == m - 2 => sprague(
+                    h,
+                    [
+                        data[(r, m - 4)],
+                        data[(r, m - 3)],
+                        data[(r, m - 2)],
+                        data[(r, m - 1)],
+                        data[(r, m)],
+                        data[(r, m)],
+                    ],
+                ),
+                (_, u, h) if u == m - 1 => sprague(
+                    h,
+                    [
+                        data[(r, m - 3)],
+                        data[(r, m - 2)],
+                        data[(r, m - 1)],
+                        data[(r, m)],
+                        data[(r, m)],
+                        data[(r, m)],
+                    ],
+                ),
                 (_, u, h) if u == m && h.abs() < FRAC_EPS => data[(r, m)],
                 _ => 0.0,
             })
@@ -311,8 +396,8 @@ pub fn sprague_cols<S1, S2, R, C, S>(
     data: &Matrix<f64, R, C, S>,
 ) -> DMatrix<f64>
 where
-    S1: Step + Clone + Copy /*+ Eq + PartialEq*/,
-    S2: Step + Clone + Copy /*+ Eq + PartialEq*/,
+    S1: Step + Clone + Copy,                      /*+ Eq + PartialEq*/
+    S2: Step + Clone + Copy,                      /*+ Eq + PartialEq*/
     S1::UnitValueType: From<<S2>::UnitValueType>, // need to be able to express a value in domain S2, as a value in domain S1
     R: Dim,
     C: Dim,
@@ -334,12 +419,62 @@ where
         for c in 0..n {
             // number of vectors
             values.push(match (index, undex, frac) {
-                (_, u, h) if u >= 2 && u <= m - 3 => sprague( h, [ data[(u - 2, c)], data[(u - 1, c)], data[(u, c)], data[(u + 1, c)], data[(u + 2, c)], data[(u + 3, c)], ],), // most frequent condition
+                (_, u, h) if u >= 2 && u <= m - 3 => sprague(
+                    h,
+                    [
+                        data[(u - 2, c)],
+                        data[(u - 1, c)],
+                        data[(u, c)],
+                        data[(u + 1, c)],
+                        data[(u + 2, c)],
+                        data[(u + 3, c)],
+                    ],
+                ), // most frequent condition
                 (i, _, _) if i < 0 => 0.0,
-                (_, 0, h) => sprague( h, [ data[(0, c)], data[(0, c)], data[(0, c)], data[(1, c)], data[(2, c)], data[(3, c)], ],),
-                (_, 1, h) => sprague( h, [ data[(0, c)], data[(0, c)], data[(1, c)], data[(2, c)], data[(3, c)], data[(4, c)], ],),
-                (_, u, h) if u == m - 2 => sprague( h, [ data[(m - 4, c)], data[(m - 3, c)], data[(m - 2, c)], data[(m - 1, c)], data[(m, c)], data[(m, c)], ],),
-                (_, u, h) if u == m - 1 => sprague( h, [ data[(m - 3, c)], data[(m - 2, c)], data[(m - 1, c)], data[(m, c)], data[(m, c)], data[(m, c)], ],),
+                (_, 0, h) => sprague(
+                    h,
+                    [
+                        data[(0, c)],
+                        data[(0, c)],
+                        data[(0, c)],
+                        data[(1, c)],
+                        data[(2, c)],
+                        data[(3, c)],
+                    ],
+                ),
+                (_, 1, h) => sprague(
+                    h,
+                    [
+                        data[(0, c)],
+                        data[(0, c)],
+                        data[(1, c)],
+                        data[(2, c)],
+                        data[(3, c)],
+                        data[(4, c)],
+                    ],
+                ),
+                (_, u, h) if u == m - 2 => sprague(
+                    h,
+                    [
+                        data[(m - 4, c)],
+                        data[(m - 3, c)],
+                        data[(m - 2, c)],
+                        data[(m - 1, c)],
+                        data[(m, c)],
+                        data[(m, c)],
+                    ],
+                ),
+                (_, u, h) if u == m - 1 => sprague(
+                    h,
+                    [
+                        data[(m - 3, c)],
+                        data[(m - 2, c)],
+                        data[(m - 1, c)],
+                        data[(m, c)],
+                        data[(m, c)],
+                        data[(m, c)],
+                    ],
+                ),
                 (_, u, h) if u == m && h.abs() < FRAC_EPS => data[(m, c)],
                 _ => 0.0,
             })
@@ -352,13 +487,13 @@ pub fn sprague_cols_index_based<S1, S2, Id>(
     from_domain: &Domain<S1>,
     to_domain: &Domain<S2>,
     data: Id,
-	n: usize,
+    n: usize,
 ) -> DMatrix<f64>
 where
-    S1: Step + Clone + Copy /*+ Eq + PartialEq*/,
-    S2: Step + Clone + Copy /*+ Eq + PartialEq*/,
+    S1: Step + Clone + Copy,                      /*+ Eq + PartialEq*/
+    S2: Step + Clone + Copy,                      /*+ Eq + PartialEq*/
     S1::UnitValueType: From<<S2>::UnitValueType>, // need to be able to express a value in domain S2, as a value in domain S1
-	Id: Index<(usize, usize), Output = f64>
+    Id: Index<(usize, usize), Output = f64>,
 {
     //let n = data.ncols(); // nr of vectors in the column matrix
 
@@ -376,12 +511,62 @@ where
         for c in 0..n {
             // number of vectors
             values.push(match (index, undex, frac) {
-                (_, u, h) if u >= 2 && u <= m - 3 => sprague( h, [ data[(u - 2, c)], data[(u - 1, c)], data[(u, c)], data[(u + 1, c)], data[(u + 2, c)], data[(u + 3, c)], ],), // most frequent condition
+                (_, u, h) if u >= 2 && u <= m - 3 => sprague(
+                    h,
+                    [
+                        data[(u - 2, c)],
+                        data[(u - 1, c)],
+                        data[(u, c)],
+                        data[(u + 1, c)],
+                        data[(u + 2, c)],
+                        data[(u + 3, c)],
+                    ],
+                ), // most frequent condition
                 (i, _, _) if i < 0 => 0.0,
-                (_, 0, h) => sprague( h, [ data[(0, c)], data[(0, c)], data[(0, c)], data[(1, c)], data[(2, c)], data[(3, c)], ],),
-                (_, 1, h) => sprague( h, [ data[(0, c)], data[(0, c)], data[(1, c)], data[(2, c)], data[(3, c)], data[(4, c)], ],),
-                (_, u, h) if u == m - 2 => sprague( h, [ data[(m - 4, c)], data[(m - 3, c)], data[(m - 2, c)], data[(m - 1, c)], data[(m, c)], data[(m, c)], ],),
-                (_, u, h) if u == m - 1 => sprague( h, [ data[(m - 3, c)], data[(m - 2, c)], data[(m - 1, c)], data[(m, c)], data[(m, c)], data[(m, c)], ],),
+                (_, 0, h) => sprague(
+                    h,
+                    [
+                        data[(0, c)],
+                        data[(0, c)],
+                        data[(0, c)],
+                        data[(1, c)],
+                        data[(2, c)],
+                        data[(3, c)],
+                    ],
+                ),
+                (_, 1, h) => sprague(
+                    h,
+                    [
+                        data[(0, c)],
+                        data[(0, c)],
+                        data[(1, c)],
+                        data[(2, c)],
+                        data[(3, c)],
+                        data[(4, c)],
+                    ],
+                ),
+                (_, u, h) if u == m - 2 => sprague(
+                    h,
+                    [
+                        data[(m - 4, c)],
+                        data[(m - 3, c)],
+                        data[(m - 2, c)],
+                        data[(m - 1, c)],
+                        data[(m, c)],
+                        data[(m, c)],
+                    ],
+                ),
+                (_, u, h) if u == m - 1 => sprague(
+                    h,
+                    [
+                        data[(m - 3, c)],
+                        data[(m - 2, c)],
+                        data[(m - 1, c)],
+                        data[(m, c)],
+                        data[(m, c)],
+                        data[(m, c)],
+                    ],
+                ),
                 (_, u, h) if u == m && h.abs() < FRAC_EPS => data[(m, c)],
                 _ => 0.0,
             })
@@ -389,7 +574,6 @@ where
     }
     DMatrix::from_vec(n, to_domain.len(), values).transpose()
 }
-
 
 #[test]
 fn test_sprague_cols() {

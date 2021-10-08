@@ -32,7 +32,7 @@ impl StandardObserver for CieObsF2 {
 		L: Step,
 		Meter: From<<L>::UnitValueType>
 	 {
-		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), target, 3, Self::cmf())
 		//matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE_OBS_F2)
 	}
 

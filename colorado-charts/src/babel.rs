@@ -1,122 +1,133 @@
 /*!
 
-Average spectral data, measured by Danny Pascale of BabelColor, for 30 samples of standard and mini Color Checker 
+Average spectral data, measured by Danny Pascale of BabelColor, of 30 samples of standard and mini Color Checker 
 rendition cards, as produced by X-rite.
 
 The spectral domain ranges from 380 to 780 nm, and spectral reflectance was measured in a 
 Measurement geometry of 45 deg./0 deg. 
 Of the 30 data sets, 24 were measured with Eye-One Pro spectrocolorimeters from X-Rite.
 
+<i>
 BabelColor is a Registered Trademark of The BabelColor Company.
 ColorChecker and X-Rite are Trademarks of X-Rite Incorporated.
+</i>
+
+# Tolerances
+
+For each of the patches, for all the 40 measurements each, 
+ BabelColor's Pascale calculated CIELAB values standard deviation:
+ the average standard deviation was 1.24 &Delta;E<sub>76</sub>,
+ with the highest values of 2.52 &Delta;E<sub>76</sub> for the red sample,
+ and 2.88 &Delta;E<sub>76</sub> for the blue sample.
+The smallest standard deviation measured was 0.67 &Delta;E<sub>76</sub>, for the neutral 3.5 (1.05D) sample.
+
+These variations are caused by:
+- production tolerances,
+- paint degradation over time (bleaching), especially when exposed to light,
+- and spectrometer measurement errors.
+
+Pascale also compared average measured CIELAB values with the X-Rite specification,
+ and found the following differences, expressed in CIE &Delta;E<sub>2000</sub> color difference values,
+ with the biggest deviations being:
+ - 1.07 purple
+ - 1.14 white
+
+Average deviation was 1.18 &Delta;E<sub>2000</sub>
+
+# Examples
+
+## Calculate and print CIELAB D50 values
+
+Using the average BabelColor spectral data,  and using the CIE 1931 standard observer:
+
+```
+use colorado::{illuminants::D50, models::CieLab, observers::CieObs1931};
+use colorado_checker::CheckerBabel;
+
+let lab_babel : CieLab<D50, CieObs1931> = CheckerBabel.into();
+println!("{:.3}", lab_babel.data.transpose());
+
+``` 
+Here are the first 5 rows of output (header added for clarity)
+
+
+  L\*  |   a\*  |  b\*   
+------ | ------ | ------ 
+38.440 | 13.605 | 14.528 
+65.943 | 17.914 | 17.869 
+50.065 | -4.525 |-22.249 
+43.288 |-13.226 | 21.943 
+55.315 |  8.808 |-24.597 
+
+
+## Calculate and print CIECAM JCh values (using 10º observer)
+
+Calculated for the average spectral data, 
+ using the CIE 1964 10º observer, 
+ and using an Average Surround with 1000 lux illumination level:
+
+```
+use colorado::{illuminants::D65, models::{CieCamJCh, VcAvg}, observers::CieObs1964};
+use colorado_checker::CheckerBabel;
+
+let jch_babel : CieCamJCh<VcAvg, D65, CieObs1964> = CheckerBabel.into();
+println!("{:.3}", jch_babel.data.transpose());
+```
+
+Here are the first 5 rows of output (header added for clarity): 
+
+  Lightness |  Chroma  |  Hue angle
+ ------     | ------   | ------ 
+ 28.909     | 18.823   | 41.022
+ 56.910     | 21.260   | 46.821
+ 40.594     | 29.817   |241.771
+ 32.585     | 22.252   |113.347
+ 46.280     | 28.644   |268.951
 */
 
+#[test]
+fn test_babel(){
+    use colorado::{illuminants::D50, models::CieLab, observers::CieObs1931};
+    use crate::CheckerBabel;
+
+    let lab_babel : CieLab<D50, CieObs1931> = CheckerBabel.into();
+    println!("{:.3}", lab_babel.data.transpose());
+
+}
+
+#[test]
+fn test_babel2(){
+    use colorado::{illuminants::D65, models::{CieCamUcs, VcAvg}, observers::CieObs1964};
+    use crate::CheckerBabel;
+
+    let jab_babel : CieCamUcs<VcAvg, D65, CieObs1964> = CheckerBabel.into();
+    println!("{:.3}", jab_babel.data.transpose());
+
+}
+#[test]
+fn test_babel3(){
+
+    use colorado::{illuminants::D65, models::{CieCamJCh, VcAvg}, observers::CieObs1964};
+    use crate::CheckerBabel;
+
+    let jch_babel : CieCamJCh<VcAvg, D65, CieObs1964> = CheckerBabel.into();
+    println!("{:.3}", jch_babel.data.transpose());
+}
+
+use colorado::swatch;
+use crate::{
+    M,
+    CHECKER_KEYS,
+
+};
 
 
 const N: usize = 36;
-const M: usize = 24;
-
-swatch!(ColorCheckerSwatch, N, M, "Color Checker Swatch {}", crate::Domain::new(380/10, 730/10, crate::NM10), COLOR_CHECKER_DATA);
-swatch!(ColorChecker, N, M, "Color Checker", crate::Domain::new(380/10, 730/10, crate::NM10), COLOR_CHECKER_DATA, CHECKER_KEYS);
 
 
 
-/*
-pub const COLOR_CHECKER: ColorChecker::<ALL> = ColorChecker::<ALL>;
+swatch!(CheckerBabel, N, M, "Color Checker", colorado::Domain::new(380/10, 730/10, colorado::NM10), COLOR_CHECKER_DATA, CHECKER_KEYS);
 
-#[derive(Default)]
-pub struct ColorChecker<const I:usize>;
-
-impl<const I: usize> SpectralTable for ColorChecker<I> {
-    type StepType = WavelengthStep;
-
-    fn values<L>(&self, domain: &Domain<L>) -> DMatrix<f64>
-	where
-		L: Step,
-		<Self::StepType as Step>::UnitValueType: From<<L>::UnitValueType> 
-	{
-		match I {
-			ALL => {
-				let data = SMatrix::<f64, N, M>::from_data(ArrayStorage::<f64, N, M>(COLOR_CHECKER_DATA));
-				sprague_cols(&self.domain(), &domain, &data)
-			}
-			i@1..=M => {
-				let data = SVectorSlice::<f64, N>::from_slice(&COLOR_CHECKER_DATA[i-1]);
-				sprague_cols(&self.domain(), &domain, &data)
-			}
-			_ => panic!("Illegal Index in Fluorescent Illuminant")
-		}
-    }
-
-    fn domain(&self) -> crate::util::domain::Domain<Self::StepType> {
-        Domain::new(38, 73, NM10)
-    }
-
-	fn keys(&self) -> Option<Vec<String>> {
-		Some(vec![
-			"dark skin".to_string(),
-			"light skin".to_string(),
-			"blue sky".to_string(),
-			"foliage".to_string(),
-			"blue flower".to_string(),
-			"bluish green".to_string(),
-			"orange".to_string(),
-			"purplish blue".to_string(),
-			"moderate red".to_string(),
-			"purple".to_string(),
-			"yellow green".to_string(),
-			"orange yellow".to_string(),
-			"blue".to_string(),
-			"green".to_string(),
-			"red".to_string(),
-			"yellow".to_string(),
-			"magenta".to_string(),
-			"cyan".to_string(),
-			"white 9.5 (.05 D)".to_string(),
-			"neutral 8 (.23 D)".to_string(),
-			"neutral 6.5 (.44 D)".to_string(),
-			"neutral 5 (.70 D)".to_string(),
-			"neutral 3.5 (1.05 D)".to_string(),
-			"black 2 (1.5 D)".to_string(),
-		])
-	}
-
-
-	fn description(&self) -> Option<String> {
-		Some("Approximate Color Checker Spectra".to_string())
-	}
-}
-*/
-
-
-
-static CHECKER_KEYS: [&str; M] = [
-		/* 1 */  "dark skin",
-		/* 2 */	 "light skin",
-		/* 3 */	 "blue sky",
-		/* 4 */	 "foliage",
-		/* 5 */	 "blue flower",
-		/* 6 */	 "bluish green",
-		/* 7 */	 "orange",
-		/* 8 */	 "purplish blue",
-		/* 9 */	 "moderate red",
-		/* 10 */ "purple",
-		/* 11 */ "yellow green",
-		/* 12 */ "orange yellow",
-		/* 13 */ "blue",
-		/* 14 */ "green",
-		/* 15 */ "red",
-		/* 16 */ "yellow",
-		/* 17 */ "magenta",
-		/* 18 */ "cyan",
-		/* 19 */ "white 9.5 (.05 D)",
-		/* 20 */ "neutral 8 (.23 D)",
-		/* 21 */ "neutral 6.5 (.44 D)",
-		/* 22 */ "neutral 5 (.70 D)",
-		/* 23 */ "neutral 3.5 (1.05 D)",
-		/* 24 */ "black 2 (1.5 D)",
-
-];
 
 static COLOR_CHECKER_DATA: [f64;N*M] = [
 	0.05475, 0.05833, 0.06116, 0.06238, 0.06231, 0.06207, 0.06183, 0.06159, 0.06154, 0.06162, 0.06203, 0.06296, 0.06518,
@@ -193,4 +204,3 @@ static COLOR_CHECKER_DATA: [f64;N*M] = [
 	0.03191, 0.03194, 0.03202, 0.03212, 0.03222, 0.03223, 0.03224, 0.03233, 0.03237, 0.03250
 ];
 
-// for test see lab.rs, where the colorchecker's cielab coordinates are calculated, and checked against BabelColor's data.

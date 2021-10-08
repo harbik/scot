@@ -1,8 +1,8 @@
 use nalgebra::{Const, Dynamic, Matrix3xX, MatrixSlice};
 use crate::interp_lin_cmf;
 use crate::{observers::StandardObserver};
-use crate::util::{Domain};
-use crate::util::{NM5, WavelengthStep, Meter, Step, NM};
+use crate::{Domain};
+use crate::{NM5, WavelengthStep, Meter, Step, NM};
 
 
 
@@ -29,7 +29,7 @@ impl StandardObserver for CieObs1964Classic {
 	 {
 		//let data = SMatrix::from_data(ArrayStorage(CIE1964NM5));
 		//convert(sprague_rows(&self.domain(), &target, &data))
-		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), target, 3, Self::cmf())
 	}
 }
 
@@ -58,7 +58,7 @@ impl StandardObserver for CieObs1964 {
 		Meter: From<<L>::UnitValueType>
 	 {
 		//matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE1964NM1)
-		interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
+		interp_lin_cmf(&Self::domain(), target, 3, Self::cmf())
 	}
 
 	fn domain() -> Domain<WavelengthStep> {
@@ -68,20 +68,6 @@ impl StandardObserver for CieObs1964 {
 
 }
 
-
-#[test]
-fn test_cmf(){
-	use crate::observers::{CieObs1931};
-	use crate::models::CieLab;
-	use crate::swatches::ColorChecker;
-	use crate::illuminants::D65;
-//	let c = CieObs1964::default().cmf(&Domain::new(4,7,WavelengthScale { size: 1,  exp: -7}));
-
-	let lab31: CieLab::<D65, CieObs1931> = ColorChecker::<13>.into();
-	let lab64: CieLab::<D65, CieObs1964> = ColorChecker::<13>.into();
-	println!("{} {}", lab31, lab64);
-	
-}
 
 const N: usize =  95;
 

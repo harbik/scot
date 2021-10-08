@@ -30,7 +30,7 @@ impl StandardObserver for CieObs1931Classic {
 //		calculate row interpolated values, and convert to Matrix3xX matrix... 
 //		let data = SMatrix::from_data(ArrayStorage(CIE1931NM5));
 		//	interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf())
-		interp_lin_cmf2(&Self::domain(), &target,Self::cmf())
+		interp_lin_cmf2(&Self::domain(), target,Self::cmf())
 //		convert(sprague_rows(&self.domain(), &target, &Self::cmf()))
 	}
 
@@ -65,7 +65,7 @@ impl StandardObserver for CieObs1931 {
 	 {
 		//matrix_from_data_by_lin_row_int(&self.domain(), &target, &CIE1931NM1)
 		//let m =  interp_lin_cmf(&Self::domain(), &target, 3, Self::cmf());
-		let m =  interp_lin_cmf2(&Self::domain(), &target,Self::cmf());
+		let m =  interp_lin_cmf2(&Self::domain(), target,Self::cmf());
 		m
 	}
 
