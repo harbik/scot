@@ -1,29 +1,33 @@
   
-# Colorado: Rust Color Science Library
-
-<div align="center">
-
-![Colorful Colorado](daniel-norris.jpg)
-
+<div align="center" style="margin:15mm;">
+    <img src="https://www.harbik.com/img/daniel-norris.jpg" alt="Colorful Colorado" width="500"/>
 </div>
 
+# Colorado: Rust Color Science Library
 
 Colorado is an open-source Color Science library written in the Rust programming language,
- implementing recommended methods and standards as defined by for example the *CIE* 
- (International Commission on Illumination)
- the *ICC* (International Color Consortium),
+ implementing recommended methods and standards such as defined by the *CIE* 
+ (International Commission on Illumination),
+ the *ICC* (International Color Consortium), and 
  the *IES* (Illumination Engineering Society),
- and many more.
-It intended use is for light and color engineers, and other (semi)professionals,
- working in the field of color imaging,
- graphic arts, architectural lighting,
- and color engineering in general.
+ and is intended for color engineers and semi-professionals,
+ interested in using advanced color models in lighting design, 
+ digital imaging, graphic arts, lighting, and product design.
+
+For example,
+ besides the standard color models (CIELAB, CIE XYZ), it implements the advanced color appearance CIECAM02 model,
+ (and its associated color difference metrics), 
+ and for color rendering evaluation of light sources,
+ it implements calculation of all the IES TM30-20 (R<sub>f</sub>, R<sub>g</sub>) color rendition metrics,
+ besides the older CIE CRI (R<sub>a</sub>) metrics.
+
+It also support the use of the new *cone fundamentals* based standard observers for colorimetric calculations.
 
 Colorado is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
 It is being developed by Gerard Harbers from *Harbers Bik LLC*.
 
 Why another color library? And why Rust?
-There are already many other excellent color libraries written in for example Python, as documented at <http:://colour-science.org>.
+There are already many other excellent color libraries written in Python, such as <http:://colour-science.org>.
 And, if you like to use MatLab, there is [ColorLab](https://www.uv.es/vista/vistavalencia/software/colorlab.html).
 
 Colorado, written in Rust, has the following benefits:
@@ -41,6 +45,8 @@ Colorado, written in Rust, has the following benefits:
 - And –if you're not interested in online applications–
    Rust has excellent cross-platform development and support tools,
    allowing you to write –single code base– native applications for Linux, MacOS, Windows, and many other platforms.
+- Or, if you like a local scripting type development environment, such as in Python, there is [Deno](https://deno.land),
+   a JavaScript/TypeScript platform, in which you can import Colorado generated web assembly modules.
 - Rust has an amazing build tool,
   called cargo, and a large collection of Rust packages in the <http://crates.io> package registry,
   with a very good code documentation system.

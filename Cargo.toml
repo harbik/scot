@@ -32,16 +32,6 @@ cie_fluorescent_illuminants = []
 cie_hid_illuminants = []
 cie_led_illuminants = []
 
-#ies_tm30_illuminants = [
-#	"ies_tm30_incandescent_illuminants",
-#	"ies_tm30_fluorescent_illuminants",
-#	"ies_tm30_hid_illuminants",
-#	"ies_tm30_led_illuminants"
-#	]
-#ies_tm30_fluorescent_illuminants = []
-#ies_tm30_incandescent_illuminants = []
-#ies_tm30_hid_illuminants = []
-#ies_tm30_led_illuminants = []
 
 quality = [
 	"cri", 
