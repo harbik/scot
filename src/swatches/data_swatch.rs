@@ -1,7 +1,6 @@
 use nalgebra::DVector;
-use spliny::SplineCurve;
 
-use crate::{Domain, Meter, SpectralDistribution, Step, Unit, WavelengthStep, illuminants::Illuminant, models::cielab::CieLab, observers::StandardObserver};
+use crate::{Domain, Meter, SpectralDistribution, Step, WavelengthStep, illuminants::Illuminant, models::cielab::CieLab, observers::StandardObserver};
 
 use super::Swatch;
 
@@ -13,7 +12,7 @@ pub struct DataSwatch {
 
 impl DataSwatch {
     pub fn new(domain: Domain<WavelengthStep>, values: Vec<f64>) -> Self { 
-        assert(domain.len(). values.len());
+        assert!(domain.len() == values.len());
         Self { 
             domain,
             values,
@@ -26,7 +25,7 @@ impl SpectralDistribution for DataSwatch {
     type StepType = WavelengthStep;
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
-        (self.domain.clone(), Self::MatrixType::from_vec(self.values))
+        (self.domain.clone(), Self::MatrixType::from_vec(self.values.clone()))
     }
 
     fn shape(&self) -> (usize, usize) {
@@ -34,9 +33,9 @@ impl SpectralDistribution for DataSwatch {
     }
 }
 
-impl Swatch for DataSwatch<K> {}
+impl Swatch for DataSwatch {}
 
-impl<I, C, const K: usize> From<DataSwatch> for CieLab<I,C> 
+impl<I, C> From<DataSwatch> for CieLab<I,C> 
   where 
     <<I as SpectralDistribution>::StepType as Step>::UnitValueType: From<Meter>, 
     I: Illuminant, 
