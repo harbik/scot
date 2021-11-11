@@ -211,7 +211,8 @@ pub fn cielab(xyz_n: Matrix3x1<f64>, xyz: Matrix3xX<f64>) -> Matrix3xX<f64> {
 /**
    In place tranformation from CieXYZ to CieLab values.
 */
-pub fn xyz_to_lab(xyz_n: MatrixSlice3x1<f64>, mut xyz: Matrix3xX<f64>) -> Matrix3xX<f64> {
+//pub fn xyz_to_lab(xyz_n: MatrixSlice3x1<f64>, mut xyz: Matrix3xX<f64>) -> Matrix3xX<f64> {
+pub fn xyz_to_lab(xyz_n: impl AsRef<[f64;3]>, mut xyz: Matrix3xX<f64>) -> Matrix3xX<f64> {
     let &[xn, yn, zn]: &[f64; 3] = xyz_n.as_ref();
     xyz.column_iter_mut().for_each(|mut xyz_j| {
         let [x, y, z]: &mut [f64; 3] = xyz_j.as_mut();
@@ -228,7 +229,8 @@ pub fn xyz_to_lab(xyz_n: MatrixSlice3x1<f64>, mut xyz: Matrix3xX<f64>) -> Matrix
 
    See [CIELAB Color Space on Wikipedia](https://en.wikipedia.org/wiki/CIELAB_color_space)
 */
-pub fn lab_to_xyz(xyz_n: MatrixSlice3x1<f64>, mut lab: Matrix3xX<f64>) -> Matrix3xX<f64> {
+//pub fn lab_to_xyz(xyz_n: MatrixSlice3x1<f64>, mut lab: Matrix3xX<f64>) -> Matrix3xX<f64> {
+pub fn lab_to_xyz(xyz_n: impl AsRef<[f64;3]>, mut lab: Matrix3xX<f64>) -> Matrix3xX<f64> {
     let &[xn, yn, zn]: &[f64; 3] = xyz_n.as_ref();
     lab.column_iter_mut().for_each(|mut lab_j| {
         let [l, a, b]: &mut [f64; 3] = lab_j.as_mut();

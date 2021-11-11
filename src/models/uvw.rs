@@ -103,7 +103,6 @@ where
 fn cie_uvw(){
     use crate::illuminants::D65;
     use crate::observers::CieObs1931;
-    use crate::swatches::Gray;
     let lab = CieLab::<D65, CieObs1931>::from([[50.0, -20.0, 20.0]]);
     let uvw: CieUVW<D65, CieObs1931> = lab.into();
     println!("{}", uvw.data);

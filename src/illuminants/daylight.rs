@@ -315,3 +315,10 @@ static C_DATA: [f64; NDATA] = [
 ];
 
 illuminant_single_test!(test_c_illuminant, CieIllC, 0.31006, 5E-5, 0.31616, 5E-5);
+
+#[test]
+fn c_xyx() {
+    use crate::models::CieXYZ;
+    let c_xyz: CieXYZ<crate::observers::CieObs1931> = CieIllC.into();
+    println!("{}", c_xyz.data);
+}

@@ -7,6 +7,13 @@ use crate::models::{cielab, CieLab};
 use crate::observers::StandardObserver;
 use crate::{Domain, Meter, SpectralDistribution, Step, Unit, WavelengthStep, DOMAIN_DEFAULT_LEN};
 
+pub mod spline_swatch;
+pub use spline_swatch::*;
+
+pub mod data_swatch;
+pub use data_swatch::*;
+
+
 /**
     Traits for swatches, libraries or models for color samples, to get their spectral distributions
     and, with a specified illuminant, their color appearance coordinates.
@@ -14,7 +21,7 @@ use crate::{Domain, Meter, SpectralDistribution, Step, Unit, WavelengthStep, DOM
 pub trait Swatch
 where
     Self: SpectralDistribution,
-    Self: Default,
+   // Self: Default,
 {
     fn lab<I, C>(&self) -> CieLab<I, C>
     where

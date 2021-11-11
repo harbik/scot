@@ -50,9 +50,14 @@ Table I if found here as `MUNSELL_RENOTATION_DATA`.
 
 use std::collections::HashMap;
 
+fn lab_from_renotation(x: f64, y: f64, yy: f64) -> [f64;3] {
+    let xx = x * yy / y;
+    let zz = (1.0 - x - y) * yy / y;
+    let lab = colorado::models::xyz_to_lab()
+}
 
 pub fn munsell_renotation_data() -> HashMap<&'static str, [f64;3]> {
-	MUNSELL_RENOTATION_DATA.iter().map(|(k,x,y,z)|(*k,[*x,*y,*z])).collect()
+	MUNSELL_RENOTATION_DATA.iter().map(|(k,x,y,yy)|(*k,[*x,*y,*yy])).collect()
 }
 
 // "HV/C" => [x, y, Y], 
