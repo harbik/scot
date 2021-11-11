@@ -1,6 +1,6 @@
 [package]
 name = "colorado"
-version = "0.1.0"
+version = "0.0.1"
 description = "Color Sience algorithms and datasets, for research and color management in lighting, graphic arts, and displays"
 authors = ["Gerard Harbers", "Harbers Bik LLC"]
 repository = "https://github.com/harbik/colorado"
@@ -15,13 +15,9 @@ license = "MIT OR Apache-2.0"
 nalgebra = "0.27"
 #once_cell = "1.8"
 num = "0.4"
-maplit = "1.0" # hashmap! macro
-spliny = {git ="https://github.com/harbik/spliny",  version = "0.1"}
 approx = "0.5"
-
-[dev-dependencies]
+maplit = "1.0" # hashmap! macro
 criterion = "0.3"
-
 
 [features]
 default = ["cie_illuminants", "quality"]

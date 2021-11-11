@@ -49,6 +49,7 @@ impl<I, C> From<DataSwatch> for CieLab<I,C>
 
 #[test]
 fn test_spline_swatch(){
+    use spliny::SplineCurve;
     use crate::models::CieLab;
     let sc5y6_6: SplineCurve<3,1> = SplineCurve::new(vec![380.0, 380.0, 380.0, 380.0, 407.0, 433.0, 485.0, 512.0, 525.0, 538.0, 590.0, 800.0, 800.0, 800.0, 800.0], vec![0.06820, 0.06820, 0.09133, 0.08235, 0.08207, 0.10139, 0.25423, 0.30611, 0.29466, 0.28540, 0.28540]);
     let lab: CieLab<crate::illuminants::CieIllC, crate::observers::CieObs1931> = sc5y6_6.into();
