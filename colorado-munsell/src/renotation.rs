@@ -50,27 +50,27 @@ Table I if found here as `MUNSELL_RENOTATION_DATA`.
 
 use std::collections::HashMap;
 
+use colorado::{models::CieLab, observers::CieObs1931, illuminants::CieIllC};
 use nalgebra::{Matrix3x1, Matrix3xX};
 
-fn lab_from_renotation(x: f64, y: f64, yy: f64) -> [f64;3] {
+fn to_lab(x: f64, y: f64, yy: f64) -> CieLab<CieIllC, CieObs1931> {
     let xx = x * yy / y;
     let zz = (1.0 - x - y) * yy / y;
     let c = Matrix3x1::new(98.07171, 100.0, 118.22489);
     let m = Matrix3xX::from_vec(vec![xx, yy, zz]);
     let lab = colorado::models::xyz_to_lab(&c, m);
-    [lab[(0,0)], lab[(1,0)], lab[(2,0)]]
+    CieLab::<CieIllC, CieObs1931>::new(lab)
 }
 
 
 
-pub fn munsell_renotation_data() -> HashMap<&'static str, [f64;3]> {
-//	MUNSELL_RENOTATION_DATA.iter().map(|(k,x,y,yy)|(*k,[*x,*y,*yy])).collect()
-	MUNSELL_RENOTATION_DATA.iter().map(|(k,x,y,yy)|(*k,lab_from_renotation(*x, *y, *yy))).collect()
+pub fn munsell_lab_c() -> HashMap<&'static str, CieLab<CieIllC, CieObs1931>> {
+	MUNSELL_RENOTATION_DATA.iter().map(|(k,x,y,yy)|(*k,to_lab(*x, *y, *yy))).collect()
 }
 
 #[test]
 fn munsell_renotation(){
-    let mrd = munsell_renotation_data();
+    let mrd = munsell_lab_c();
     println!("{:?}", mrd["7.5YR1/2"]);
 }
 

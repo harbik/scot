@@ -92,7 +92,7 @@ impl<I, C> From<MunsellMattSpline> for CieLab<I,C>
 fn test_munsell_matt(){
     use colorado::models::CieLab;
     let m = MunsellMattSpline::new(["7.5RP5/12", "5Y6/6", "2.5BG9/2"]);
-    let (dom, spd) = m.spd();
+    let (_dom, spd) = m.spd();
     println!("{}", spd);
     let lab: CieLab<colorado::illuminants::CieIllC, colorado::observers::CieObs1931> = CieLab::from(m);
     println!("{}",lab.data);
