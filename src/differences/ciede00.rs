@@ -170,7 +170,7 @@ else  return DE00;
 }
 
  */
-fn de2000(l1: f64, a1: f64, b1: f64, l2: f64, a2: f64, b2: f64) -> f64 {
+pub fn de2000(l1: f64, a1: f64, b1: f64, l2: f64, a2: f64, b2: f64) -> f64 {
     const KL: f64 = 1.0;
     const KC: f64 = 1.0;
     const KH: f64 = 1.0;
