@@ -36,7 +36,7 @@ impl<const K: usize> SpectralDistribution for SplineSwatch<K> {
 
     fn spd(&self) -> (Domain<Self::StepType>, Self::MatrixType) {
         let n = self.domain.len();
-        let w: Vec<f64> = self.domain.iter().map(|v|v.value()*1E9).collect();
+        let w: Vec<f64> = self.domain.iter().map(|v|v.value()).collect();
         let v = self.spline_curve.evaluate(&w).unwrap_or(vec![f64::NAN;n]);
         (self.domain.clone(), Self::MatrixType::from_vec(v))
     }
@@ -81,7 +81,7 @@ impl<I, C, const K: usize> From<SplineCurve<K,1>> for CieLab<I,C>
 #[test]
 fn test_spline_swatch(){
     use crate::models::CieLab;
-    let sc5y6_6: SplineCurve<3,1> = SplineCurve::new(vec![380.0, 380.0, 380.0, 380.0, 407.0, 433.0, 485.0, 512.0, 525.0, 538.0, 590.0, 800.0, 800.0, 800.0, 800.0], vec![0.06820, 0.06820, 0.09133, 0.08235, 0.08207, 0.10139, 0.25423, 0.30611, 0.29466, 0.28540, 0.28540]);
+    let sc5y6_6: SplineCurve<3,1> = SplineCurve::new(vec![380E-9, 380E-9, 380E-9, 380E-9, 407E-9, 433E-9, 485E-9, 512E-9, 525E-9, 538E-9, 590E-9, 800E-9, 800E-9, 800E-9, 800E-9], vec![0.06820, 0.06820, 0.09133, 0.08235, 0.08207, 0.10139, 0.25423, 0.30611, 0.29466, 0.28540, 0.28540]);
     let lab: CieLab<crate::illuminants::CieIllC, crate::observers::CieObs1931> = sc5y6_6.into();
     println!("{}",lab.data);
 }
