@@ -1,6 +1,6 @@
 [package]
 name = "rcs-testcharts"
-version = "0.0.0"
+version = "0.0.1"
 edition = "2018"
 description = "Color test charts, typically used for calibration of displays and scanners"
 authors = ["Gerard Harbers", "Harbers Bik LLC"]
