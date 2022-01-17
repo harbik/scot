@@ -10,5 +10,5 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 nalgebra = "0.27"
-rcs = { path="../" }
+rcs = {git ="https://github.com/harbik/rcs",  version = "0.0.1"}
 approx = "0.5"
