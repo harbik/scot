@@ -2,7 +2,7 @@
 
 # Rust Color Science Library (RCS)
 
-RCS is an open-source color science library, written Rust;
+RCS is an open-source color science library, for the Rust;
  it implements recommended methods and standards such as defined by the *CIE* (International Commission on Illumination),
  the *ICC* (International Color Consortium), 
  and the *IES* (Illumination Engineering Society);

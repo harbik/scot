@@ -7,7 +7,7 @@
 use std::marker::PhantomData;
 
 use crate::{illuminants::D65, observers::StandardObserver, DefaultObserver};
-use nalgebra::{Matrix3x1, Matrix3xX, MatrixSlice3x1};
+use nalgebra::{Matrix3x1, Matrix3xX};
 
 use super::CieXYZ;
 

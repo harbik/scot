@@ -1,34 +1,21 @@
 # Introduction
-*rcs* is an open-source spectral illumination and color engineering library, for the Rust programming language;
+*RCS* is an open-source Color Science library, for the Rust programming language;
  it implements recommended methods and standards such as defined by the *CIE* (International Commission on Illumination),
  the *ICC* (International Color Consortium), 
  and the *IES* (Illumination Engineering Society);
  and is intended for color engineers and semi-professionals,
  interested in using advanced color models in lighting design, digital imaging, graphic arts, lighting, and product design.
 
-Besides the Rust library, a "rcs" command line tool is provided too, and a (simplified) web-assembly library, which can
+Besides the Rust library, an "rcs" command line tool is provided too, and a (simplified) web-assembly library, which can
 be used from scripting languages such as [Deno](https://deno.land), and in a web browser, using a JavasScript
 Application Programming Interface; 
 these have limited functionality though, providing only limited high level functions.
-
-
-For example,
- besides the standard color models (CIELAB, CIE XYZ), it implements the advanced color appearance CIECAM02 model,
- (and its associated color difference metrics), 
- and for color rendering evaluation of light sources,
- it implements calculation of all the IES TM30-20 (R<sub>f</sub>, R<sub>g</sub>) color rendition metrics,
- besides the older CIE CRI (R<sub>a</sub>) metrics.
-
-It also support the use of the new *cone fundamentals* based standard observers for colorimetric calculations.
-
-rcs is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
-It is being developed by Gerard Harbers from *Harbers Bik LLC*.
 
 Why another color library? And why Rust?
 There are already many other excellent color libraries written in Python, such as <http:://colour-science.org>.
 And, if you like to use MatLab, there is [ColorLab](https://www.uv.es/vista/vistavalencia/software/colorlab.html).
 
-rcs, written in Rust, has the following benefits:
+RCS, written in Rust, has the following benefits:
 
 - Compared to Python it is fast, with a performance comparable to C++ applications:
  it is a system programming language designed for memory safety and speed.
@@ -44,7 +31,7 @@ rcs, written in Rust, has the following benefits:
    Rust has excellent cross-platform development and support tools,
    allowing you to write –single code base– native applications for Linux, MacOS, Windows, and many other platforms.
 - Or, if you like a local scripting type development environment, such as in Python, there is [Deno](https://deno.land),
-   a JavaScript/TypeScript platform, in which you can import rcs generated web assembly modules.
+   a JavaScript/TypeScript platform, in which you can import RCS generated web assembly modules.
 - Rust has an amazing build tool,
   called cargo, and a large collection of Rust packages in the <http://crates.io> package registry,
   with a very good code documentation system.
@@ -59,7 +46,7 @@ rcs, written in Rust, has the following benefits:
    but quickly started to enjoy the experience that if a program compiles,
    if often runs as expected.
 
-rcs is a **spectral color** library,
+RCS is a **spectral color** library,
  which means that –whenever possible– 
  color stimuli are represented by spectral power distributions.
 Which –and that is another big benefit– 
@@ -80,6 +67,16 @@ If you only want to use the library at high level,
  it allows you to crunch-the-numbers with a few lines of code, in the Matlab-style.
 
 
+## Releases
+
+
+
+## About
+
+RCS is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
+It is being developed by Gerard Harbers for *Harbers Bik LLC*.
+
+
 ## Disclaimer
 The data, methods, and algorithms in the rcs library, and this book, 
 referencing Standard Organizations such as the International Commission on Illumination (CIE), or any other Standards Organizations, 
@@ -93,7 +90,7 @@ If you have a professional lighting, display lighting, or color issue, please co
 
 ## License
 
-The rcs Code Licensed under either of
+The RCS Code Licensed under either of
 
  * Apache License, Version 2.0
    ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
@@ -102,7 +99,7 @@ The rcs Code Licensed under either of
 
 at your option.
 
-The contents of this book is Copyright 
+The contents of this book is Copyright 2002, Harbers Bik LLC.
 
 ## Contribution
 

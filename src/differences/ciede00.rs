@@ -106,70 +106,7 @@ where
     }
 }
 
-/*
-        export function DE2000(Lab1:number[], Lab2:number[], kL: number = 1.0, kC: number = 1.0,  kH: number = 1.0, debug:boolean = false ) : number|number[] {
-// see: http://www2.ece.rochester.edu/~gsharma/ciede2000/ciede2000noteCRNA.pdf table I.
 
-if (Lab1.length<3) throw new Error("Need three coordinates in cieDE2000 first Lab parameter.")
-if (Lab2.length<3) throw new Error("Need three coordinates in cieDE2000 second Lab parameter.")
-
-let DLp = Lab2[0] - Lab1[0];
-let Lavg = Lab2[0]/2.0 + Lab1[0]/2.0;
-let C1 = Math.sqrt(Lab1[1]*Lab1[1] + Lab1[2] * Lab1[2]);
-let C2 = Math.sqrt(Lab2[1]*Lab2[1] + Lab2[2] * Lab2[2]);
-let Cavg = (C1+C2)/2.0;
-let G =  0.5 * (1-Math.sqrt(Math.pow(Cavg,7)/(Math.pow(Cavg,7)+Math.pow(25.0,7))));
-let a1p = (1. + G)  * Lab1[1];
-let a2p = (1. + G)  * Lab2[1];
-let C1p = Math.sqrt(a1p*a1p+Lab1[2]*Lab1[2]);
-let C2p = Math.sqrt(a2p*a2p+Lab2[2]*Lab2[2]);
-let Cavgp = (C1p + C2p)/2;
-let DCp = C2p - C1p;
-
-let h1p = Math.atan2(Lab1[2],a1p);
-if (h1p<0) h1p += 2.0 * Math.PI;
-let h2p = (Math.atan2(Lab2[2], a2p));
-if (h2p<0) h2p += 2.0 * Math.PI;
-
-
-let Dhp:number;
-
-if (Math.abs(C1p)<1.E-10 || Math.abs(C2p)<1.E-10) Dhp = 0;
-else if (Math.abs(h1p-h2p)<=Math.PI) Dhp = h2p - h1p;
-else if ((h2p-h1p)>Math.PI)  Dhp = h2p - h1p - 2. * Math.PI;
-else Dhp = h2p - h1p - 2. * Math.PI;
-
-let DHp = 2. * Math.sqrt(C1p*C2p)*Math.sin(Dhp/2.0);
-
-let Havgp:number;
-
-if (Math.abs(C1p)<1.E-10 || Math.abs(C2p)<1.E-10) Havgp = h1p + h2p;
-else if (Math.abs(h1p-h2p)<=Math.PI) Havgp = (h1p+h2p)/2.0;
-else if ((h1p+h2p) < (2. * Math.PI)) Havgp = (h1p + h2p + 2.0 * Math.PI) / 2.0
-else Havgp = (h1p + h2p - 2.* Math.PI)/ 2.0;
-
-
-let T = 1.0 - 0.17 * Math.cos(Havgp - 30./180.*Math.PI) + 0.24 * Math.cos(2.0 * Havgp) + 0.32 * Math.cos(3. * Havgp + 6./180. * Math.PI) - 0.20 * Math.cos ( 4. * Havgp - 63./180. * Math.PI);
-
-let Sl = 1.0 + 0.015 * Math.pow(Lavg - 50., 2.) / Math.sqrt(20.0 + Math.pow(Lavg - 50.0, 2.));
-let Sc = 1. + 0.045 * Cavgp;
-let Sh = 1.0 + 0.015 * Cavgp * T;
-
-let Dt = 30. * Math.PI/180. * Math.exp(-1. * Math.pow((Havgp*180.0/Math.PI - 275.)/25.0,2.));
-let Rc = 2. * Math.sqrt(Math.pow(Cavgp, 7) / (Math.pow(Cavgp, 7.) + Math.pow(25., 7)));
-let Rt = -1. * Math.sin(2. * Dt) * Rc;
-let DE00 = Math.sqrt(
-        Math.pow(DLp/(kL * Sl),2) +
-        Math.pow(DCp/(kC * Sc),2) +
-        Math.pow(DHp/(kH * Sh),2) +
-        Rt * DCp / (kC * Sc) * DHp / (kH * Sh)
-    );
-
-if (debug) return [DE00, DLp, Lavg, a1p, a2p, C1p, C2p, Cavgp, h1p, h2p, Havgp, G, T, Sl, Sc, Sh, Rt, DE00];
-else  return DE00;
-}
-
- */
 pub fn de2000(l1: f64, a1: f64, b1: f64, l2: f64, a2: f64, b2: f64) -> f64 {
     const KL: f64 = 1.0;
     const KC: f64 = 1.0;
@@ -316,24 +253,3 @@ where
     }
 }
 
-/*
-#[test]
-fn test_ciede00(){
-    use crate::observers::{CieObs1931};
-    use crate::illuminants::{CieIllD65};
-    use crate::swatches::{ColorCheckerSwatch, Ces};
-    let de = CieDE2000::<CieIllD65, CieObs1931>::from((ColorCheckerSwatch::<13>, Ces));
-//	println!("{:.1}", de);
-    let m = de.matches();
-    let mut prev = 0f64;
-    // check if error differences are in increasing order
-    for i in 0..m.ncols() {
-        let ind = m[(0,i)];
-        let v = de.0[(0,ind)];
-        assert!(v>prev);
-        prev = v;
-    //	println!("{} {} {:.1}", i, ind, v);
-    }
-}
-
-*/

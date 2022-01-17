@@ -1,6 +1,6 @@
 [package]
 name = "rcs"
-version = "0.1.0"
+version = "0.0.0"
 description = "Color Sience algorithms and datasets, for research and color management in lighting, graphic arts, and displays"
 authors = ["Gerard Harbers", "Harbers Bik LLC"]
 repository = "https://github.com/harbik/rcs"
@@ -21,6 +21,7 @@ approx = "0.5"
 
 [dev-dependencies]
 criterion = "0.3"
+rcs-testcharts = {git ="https://github.com/harbik/rcs",  version = "0.0"}
 
 
 [features]
