@@ -1,6 +1,6 @@
-use colorado::models::{CieYuv1960, };
-use colorado::observers::{CieObs1931, };
-use colorado::illuminants::{Planckian, };
+use xie::models::{CieYuv1960, };
+use xie::observers::{CieObs1931, };
+use xie::illuminants::{Planckian, };
 
 fn main() -> Result<(), Box< dyn std::error::Error>> {
 

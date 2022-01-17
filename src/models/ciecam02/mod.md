@@ -52,61 +52,24 @@ CIECAM02 uses the CIECAT02 chromatic adaptation method.
 A good overview of color appearance can be found in 
  ["Color Appearance Models" by Mark D. Fairchild][FAIRCHILD2013] and 
  ["CIECAM02 and Its Recent Developments" by Luo et all][CIECAM02LUO].
-Here is my summary.
 
-Although everyone is very familiar with color -except who has some form of color vision deficiency-,
- it is hard to describe or define color precisely;
- and even for the professionals it is difficult,
- as color appearance modeling is still actively researched.
+Color is a familiar concept, used frequently in daily life; but what is color fundamentally?
 
-Color can be defined in perceptual terms, 
- -how we experience color in a qualitative way-
- as  *perceptual attributes*,
- and in form of physically measurable quantities,
- or *mathematical correlates* that correlate with these perceptual attributes,
- and which are defined in a *color appearance model*.
+There is color as is measured with a colorimeter, or as an RGB value in an image, and defined through physically measurable quantities: *mathematical correlates*.
+Such a characterization of color is also referred to as an *unrelated* color, as perceived in isolation from other colors,
+or as *instrumental* color, a color as exists in instruments, cameras, and displays.
 
-A good source for definitions in light and color is the *International Lighting Vocabulary*,
- published by the CIE,
- with the most recent version published in 2020 as CIE standard S017/E:2020,
- but -luckily, as often these standards are very expensive to buy- 
- also available for free online: [CIE International Lighting Vocabulary Online][EILV],
- further referred to here as eILV.
-
-# Related Colors
-A first definition from this vocabulary to cover,
- as concerned to color appearance,
- is the notion of unrelated and related colors:
- - an *unrelated color* is a color perceived to belong to an area seen in isolation from other colors
- - a *related color* is a color perceived to belong to an area seen in relation to other colors
-
-Typically,
- when looking at a image of an outdoor scene on your computer display,
- there are often different regions,
- some of them in the shadow,
- some of them in the bright sun.
-All the colors in the photo within these regions
- can be considered to be related.
-To correctly model the perceived color of a colored area within a region you need a color appearance model,
- including defining its lightness and chroma.
-
-A color turns into an unrelated color by looking at one pixel of such an image only,
- for example by looking at its Red, Green and Blue (R,G,B) pixel value as in an RGB color model,
- or by measuring the color of a swatch measured with a colorimeter,
- and getting its tristimulus X,Y, and Z values.
-
-Color appearance models, such as CIECAM02,
- should only be used when considering related colors:
- calculating CieCam color correlates for a single pixel,
- considered in isolation,
- doesn't make any sense.
-For unrelated colors, 
- such as for example color swatches in a book of color, 
- I suggest to use the CIELAB model,
- or, if considering the output of lamps,
- use CCT/Duv model.
+And there is color as we see, in our mind, which not always corresponds to the colors as measured, or set as pixel values; 
+the colors we experience are defined in qualitative ways, using *perceptual attributes*.
+Deviations between perceptual attributes and instrumental color correlates are due to the presence of other, neighboring colors, 
+and perception affecting colors are called *related colors* too.
 
 
+An image of an outdoor scene may contain shadowy areas, and sunny areas:
+color within each or these areas are considered to be related.
+Color appearance models try to predict how we see a set of related colors, in form of perceptual attributes such as lightness and chroma.
+
+When looking at a single pixel in this image, ignoring other colors, standard –and much simpler– colorimetric color models can be used.
 
 
 # Perceptual Attributes of Related Colors

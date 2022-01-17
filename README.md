@@ -1,18 +1,13 @@
   
-<div align="center" style="margin:15mm;">
-    <img src="https://www.harbik.com/img/daniel-norris.jpg" alt="Colorful Colorado" width="500"/>
-</div>
 
-# Colorado: Rust Color Science Library
+# XIE: Illumination Engineering and Color Science Library
 
-Colorado is an open-source Color Science library written in the Rust programming language,
- implementing recommended methods and standards such as defined by the *CIE* 
- (International Commission on Illumination),
- the *ICC* (International Color Consortium), and 
- the *IES* (Illumination Engineering Society),
+XIE is an open-source science and engineering library, written Rust;
+ it implements recommended methods and standards such as defined by the *CIE* (International Commission on Illumination),
+ the *ICC* (International Color Consortium), 
+ and the *IES* (Illumination Engineering Society);
  and is intended for color engineers and semi-professionals,
- interested in using advanced color models in lighting design, 
- digital imaging, graphic arts, lighting, and product design.
+ interested in using advanced color models in lighting design, digital imaging, graphic arts, lighting, and product design.
 
 For example,
  besides the standard color models (CIELAB, CIE XYZ), it implements the advanced color appearance CIECAM02 model,
@@ -23,14 +18,14 @@ For example,
 
 It also support the use of the new *cone fundamentals* based standard observers for colorimetric calculations.
 
-Colorado is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
+XIE is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
 It is being developed by Gerard Harbers from *Harbers Bik LLC*.
 
 Why another color library? And why Rust?
 There are already many other excellent color libraries written in Python, such as <http:://colour-science.org>.
 And, if you like to use MatLab, there is [ColorLab](https://www.uv.es/vista/vistavalencia/software/colorlab.html).
 
-Colorado, written in Rust, has the following benefits:
+XIE, written in Rust, has the following benefits:
 
 - Compared to Python it is fast, with a performance comparable to C++ applications:
  it is a system programming language designed for memory safety and speed.
@@ -46,7 +41,7 @@ Colorado, written in Rust, has the following benefits:
    Rust has excellent cross-platform development and support tools,
    allowing you to write –single code base– native applications for Linux, MacOS, Windows, and many other platforms.
 - Or, if you like a local scripting type development environment, such as in Python, there is [Deno](https://deno.land),
-   a JavaScript/TypeScript platform, in which you can import Colorado generated web assembly modules.
+   a JavaScript/TypeScript platform, in which you can import XIE generated web assembly modules.
 - Rust has an amazing build tool,
   called cargo, and a large collection of Rust packages in the <http://crates.io> package registry,
   with a very good code documentation system.
@@ -61,7 +56,7 @@ Colorado, written in Rust, has the following benefits:
    but quickly started to enjoy the experience that if a program compiles,
    if often runs as expected.
 
-Colorado is a **spectral color** library,
+XIE is a **spectral color** library,
  which means that –whenever possible– 
  color stimuli are represented by spectral power distributions.
 Which –and that is another big benefit– 
@@ -122,4 +117,4 @@ dual licensed as above, without any additional terms or conditions.
 
 ## Credits
 
-Colorado Photo (top) made by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/colorado">Unsplash</a>
+XIE Photo (top) made by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/colorado">Unsplash</a>

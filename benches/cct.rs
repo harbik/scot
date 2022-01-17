@@ -1,7 +1,7 @@
-use colorado::models::CieYuv1960;
+use xie::models::CieYuv1960;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use colorado::observers::{CieObs1931, };
-use colorado::illuminants::{CctDuv, CctDuvCalc, FL, Ohno2014, Ohno2014Cascade, Robertson};
+use xie::observers::{CieObs1931, };
+use xie::illuminants::{CctDuv, CctDuvCalc, FL, Ohno2014, Ohno2014Cascade, Robertson};
 
 
 fn bench_fl1(){
