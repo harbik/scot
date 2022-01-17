@@ -42,13 +42,13 @@ impl CctParameters {
         # Examples
         From a single temperature value, and using a default value for power of 1.0W:
         ```
-        use colorado::illuminants::CctParameters;
+        use rcs::illuminants::CctParameters;
 
         let ccts = CctParameters::new(3000.0);
         assert_eq!(ccts.0[0], 3000.0);
         ```
         ```
-        use colorado::illuminants::CctParameters;
+        use rcs::illuminants::CctParameters;
 
         let ccts = CctParameters::new(vec![3000.0, 4000.0, 5000.0]);
         assert_eq!(ccts.0[0], 3000.0);
@@ -79,7 +79,7 @@ impl CctParameters {
         The minimum value of temperatures in a CCT collection.
         # Example
         ```
-        use colorado::illuminants::CCTs;
+        use rcs::illuminants::CCTs;
 
         let cct_min = CCTs::new([5000.0, 8000.0, 3000.0]).min();
         assert_eq!(cct_min, 3000.0);
@@ -93,7 +93,7 @@ impl CctParameters {
         The maximum value of temperatures in a CCT collection.
         # Example
         ```
-        use colorado::illuminants::CctParameters;
+        use rcs::illuminants::CctParameters;
 
         let cct_max = CctParameters::new([5000.0, 8000.0, 3000.0]).max();
         assert_eq!(cct_max, 8000.0);

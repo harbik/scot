@@ -1,7 +1,7 @@
-use xie::models::CieYuv1960;
+use rcs::models::CieYuv1960;
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use xie::observers::{CieObs1931, };
-use xie::illuminants::{CctDuv, CctDuvCalc, FL, Ohno2014, Ohno2014Cascade, Robertson};
+use rcs::observers::{CieObs1931, };
+use rcs::illuminants::{CctDuv, CctDuvCalc, FL, Ohno2014, Ohno2014Cascade, Robertson};
 
 
 fn bench_fl1(){

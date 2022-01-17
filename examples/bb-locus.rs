@@ -1,6 +1,6 @@
-use xie::models::{CieYuv1960, };
-use xie::observers::{CieObs1931, };
-use xie::illuminants::{Planckian, };
+use rcs::models::{CieYuv1960, };
+use rcs::observers::{CieObs1931, };
+use rcs::illuminants::{Planckian, };
 
 fn main() -> Result<(), Box< dyn std::error::Error>> {
 

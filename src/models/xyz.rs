@@ -109,9 +109,9 @@ impl<C:StandardObserver, const M:usize> From<&[[f64; 3]; M]>  for CieXYZ<C> {
    # Examples
    Calculate Tristimulus values for a Blackbody radiator
    ```
-   use colorado::illuminants::Planckian;
-   use colorado::observers::CieObs1931;
-   use colorado::models::CieXYZ;
+   use rcs::illuminants::Planckian;
+   use rcs::observers::CieObs1931;
+   use rcs::models::CieXYZ;
 
    let bb = CieXYZ::<CieObs1931>::from(Planckian::new(3000));
    println!("{}",bb);

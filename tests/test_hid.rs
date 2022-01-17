@@ -1,5 +1,5 @@
 use approx::assert_abs_diff_eq;
-use xie::{self, illuminants::HPAll, models::CieYxy, models::YxyValues, observers::CieObs1931};
+use rcs::{self, illuminants::HPAll, models::CieYxy, models::YxyValues, observers::CieObs1931};
 
 // x,y, cct, R1..R14, Ra
 const HID_TEST_DATA: [[f64;18];5] = [

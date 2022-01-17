@@ -1,0 +1,10 @@
+[book]
+authors = ["Gerard Harbers"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Rust Color Science Library"
+
+[output.html]
+site-url = "/rcs"
+mathjax-support = true

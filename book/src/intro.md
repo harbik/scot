@@ -1,13 +1,16 @@
-  
-
-# Rust Color Science Library (RCS)
-
-RCS is an open-source color science library, written Rust;
+# Introduction
+*rcs* is an open-source spectral illumination and color engineering library, for the Rust programming language;
  it implements recommended methods and standards such as defined by the *CIE* (International Commission on Illumination),
  the *ICC* (International Color Consortium), 
  and the *IES* (Illumination Engineering Society);
  and is intended for color engineers and semi-professionals,
  interested in using advanced color models in lighting design, digital imaging, graphic arts, lighting, and product design.
+
+Besides the Rust library, a "rcs" command line tool is provided too, and a (simplified) web-assembly library, which can
+be used from scripting languages such as [Deno](https://deno.land), and in a web browser, using a JavasScript
+Application Programming Interface; 
+these have limited functionality though, providing only limited high level functions.
+
 
 For example,
  besides the standard color models (CIELAB, CIE XYZ), it implements the advanced color appearance CIECAM02 model,
@@ -18,7 +21,7 @@ For example,
 
 It also support the use of the new *cone fundamentals* based standard observers for colorimetric calculations.
 
-RCS is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
+rcs is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
 It is being developed by Gerard Harbers from *Harbers Bik LLC*.
 
 Why another color library? And why Rust?
@@ -77,18 +80,8 @@ If you only want to use the library at high level,
  it allows you to crunch-the-numbers with a few lines of code, in the Matlab-style.
 
 
-## Examples
-
-## Features:
-- Spectral power distributions library for a lamps and illuminants, such as fluorescent and LED lamps.
-- Materials spectral reflectivity library.
-- Spectral distributions from mathematical models such as Planck blackbody radiators, Gaussian spectra, and mathematical LED models.
-- Spectral interpolation and spectral calculation using the Rust `nalgebra` package.
-- Calculate tristimulus values from spectral data using a number of standard observers such as CIE1931 2º, CIE1964 10º, CIE 2015 2º and 10º.
-- Calculate chromaticity coordinates and appearance correlates based on a number of color models.
-
 ## Disclaimer
-The data, methods, and algorithms in this library, 
+The data, methods, and algorithms in the rcs library, and this book, 
 referencing Standard Organizations such as the International Commission on Illumination (CIE), or any other Standards Organizations, 
 have not been endorsed, qualified, or approved by these Standard Organizations. 
 Please consult their documentation and standards for authoritative methods, recommendations, and data. 
@@ -100,7 +93,7 @@ If you have a professional lighting, display lighting, or color issue, please co
 
 ## License
 
-Licensed under either of
+The rcs Code Licensed under either of
 
  * Apache License, Version 2.0
    ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
@@ -109,6 +102,8 @@ Licensed under either of
 
 at your option.
 
+The contents of this book is Copyright 
+
 ## Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted
@@ -116,5 +111,3 @@ for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 dual licensed as above, without any additional terms or conditions.
 
 ## Credits
-
-rcs Photo (top) made by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/rcs">Unsplash</a>

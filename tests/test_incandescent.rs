@@ -1,7 +1,7 @@
 use approx::assert_abs_diff_eq;
-//use colorado::illuminants::BB;
-//use colorado::models::{CieYxy,YxyValues};
-//use colorado::observers::CieObs1931;
+//use rcs::illuminants::BB;
+//use rcs::models::{CieYxy,YxyValues};
+//use rcs::observers::CieObs1931;
 
 // x,y, cct, R1..R14, Ra
 //const INC_TEST_DATA: [[f64;18];5] = [
@@ -10,9 +10,9 @@ use approx::assert_abs_diff_eq;
 
 #[test]
 fn test_bb() {
-	use xie::observers::{CieObs1931};
-	use xie::models::{CieYxy, YxyValues};
-	use xie::illuminants::BB;
+	use rcs::observers::{CieObs1931};
+	use rcs::models::{CieYxy, YxyValues};
+	use rcs::illuminants::BB;
 
 	let pl_yxy = CieYxy::<CieObs1931>::from(BB::<2700>);
 	let YxyValues { l: _, x, y} = pl_yxy.into_iter().next().unwrap();

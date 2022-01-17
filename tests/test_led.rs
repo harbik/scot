@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use xie::{illuminants::CieIllLed, models::{CieYxy, YxyValues}};
+use rcs::{illuminants::CieIllLed, models::{CieYxy, YxyValues}};
 use maplit::hashmap;
 
 fn led_illuminant_data() -> HashMap<&'static str, [f64;2]> {
@@ -20,7 +20,7 @@ fn led_illuminant_data() -> HashMap<&'static str, [f64;2]> {
 #[test]
 fn test_xy(){
 	use approx::assert_abs_diff_eq;
-	use xie::SpectralDistribution;
+	use rcs::SpectralDistribution;
 	let y_xy: CieYxy = CieIllLed::default().into();
 	let testdata=led_illuminant_data();
 	let testkeys = CieIllLed::default().keys().unwrap();

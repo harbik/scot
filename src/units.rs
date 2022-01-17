@@ -6,7 +6,7 @@
    Example of a domain quantity is `Meter`, and its value can be obtained
    using its value method.
    ```
-   use colorado::{Meter, Unit};
+   use rcs::{Meter, Unit};
    use approx::assert_abs_diff_eq;
 
    let m = Meter(1.2345);

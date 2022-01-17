@@ -79,7 +79,7 @@ where
     }
 }
 
-// For forward test see test_tm30_data.rs in colorado-tm30: ces_us
+// For forward test see test_tm30_data.rs in rcs-tm30: ces_us
 
 #[test]
 /**

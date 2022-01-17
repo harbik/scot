@@ -51,9 +51,9 @@ As concerned to the accuracy of this method, Ohno reports:
 
 Here is an example, calculating the cct and Duv values for the CIE FL1 illuminant:
 ```
-    use colorado::illuminants::{Ohno2014, FL};
-    use colorado::observers::CieObs1931;
-    use colorado::illuminants::CctDuvCalc;
+    use rcs::illuminants::{Ohno2014, FL};
+    use rcs::observers::CieObs1931;
+    use rcs::illuminants::CctDuvCalc;
 
     let ohno2014 = Ohno2014::<CieObs1931>::default();
 
@@ -72,9 +72,9 @@ This can be repeated a couple of times, getting to very small step size, and sma
 To use Ohno's Cascade method to calculate the CCT and Duv values for the CIE FL1 illuminant:
 
 ```
-    use colorado::illuminants::{Ohno2014Cascade, FL};
-    use colorado::observers::CieObs1931;
-    use colorado::illuminants::CctDuvCalc;
+    use rcs::illuminants::{Ohno2014Cascade, FL};
+    use rcs::observers::CieObs1931;
+    use rcs::illuminants::CctDuvCalc;
 
     let ohno2014_cascade = Ohno2014Cascade::<CieObs1931>::default();
 
@@ -218,8 +218,8 @@ impl<C: StandardObserver> Display for CctDuv<C> {
 In comparison with the other methods in this library it is fast, especially if the Robertson table has already been calculated,
 which is done using:
 ```
-    use colorado::illuminants::{Robertson, FL, CctDuvCalc};
-    use colorado::observers::{CieObs1931};
+    use rcs::illuminants::{Robertson, FL, CctDuvCalc};
+    use rcs::observers::{CieObs1931};
     let robertson: Robertson<CieObs1931> = Robertson::new();
 
     let cct_duv_fl1 = robertson.cct_duv(FL::<1>);
