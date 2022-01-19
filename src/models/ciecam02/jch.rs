@@ -5,7 +5,7 @@
 
 use super::{cam::CieCam, CieCamEnv, CieLab, CieXYZ, VcAvg};
 use crate::{illuminants::D65, models::xyz_to_lab, observers::StandardObserver, DefaultObserver};
-use nalgebra::{Const, Dynamic, OMatrix};
+use nalgebra::{Const, Dynamic, OMatrix, Matrix3xX};
 use std::marker::PhantomData;
 
 #[derive(Clone)]
@@ -61,6 +61,15 @@ impl<V, I, C> CieCamJCh<V, I, C> {
         CieLab::<I2, C>::new(xyz_to_lab(xyz_n.data.column(0), self.data))
     }
 }
+
+impl<V,I,C> From<Vec<f64>> for CieCamJCh<V,I,C> 
+where
+{
+    fn from(v: Vec<f64>) -> Self {
+        CieCamJCh::new(Matrix3xX::from_vec(v))
+    }
+}
+
 
 impl<V, I, C, L> From<L> for CieCamJCh<V, I, C>
 where

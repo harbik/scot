@@ -21,7 +21,7 @@ approx = "0.5"
 
 [dev-dependencies]
 criterion = "0.3"
-rcs-testcharts = {git ="https://github.com/harbik/rcs",  version = "0.0.1"}
+svg = "0.10"
 
 
 [features]

@@ -48,12 +48,32 @@ impl<I,C, const M:usize> From<[[f64; 3]; M]>  for CieLab<I,C> {
     }
 }
 
+// from reference
 impl<I,C, const M:usize> From<&[[f64; 3]; M]>  for CieLab<I,C> {
     fn from(m: &[[f64;3];M]) -> Self {
         let data = Matrix3xX::<f64>::from_fn(M, |i,j| m[j][i]);
         Self::new(data)
     }
 }
+
+impl<I,C> From<&[f64]> for CieLab<I,C> 
+where
+{
+    fn from(v: &[f64]) -> Self {
+        let data = Matrix3xX::<f64>::from_vec(v.to_vec());
+        Self::new(data)
+    }
+}
+
+impl<I,C, const N: usize> From<[f64;N]> for CieLab<I,C> 
+where
+{
+    fn from(v: [f64;N]) -> Self {
+        let data = Matrix3xX::<f64>::from_vec(v.to_vec());
+        Self::new(data)
+    }
+}
+
 
 #[test]
 fn test_cielab_from_array(){
