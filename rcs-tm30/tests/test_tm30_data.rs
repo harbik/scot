@@ -1,8 +1,8 @@
 #[test]
 fn test_f1(){
-	use rcs_tm30::samples::{TM30Illuminant, CieF1};
+	use scot_tm30::samples::{TM30Illuminant, CieF1};
 
-	use rcs::models::{CieYxy, YxyValues};
+	use scot::models::{CieYxy, YxyValues};
 	let xy: CieYxy = CieF1::default().into();
 	let YxyValues{l:_, x, y} = xy.into_iter().next().unwrap();
 
@@ -16,11 +16,11 @@ fn test_f1(){
 
 #[test]
 fn ces_ucs(){
-    use rcs::observers::CieObs1964;
-    use rcs::models::cam02::{CieCamUcs, VcTm30};
-    //use rcs::illuminants::D50;
-    use rcs_tm30::ces::Ces;
-    use rcs_tm30::samples::{TM30Illuminant, CieF1};
+    use scot::observers::CieObs1964;
+    use scot::models::cam02::{CieCamUcs, VcTm30};
+    //use scot::illuminants::D50;
+    use scot_tm30::ces::Ces;
+    use scot_tm30::samples::{TM30Illuminant, CieF1};
     use nalgebra::{SMatrix, matrix};
     use approx::assert_abs_diff_eq;
 

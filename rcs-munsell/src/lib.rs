@@ -23,7 +23,7 @@ From [Paul Centore]'s article:
 
  #![allow(clippy::approx_constant)]
 
-use rcs::{Domain, Meter, SpectralDistribution, Step, Unit, WavelengthStep, illuminants::Illuminant, models::CieLab, observers::StandardObserver, swatches::Swatch};
+use scot::{Domain, Meter, SpectralDistribution, Step, Unit, WavelengthStep, illuminants::Illuminant, models::CieLab, observers::StandardObserver, swatches::Swatch};
 use nalgebra::{DMatrix, SMatrix};
 use matt_splines::MUNSELL_MATT;
 use spliny::CubicSpline;
@@ -128,7 +128,7 @@ impl SpectralDistribution for MunsellMattSpline {
     }
 }
 
-impl rcs::swatches::Swatch for MunsellMattSpline {}
+impl scot::swatches::Swatch for MunsellMattSpline {}
 
 impl<I, C> From<MunsellMattSpline> for CieLab<I,C> 
   where 
@@ -145,11 +145,11 @@ impl<I, C> From<MunsellMattSpline> for CieLab<I,C>
 
 #[test]
 fn test_munsell_matt(){
-    use rcs::models::CieLab;
+    use scot::models::CieLab;
     let m = MunsellMattSpline::new(["7.5RP5/12", "5Y6/6", "2.5BG9/2"]);
     let (_dom, spd) = m.spd();
     println!("{}", spd);
-    let lab: CieLab<rcs::illuminants::CieIllC, rcs::observers::CieObs1931> = CieLab::from(m);
+    let lab: CieLab<scot::illuminants::CieIllC, scot::observers::CieObs1931> = CieLab::from(m);
     println!("{}",lab.data);
 }
  

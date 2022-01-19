@@ -1,8 +1,8 @@
   
 
-# Rust Color Science Library (RCS)
+# Spectral Color Tools (**SCoT**)
 
-RCS is an open-source color science library, for the Rust;
+**SCoT** is an open-source color science library, for the Rust;
  it implements recommended methods and standards such as defined by the *CIE* (International Commission on Illumination),
  the *ICC* (International Color Consortium), 
  and the *IES* (Illumination Engineering Society);
@@ -18,14 +18,14 @@ For example,
 
 It also support the use of the new *cone fundamentals* based standard observers for colorimetric calculations.
 
-RCS is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
+**SCoT** is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
 It is being developed by Gerard Harbers from *Harbers Bik LLC*.
 
 Why another color library? And why Rust?
 There are already many other excellent color libraries written in Python, such as <http:://colour-science.org>.
 And, if you like to use MatLab, there is [ColorLab](https://www.uv.es/vista/vistavalencia/software/colorlab.html).
 
-rcs, written in Rust, has the following benefits:
+**SCoT**, written in Rust, has the following benefits:
 
 - Compared to Python it is fast, with a performance comparable to C++ applications:
  it is a system programming language designed for memory safety and speed.
@@ -41,7 +41,7 @@ rcs, written in Rust, has the following benefits:
    Rust has excellent cross-platform development and support tools,
    allowing you to write –single code base– native applications for Linux, MacOS, Windows, and many other platforms.
 - Or, if you like a local scripting type development environment, such as in Python, there is [Deno](https://deno.land),
-   a JavaScript/TypeScript platform, in which you can import rcs generated web assembly modules.
+   a JavaScript/TypeScript platform, in which you can import **SCoT** generated web assembly modules.
 - Rust has an amazing build tool,
   called cargo, and a large collection of Rust packages in the <http://crates.io> package registry,
   with a very good code documentation system.
@@ -56,7 +56,7 @@ rcs, written in Rust, has the following benefits:
    but quickly started to enjoy the experience that if a program compiles,
    if often runs as expected.
 
-rcs is a **spectral color** library,
+**SCoT** is a **spectral color** library,
  which means that –whenever possible– 
  color stimuli are represented by spectral power distributions.
 Which –and that is another big benefit– 
@@ -92,7 +92,7 @@ The data, methods, and algorithms in this library,
 referencing Standard Organizations such as the International Commission on Illumination (CIE), or any other Standards Organizations, 
 have not been endorsed, qualified, or approved by these Standard Organizations. 
 Please consult their documentation and standards for authoritative methods, recommendations, and data. 
-If you find any deviations or errors between the official standards and the implementations in this library, please report them as [issues](https://github.com/harbik/rcs/issues) on its GitHub page.
+If you find any deviations or errors between the official standards and the implementations in this library, please report them as [issues](https://github.com/harbik/**SCoT**/issues) on its GitHub page.
 Please be also aware that light and color measurements are difficult and depend on a lot of factors, 
 with many of them outside the scope of this library and its applications. 
 If you have a professional lighting, display lighting, or color issue, please consult a specialist.
@@ -117,4 +117,4 @@ dual licensed as above, without any additional terms or conditions.
 
 ## Credits
 
-rcs Photo (top) made by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/rcs">Unsplash</a>
+**SCoT** Photo (top) made by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/**SCoT**">Unsplash</a>

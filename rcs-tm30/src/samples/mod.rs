@@ -3,10 +3,10 @@ mod data;
 pub use data::*;
 
 use self::data::{M, N, TM30_CIE1931, TM30_ILLUMINANTS_DATA};
-use rcs::illuminants::Illuminant;
-use rcs::models::{CieXYZ, XYZValues};
-use rcs::observers::StandardObserver;
-use rcs::{DataSpectrumFromSlice, Domain, SpectralDistribution, WavelengthStep, NM};
+use scot::illuminants::Illuminant;
+use scot::models::{CieXYZ, XYZValues};
+use scot::observers::StandardObserver;
+use scot::{DataSpectrumFromSlice, Domain, SpectralDistribution, WavelengthStep, NM};
 use nalgebra::{Matrix3xX, SMatrixSlice, SVectorSlice};
 use std::collections::HashMap;
 
@@ -15,7 +15,7 @@ Use TM30 Sample Spectrum as illuminant.
 
 Illuminants are used in this library to represent the, typically 'white', illumination
 used to illuminate objects such as swatches, or backlight LCD pixels.
-Each illuminant in the rcs library has its own type, and is constructed by its
+Each illuminant in the scot library has its own type, and is constructed by its
 `Default::default` method only.
 
 The use the spectral distributions in the TM30 library as illuminant in the color models
@@ -24,9 +24,9 @@ TM30 library constants.
 
 For example, to get the CIE F1 illuminant from this library, use the `CIE_F1` constant:
 ```
-    use rcs_tm30::samples::{TM30Illuminant, CieF1};
+    use scot_tm30::samples::{TM30Illuminant, CieF1};
 
-    use rcs::models::{CieYxy, YxyValues};
+    use scot::models::{CieYxy, YxyValues};
     let xy: CieYxy = CieF1::default().into();
     let YxyValues{l:_, x, y} = xy.into_iter().next().unwrap();
 
@@ -67,7 +67,7 @@ impl<C: StandardObserver, const K: usize> From<TM30Illuminant<K>> for CieXYZ<C> 
 fn test_tm30_ill() {
     use crate::samples::CieF1;
     use approx::assert_abs_diff_eq;
-    use rcs::models::{CieYxy, YxyValues};
+    use scot::models::{CieYxy, YxyValues};
 
     let ill = CieF1::default();
     let xy: CieYxy = ill.into();
@@ -112,7 +112,7 @@ impl<C: StandardObserver> From<TM30SampleSpectra> for CieXYZ<C> {
 
 #[test]
 fn test_tm30_sample_spectra() {
-    use rcs::models::CieYxy;
+    use scot::models::CieYxy;
     let ill = TM30SampleSpectra::default();
     let xy: CieYxy = ill.into();
     println! {"{}", xy.data.transpose()};
@@ -181,7 +181,7 @@ impl<C: StandardObserver> From<EmissionType> for CieXYZ<C> {
 #[test]
 fn test_from_emission_type() {
     use approx::assert_abs_diff_eq;
-    use rcs::models::{CieYxy, YxyValues};
+    use scot::models::{CieYxy, YxyValues};
 
     for emission_type in [
         EmissionType::FluorescentNarrowband,

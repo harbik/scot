@@ -4,7 +4,7 @@ Test Color Samples as used for CRI Calculations.
 CRI is the color rendering index, and defined by the CIE.
 It is used to characterize light sources on their ability to render colors in comparison with a reference source such as 
 daylight, or a blackbody source.
-To test rendering, the CIE selected 14 representative color swatches as contained in this section of the rcs library.
+To test rendering, the CIE selected 14 representative color swatches as contained in this section of the scot library.
 An additional, 15th, swatch, was added by a CIE comittee in Japan, to represent Japanese skin colors, and is added 
 to the dataset below as well.
 The data in this set is defined on a wavelength domain from 360 to 830nm, with steps of 5nm.
@@ -15,20 +15,20 @@ Lighting Laboratory of the Helsinki University of Technology, through Wikipedia
 
 */
 
-pub use rcs::swatch;
+pub use scot::swatch;
 
 const N: usize = 401; // number of points in a spectral distributions, and the number of rows in the column major spectral matrix
 const M: usize = 99; // number of spectra in the set, or the number of columns in the spectral matrix
 
-swatch!(CesSwatch, N, M, "CES{}", rcs::Domain::new(380, 780, rcs::NM), CES_DATA);
-swatch!(Ces, N, M, "CES", rcs::Domain::new(380, 780, rcs::NM), CES_DATA, CES_KEYS);
+swatch!(CesSwatch, N, M, "CES{}", scot::Domain::new(380, 780, scot::NM), CES_DATA);
+swatch!(Ces, N, M, "CES", scot::Domain::new(380, 780, scot::NM), CES_DATA, CES_KEYS);
 
 
 #[test]
 fn test_tcs(){
-	use rcs::models::CieLab;
-	use rcs::illuminants::CieIllD65;
-	use rcs::observers::CieObs1931;
+	use scot::models::CieLab;
+	use scot::illuminants::CieIllD65;
+	use scot::observers::CieObs1931;
 
 	let ces_lab: CieLab<CieIllD65, CieObs1931> = Ces::default().into();
 
@@ -38,11 +38,11 @@ fn test_tcs(){
 
 #[test]
 fn test_ciede76(){
-	use rcs::observers::{CieObs1931};
-	use rcs::illuminants::{CieIllD65};
+	use scot::observers::{CieObs1931};
+	use scot::illuminants::{CieIllD65};
 	use crate::ces::Ces;
-	use rcs::swatches::{ColorCheckerSwatch};
-	use rcs::differences::{CieDE1994, GraphicArts, DeltaEValues};
+	use scot::swatches::{ColorCheckerSwatch};
+	use scot::differences::{CieDE1994, GraphicArts, DeltaEValues};
 	let de = CieDE1994::<CieIllD65, CieObs1931, GraphicArts>::new(ColorCheckerSwatch::<13>, Ces);
 	println!("{:.0}", de.0);
 	let m = de.matches();
@@ -62,11 +62,11 @@ fn test_ciede76(){
 
 #[test]
 fn test_ciede76_2(){
-	use rcs::observers::{CieObs1931};
-	use rcs::illuminants::{CieIllD65};
+	use scot::observers::{CieObs1931};
+	use scot::illuminants::{CieIllD65};
 	use crate::ces::Ces;
-	use rcs::swatches::{ColorCheckerSwatch};
-	use rcs::differences::{CieDE1976, DeltaEValues};
+	use scot::swatches::{ColorCheckerSwatch};
+	use scot::differences::{CieDE1976, DeltaEValues};
 	let de = CieDE1976::<CieIllD65, CieObs1931>::from((ColorCheckerSwatch::<13>, Ces));
 //	println!("{:.1}", de);
 	let m = de.matches();

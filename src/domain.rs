@@ -31,7 +31,7 @@ use super::WavelengthStep;
    # Examples
    Define a wavelength range from 4530 to 4550 Angstrom with 1 Angstrom steps, resulting in 21 wavelength values.
    ```
-   use rcs::{A, Unit, Domain};
+   use scot::{A, Unit, Domain};
    use approx::assert_abs_diff_eq;
 
    let d = Domain::new(4530, 4550, A);
@@ -46,7 +46,7 @@ use super::WavelengthStep;
    in the original table of CIE 1931 color matching functions. In this case there are 94 values. The unit now used is
    'NM5', and the range values are divided by 5 to get the right paramter index values.
    ```
-   use rcs::{Domain, Unit, NM5};
+   use scot::{Domain, Unit, NM5};
    use approx::assert_abs_diff_eq;
 
    let d = Domain::new(360/5, 830/5, NM5);
@@ -60,7 +60,7 @@ use super::WavelengthStep;
    Here we define a range of 5 temperature values, with unit KK, or 'kilo Kelvin',
    with values ranging from 3000.0 to 7000.0K
    ```
-   use rcs::{Domain, Unit, KK};
+   use scot::{Domain, Unit, KK};
    use approx::assert_abs_diff_eq;
 
    let d = Domain::new(3, 7, KK);
@@ -225,8 +225,8 @@ impl<S1: Step, S2: Step> PartialEq<Domain<S2>> for Domain<S1> {
    An iterator starting at a value 4530 Angstrom, as a value 4530.0E-10m, and making steps of of 1 Angstrom, or
    1.0E-10m.
    ```
-   use rcs::Domain;
-   use rcs::{A, Unit};
+   use scot::Domain;
+   use scot::{A, Unit};
    use approx::assert_abs_diff_eq;
 
    let mut it = Domain::new(4530, 4550, A).into_iter();
@@ -236,8 +236,8 @@ impl<S1: Step, S2: Step> PartialEq<Domain<S2>> for Domain<S1> {
    And here is an example for use in a for loop.
    This produces two values, 3000 and 4000K, and thier sum is supposed to be 7000.0 K.
    ```
-   use rcs::Domain;
-   use rcs::{KK, Unit};
+   use scot::Domain;
+   use scot::{KK, Unit};
    use approx::assert_abs_diff_eq;
 
    let mut sum = 0.0;

@@ -28,9 +28,9 @@ use crate::{Domain, Step, Unit, WavelengthStep};
    Here a single integer valued argument is used to specify a blackbody's temperature.
 
    ```
-   use rcs::illuminants::Planckian;
-   use rcs::observers::CieObs1931;
-   use rcs::cie::XYZ;
+   use scot::illuminants::Planckian;
+   use scot::observers::CieObs1931;
+   use scot::cie::XYZ;
    use approx::assert_abs_diff_eq;
 
    let pl = Planckian::new(3000);

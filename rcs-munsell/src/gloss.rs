@@ -2,13 +2,13 @@
 // 380-780-1nm
 // date
 
-use rcs::swatches::swatch;
+use scot::swatches::swatch;
 
 const N: usize = 81;
 const M: usize = 1600;
 
-swatch!(MunsellGlossSwatch, N, M, "Munsell Gloss Chip {}", rcs::Domain::new(380/5, 780/5, rcs::NM5), MUNSELL_GLOSS_DATA);
-swatch!(MunsellGloss, N, M, "Munsell Gloss", rcs::Domain::new(380/5, 780/5, rcs::NM5), MUNSELL_GLOSS_DATA, MUNSELL_GLOSS_KEYS);
+swatch!(MunsellGlossSwatch, N, M, "Munsell Gloss Chip {}", scot::Domain::new(380/5, 780/5, scot::NM5), MUNSELL_GLOSS_DATA);
+swatch!(MunsellGloss, N, M, "Munsell Gloss", scot::Domain::new(380/5, 780/5, scot::NM5), MUNSELL_GLOSS_DATA, MUNSELL_GLOSS_KEYS);
 
 static MUNSELL_GLOSS_KEYS: [&str; M] =  [
 /*1*/"2.5B2/2", /*2*/"2.5B2/4", /*3*/"2.5B2/6", /*4*/"2.5B3/2", /*5*/"2.5B3/4", /*6*/"2.5B3/6", /*7*/"2.5B3/8", /*8*/"2.5B4/2", /*9*/"2.5B4/4", /*10*/"2.5B4/6",

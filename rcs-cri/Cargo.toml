@@ -1,14 +1,14 @@
 [package]
-name = "rcs-cri"
+name = "scot-cri"
 version = "0.0.1"
 edition = "2018"
 description = "Color Sience algorithms and datasets, for research and color management in lighting, graphic arts, and displays"
 authors = ["Gerard Harbers", "Harbers Bik LLC"]
-repository = "https://github.com/harbik/rcs"
+repository = "https://github.com/harbik/scot"
 keywords = ["color science", "CIE", "chromaticity", "CRI", "CIECAM"]
 license = "MIT OR Apache-2.0"
 
 [dependencies]
 nalgebra = "0.27"
-rcs = {git ="https://github.com/harbik/rcs",  version = "0.0.1"}
+scot = {git ="https://github.com/harbik/scot",  version = "0.0.1"}
 approx = "0.5"

@@ -41,8 +41,8 @@ Average deviation was 1.18 &Delta;E<sub>2000</sub>
 Using the average BabelColor spectral data,  and using the CIE 1931 standard observer:
 
 ```
-use rcs::{illuminants::D50, models::CieLab, observers::CieObs1931};
-use rcs_checker::CheckerBabel;
+use scot::{illuminants::D50, models::CieLab, observers::CieObs1931};
+use scot_checker::CheckerBabel;
 
 let lab_babel : CieLab<D50, CieObs1931> = CheckerBabel.into();
 println!("{:.3}", lab_babel.data.transpose());
@@ -67,8 +67,8 @@ Calculated for the average spectral data,
  and using an Average Surround with 1000 lux illumination level:
 
 ```
-use rcs::{illuminants::D65, models::{CieCamJCh, VcAvg}, observers::CieObs1964};
-use rcs_checker::CheckerBabel;
+use scot::{illuminants::D65, models::{CieCamJCh, VcAvg}, observers::CieObs1964};
+use scot_checker::CheckerBabel;
 
 let jch_babel : CieCamJCh<VcAvg, D65, CieObs1964> = CheckerBabel.into();
 println!("{:.3}", jch_babel.data.transpose());
@@ -87,7 +87,7 @@ Here are the first 5 rows of output (header added for clarity):
 
 #[test]
 fn test_babel(){
-    use rcs::{illuminants::D50, models::CieLab, observers::CieObs1931};
+    use scot::{illuminants::D50, models::CieLab, observers::CieObs1931};
     use crate::CheckerBabel;
 
     let lab_babel : CieLab<D50, CieObs1931> = CheckerBabel.into();
@@ -97,7 +97,7 @@ fn test_babel(){
 
 #[test]
 fn test_babel2(){
-    use rcs::{illuminants::D65, models::{CieCamUcs, VcAvg}, observers::CieObs1964};
+    use scot::{illuminants::D65, models::{CieCamUcs, VcAvg}, observers::CieObs1964};
     use crate::CheckerBabel;
 
     let jab_babel : CieCamUcs<VcAvg, D65, CieObs1964> = CheckerBabel.into();
@@ -107,14 +107,14 @@ fn test_babel2(){
 #[test]
 fn test_babel3(){
 
-    use rcs::{illuminants::D65, models::{CieCamJCh, VcAvg}, observers::CieObs1964};
+    use scot::{illuminants::D65, models::{CieCamJCh, VcAvg}, observers::CieObs1964};
     use crate::CheckerBabel;
 
     let jch_babel : CieCamJCh<VcAvg, D65, CieObs1964> = CheckerBabel.into();
     println!("{:.3}", jch_babel.data.transpose());
 }
 
-use rcs::swatch;
+use scot::swatch;
 use crate::{
     M,
     CHECKER_KEYS,
@@ -126,7 +126,7 @@ const N: usize = 36;
 
 
 
-swatch!(CheckerBabel, N, M, "Color Checker", rcs::Domain::new(380/10, 730/10, rcs::NM10), COLOR_CHECKER_DATA, CHECKER_KEYS);
+swatch!(CheckerBabel, N, M, "Color Checker", scot::Domain::new(380/10, 730/10, scot::NM10), COLOR_CHECKER_DATA, CHECKER_KEYS);
 
 
 static COLOR_CHECKER_DATA: [f64;N*M] = [

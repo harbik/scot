@@ -7,7 +7,7 @@ Reflectivity measured over a spectral domain from 380 to 780nm, with steps of 5n
 
 */
 
-use rcs as cd;
+use scot as cd;
 use cd::{SpectralDistribution, Domain, WavelengthStep, NM5};
 use cd::illuminants::Illuminant;
 use cd::models::CieLab;
@@ -55,7 +55,7 @@ where
 
 #[test]
 fn test_ohta(){
-    use rcs::{illuminants::D50, models::{CieLab, CieCamUcs, VcAvg}, observers::CieObs1931};
+    use scot::{illuminants::D50, models::{CieLab, CieCamUcs, VcAvg}, observers::CieObs1931};
     let ohtalab : CieLab<D50, CieObs1931> = CheckerOhta.into();
     let ohtacam : CieCamUcs<VcAvg, D50, CieObs1931> = CheckerOhta.into();
     println!("{}", ohtalab.data.transpose());

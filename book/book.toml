@@ -6,5 +6,5 @@ src = "src"
 title = "Rust Color Science Library"
 
 [output.html]
-site-url = "/rcs"
+site-url = "/scot"
 mathjax-support = true

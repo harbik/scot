@@ -50,7 +50,7 @@ Table I if found here as `MUNSELL_RENOTATION_DATA`.
 
 use std::collections::HashMap;
 
-use rcs::{models::CieLab, observers::CieObs1931, illuminants::CieIllC};
+use scot::{models::CieLab, observers::CieObs1931, illuminants::CieIllC};
 use nalgebra::{Matrix3x1, Matrix3xX};
 
 fn to_lab(x: f64, y: f64, yy: f64) -> CieLab<CieIllC, CieObs1931> {
@@ -58,7 +58,7 @@ fn to_lab(x: f64, y: f64, yy: f64) -> CieLab<CieIllC, CieObs1931> {
     let zz = (1.0 - x - y) * yy / y;
     let c = Matrix3x1::new(98.07171, 100.0, 118.22489);
     let m = Matrix3xX::from_vec(vec![xx, yy, zz]);
-    let lab = rcs::models::xyz_to_lab(&c, m);
+    let lab = scot::models::xyz_to_lab(&c, m);
     CieLab::<CieIllC, CieObs1931>::new(lab)
 }
 

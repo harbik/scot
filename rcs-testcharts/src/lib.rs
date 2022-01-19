@@ -77,7 +77,7 @@ pub static CHECKERLAB: [[f64;3];24] = [
 
 #[test]
 fn checker_ref() {
-    use rcs::models::CieLab;
+    use scot::models::CieLab;
     let lab: CieLab = (&CHECKERLAB).into();
     println!("{}", lab.data.transpose());
 }

@@ -9,9 +9,9 @@ It has been superseeded by the color difference metrics CIE &Delta;E<sub>1994</s
 Calculate the CIE DE1976 color differences between Color Checker Swatch #13, and
 the CIE CES color samples.
 ```
-    use rcs::observers::CieObs1931;
-    use rcs::illuminants::D65;
-    use rcs::swatches::{ColorCheckerSwatch, Ces};
+    use scot::observers::CieObs1931;
+    use scot::illuminants::D65;
+    use scot::swatches::{ColorCheckerSwatch, Ces};
     let de = CieDE1976::<CieObs1931, D65>::new(ColorCheckerSwatch::<13>, Ces);
     println!("{:.1}", de.0);
 ```
@@ -23,9 +23,9 @@ best match of a color checker sample to one of the IES CES samples.
 The same color sample sets can also be evaluated using the CIE 2015 2º color matching functions,
 and using a D50 white point:
 ```
-    use rcs::observers::{CieObsF2};
-    use rcs::illuminants::{CieD50};
-    use rcs::swatches::{ColorChecker, IesTm30Ces};
+    use scot::observers::{CieObsF2};
+    use scot::illuminants::{CieD50};
+    use scot::swatches::{ColorChecker, IesTm30Ces};
     let de = CieDE1976::<Cie2015, CieD50>::new(ColorChecker, IesTm30Ces);
     println!("{:.1}", de.0);
 ```

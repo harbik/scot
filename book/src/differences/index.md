@@ -21,7 +21,7 @@ in turn are based on a standard observer's spectral sensitivities, represented b
 Over time, other color difference formulas have been defined, better representing color matching experiments,
 either based on the same color spaces, or new color spaces, such as the CIECAM color space.
 
-RCS currently implements the following color difference metrics:
+scot currently implements the following color difference metrics:
 
 - CIE \\( \Delta E_{1976}\\)
 - CIE \\( \Delta E_{1994}\\)
@@ -39,9 +39,9 @@ Color differences are calculated from a reference and a test set of color sample
 Using a `new` constructor:
 
 ```rust
-    use rcs::observers::Cie1931;
-    use rcs::illuminants::CieD65;
-    use rcs::swatches::{ColorCheckerSwatch, Ces};
+    use scot::observers::Cie1931;
+    use scot::illuminants::CieD65;
+    use scot::swatches::{ColorCheckerSwatch, Ces};
 
     let de = CieDE1976::<Cie1931, CieD65>::new(ColorCheckerSwatch::<13>, Ces);
 
@@ -50,9 +50,9 @@ Using a `new` constructor:
 and a `from` pattern:
 
 ```rust
-    use rcs::observers::Cie1931;
-    use rcs::illuminants::CieD65;
-    use rcs::swatches::{ColorCheckerSwatch, Ces};
+    use scot::observers::Cie1931;
+    use scot::illuminants::CieD65;
+    use scot::swatches::{ColorCheckerSwatch, Ces};
 
     let de = CieDE1976::<Cie1931, CieD65>::new(ColorCheckerSwatch::<13>, Ces);
 

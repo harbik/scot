@@ -9,12 +9,12 @@
     in the order of 0.1% in CieLab values.
 */
 fn test_cielab_colorchecker() {
-    use rcs::illuminants::CieIllD50;
-    use rcs::models::CieLab;
-    use rcs::observers::CieObs1931;
-    use rcs_checker::CheckerBabel;
-    use rcs::swatches::{G18, White};
-	use rcs::models::LabValues;
+    use scot::illuminants::CieIllD50;
+    use scot::models::CieLab;
+    use scot::observers::CieObs1931;
+    use scot_checker::CheckerBabel;
+    use scot::swatches::{G18, White};
+	use scot::models::LabValues;
 
     use approx::assert_abs_diff_eq;
     use nalgebra::matrix;

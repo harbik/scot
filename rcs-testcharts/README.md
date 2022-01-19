@@ -1,13 +1,13 @@
   
 
 <div align="center">
-    <img src="https://www.harbik.com/img/daniel-norris.jpg" alt="Colorful rcs" width="500"/>
+    <img src="https://www.harbik.com/img/daniel-norris.jpg" alt="Colorful scot" width="500"/>
 </div>
 
 
-# rcs-Charts
+# scot-Charts
 
-rcs-Charts part of the Rust rcs Color Science Library,
+scot-Charts part of the Rust scot Color Science Library,
  and contains data collections for color *test charts*,
  which are used for characterizing or calibrating input devices such as digital cameras and scanners.
 These charts contain many different color samples with known target color coordinates (typically expressed in `CieLab<D50, CieObs1931>` coordinates),
@@ -103,15 +103,15 @@ From [Wikipedia](https://en.wikipedia.org/wiki/IT8):
 [XRite]: https://www.xrite.com/categories/calibration-profiling/colorchecker-classic
  
 
-# rcs: Rust Color Science Library
+# scot: Rust Color Science Library
 
-rcs is an open-source Color Science data and algorithms library written in the Rust programming language,
+scot is an open-source Color Science data and algorithms library written in the Rust programming language,
 targeting applications such as color management and quality control for displays, graphic arts, and architectural lighting.
 It implements methods and standards as defined by international standard organizations,
 such as the **CIE**, the *International Commission on Illumination*,
 and also includes many other color algorithms and datasets.
 
-rcs is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
+scot is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
 It is being developed by Gerard Harbers from *Harbers Bik LLC*.
 
 Mathematical representations of spectral distributions are the base many of color algorithms in this library,
@@ -128,7 +128,7 @@ The data, methods, and algorithms in this library,
  have not been endorsed, qualified, or approved by these Standard Organizations. 
 Please consult their documentation and standards for authoritative methods, recommendations, and data. 
 If you find any deviations or errors between the official standards and the implementations in this library, 
- please report them as [issues](https://github.com/harbik/rcs/issues) on its GitHub page.
+ please report them as [issues](https://github.com/harbik/scot/issues) on its GitHub page.
 Please be also aware that light and color measurements are difficult and depend on many factors, 
  with many of them outside the scope of this library and its applications. 
 If you have a professional lighting, display lighting, or color issue, please consult a specialist.
@@ -153,4 +153,4 @@ dual licensed as above, without any additional terms or conditions.
 
 ## Credits
 
-rcs Photo (top) made by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/rcs">Unsplash</a>
+scot Photo (top) made by <a href="https://unsplash.com/@danielnorris">Daniel Norris</a> on <a href="https://unsplash.com/s/photos/scot">Unsplash</a>

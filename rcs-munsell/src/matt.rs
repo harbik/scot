@@ -12,7 +12,7 @@ chips.
 
 */
 
-use rcs::swatches::swatch;
+use scot::swatches::swatch;
 
 // Munsell Gloss Spectral Data
 // 380-780-1nm
@@ -20,8 +20,8 @@ use rcs::swatches::swatch;
 const N: usize = 81;
 const M: usize = 1269;
 
-swatch!(MunsellMattSwatch, N, M, "Munsell Matt Swatch {}", rcs::Domain::new(380/5, 780/5, rcs::NM5), MUNSELL_MATT_DATA);
-swatch!(MunsellMatt, N, M, "Munsell Matt", rcs::Domain::new(380/5, 780/5, rcs::NM5), MUNSELL_MATT_DATA, MUNSELL_MATT_KEYS);
+swatch!(MunsellMattSwatch, N, M, "Munsell Matt Swatch {}", scot::Domain::new(380/5, 780/5, scot::NM5), MUNSELL_MATT_DATA);
+swatch!(MunsellMatt, N, M, "Munsell Matt", scot::Domain::new(380/5, 780/5, scot::NM5), MUNSELL_MATT_DATA, MUNSELL_MATT_KEYS);
 
 
 static MUNSELL_MATT_KEYS: [&str; M] =  [
