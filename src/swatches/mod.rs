@@ -1,5 +1,7 @@
 #![doc = include_str!("mod.md")]
 
+use std::marker::PhantomData;
+
 use nalgebra::{Const, DMatrix, OMatrix};
 
 use crate::illuminants::Illuminant;
@@ -42,7 +44,7 @@ where
             DMatrix::from_fn(l.nrows(), self.shape().1, |i, j| l[(i, 0)] * s[(i, j)]);
         let xyzn = &c * l.column(0) * C::K * d.step.unitvalue(1).value();
         let xyz = c * m * C::K * d.step.unitvalue(1).value();
-        CieLab::new(cielab(xyzn, xyz))
+        CieLab{ data: cielab(xyzn, xyz), cmf: PhantomData, illuminant: PhantomData}
     }
 }
 /**

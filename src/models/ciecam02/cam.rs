@@ -85,11 +85,10 @@ fn test_from_lab() {
     use crate::illuminants::D50;
     use crate::observers::CieObs1931;
     use approx::assert_relative_eq;
-    use nalgebra::Matrix3xX;
-    let lab: CieLab<D50> = CieLab::new(Matrix3xX::from_vec(vec![
+    let lab: CieLab<D50> = CieLab::new(vec![
         50.0, 0.0, 0.0, 50.0, -20.0, 20.0, 50.0, 20.0, -20.0, 50.0, -20.0, -20.0, 0.0, 0.0, 0.0,
         100.0, 100.0, 0.0, 100.0, 0.0, 100.0, 100.0, 0.0, -100.0, 100.0, 100.0, -100.0,
-    ]));
+    ]);
     let cam: CieCam<ViewConditions<32, 20, SR_AVG, D_AUTO>, D50, CieObs1931> = lab.into();
     // From ciecam02.xls by Eric Walowit and Grit O'Brien <https://web.archive.org/web/20070109143710/http://www.cis.rit.edu/fairchild/files/CIECAM02.XLS>
     // see also cielab.xyz
@@ -115,8 +114,7 @@ fn test_from_lab2() {
     use super::{ViewConditions, D_AUTO, SR_AVG};
     use crate::illuminants::D50;
     use crate::observers::CieObs1931;
-    use nalgebra::Matrix3xX;
-    let lab: CieLab<D50> = CieLab::new(Matrix3xX::from_vec(vec![50.0, 0.0, 0.0]));
+    let lab: CieLab<D50> = CieLab::new(vec![50.0, 0.0, 0.0]);
     let cam: CieCam<ViewConditions<32, 20, SR_AVG, D_AUTO>, D50, CieObs1931> = lab.into();
     //	let want = matrix![
     //

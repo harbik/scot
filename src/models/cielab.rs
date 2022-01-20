@@ -14,14 +14,14 @@ use super::CieXYZ;
 #[derive(Debug, Clone)]
 pub struct CieLab<I = D65, C = DefaultObserver> {
     pub data: Matrix3xX<f64>,
-    cmf: PhantomData<*const C>, // only used through C::Default(), but needed to mark the type
-    illuminant: PhantomData<*const I>, // only used through I:Default(), but needed to mark the type
+    pub(crate) cmf: PhantomData<*const C>, // only used through C::Default(), but needed to mark the type
+    pub(crate) illuminant: PhantomData<*const I>, // only used through I:Default(), but needed to mark the type
 }
 
 impl<I, C> CieLab<I, C> {
-    pub fn new(data: Matrix3xX<f64>) -> Self {
+    pub fn new(data: Vec<f64>) -> Self {
         Self {
-            data,
+            data: Matrix3xX::<f64>::from_vec(data),
             cmf: PhantomData,
             illuminant: PhantomData,
         }
@@ -40,11 +40,12 @@ impl<I, C> CieLab<I, C> {
     }
 }
 
+/*
 
 impl<I,C, const M:usize> From<[[f64; 3]; M]>  for CieLab<I,C> {
     fn from(m: [[f64;3];M]) -> Self {
         let data = Matrix3xX::<f64>::from_fn(M, |i,j| m[j][i]);
-        Self::new(data)
+        Self {data, cmf: PhantomData, illuminant: PhantomData}
     }
 }
 
@@ -52,7 +53,7 @@ impl<I,C, const M:usize> From<[[f64; 3]; M]>  for CieLab<I,C> {
 impl<I,C, const M:usize> From<&[[f64; 3]; M]>  for CieLab<I,C> {
     fn from(m: &[[f64;3];M]) -> Self {
         let data = Matrix3xX::<f64>::from_fn(M, |i,j| m[j][i]);
-        Self::new(data)
+        Self {data, cmf: PhantomData, illuminant: PhantomData}
     }
 }
 
@@ -64,22 +65,25 @@ where
         Self::new(data)
     }
 }
+*/
 
 impl<I,C, const N: usize> From<[f64;N]> for CieLab<I,C> 
 where
 {
     fn from(v: [f64;N]) -> Self {
         let data = Matrix3xX::<f64>::from_vec(v.to_vec());
-        Self::new(data)
+        Self {data, cmf: PhantomData, illuminant: PhantomData}
     }
 }
 
 
+/*
 #[test]
 fn test_cielab_from_array(){
     let lab : CieLab = [[50.0,20.0,0.0], [100.0, 0.0, 30.0]].into();
     println!("{}", lab.data);
 }
+*/
 
 impl<I, C> From<CieLab<I, C>> for CieXYZ<C>
 where
@@ -99,12 +103,12 @@ fn test_lab_to_xyz() {
     use crate::observers::CieObs1931Classic;
     use approx::assert_abs_diff_eq;
     use nalgebra::OMatrix;
-    let lab =  CieLab::<D50, CieObs1931Classic>::from([
-        [100.0, 100.0, -100.0], 
-        [100.0, 50.0, 0.0],
-        [100.0, 0.0, 50.0], 
-        [0.0, 0.0, 0.0], 
-        [20.0, 100.0, -50.0]
+    let lab =  CieLab::<D50, CieObs1931Classic>::new(vec![
+        100.0, 100.0, -100.0, 
+        100.0, 50.0, 0.0,
+        100.0, 0.0, 50.0, 
+        0.0, 0.0, 0.0, 
+        20.0, 100.0, -50.0
     ]);
 
     // CIECAM02.XLS spreadsheet, with XYZ_W [96.42150208438176, 100.0, 82.52098537603804], as I get with

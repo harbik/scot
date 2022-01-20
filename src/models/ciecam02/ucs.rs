@@ -54,7 +54,7 @@ impl<V, I, C> CieCamUcs<V, I, C> {
         }
         // move data into CieLab container after calculating lab values
         let xyz_n: CieXYZ<C> = I::default().into();
-        CieLab::<I, C>::new(xyz_to_lab(xyz_n.data.column(0), self.data))
+        CieLab::<I, C>{ data: xyz_to_lab(xyz_n.data.column(0), self.data), cmf: PhantomData, illuminant: PhantomData }
     }
 }
 
@@ -89,11 +89,10 @@ where
  */
 fn test_reverse_ucs_jab(){
     use crate::illuminants::D50; 
-    use nalgebra::Matrix3xX;
     use crate::observers::CieObs1931;
     use approx::assert_abs_diff_eq;
 
-    let lab: CieLab<D50,CieObs1931> = CieLab::new(Matrix3xX::from_vec(vec![
+    let lab: CieLab<D50,CieObs1931> = CieLab::new(vec![
         0.0,   0.0,    0.0,
         1.0,   10.0,   0.0,
         1.0,   10.0,  10.0,
@@ -105,7 +104,7 @@ fn test_reverse_ucs_jab(){
         100.0,   0.0,  100.0, 
         100.0,   0.0, -100.0, 
         100.0, 100.0, -100.0,
-    ]));
+    ]);
     let ucs: CieCamUcs<VcAvg, D50, CieObs1931> = lab.clone().into();
     let lab_calc = ucs.into_cielab();
     println!("{:.4}", lab_calc.data.transpose());

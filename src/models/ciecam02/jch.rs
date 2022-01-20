@@ -16,9 +16,9 @@ pub struct CieCamJCh<V = VcAvg, I = D65, C = DefaultObserver> {
     c: PhantomData<*const C>,
 }
 impl<V, I, C> CieCamJCh<V, I, C> {
-    pub fn new(data: OMatrix<f64, Const<3>, Dynamic>) -> Self {
+    pub fn new(data: Vec<f64>) -> Self {
         Self {
-            data,
+            data: Matrix3xX::from_vec(data),
             i: PhantomData,
             c: PhantomData,
             v: PhantomData,
@@ -58,9 +58,11 @@ impl<V, I, C> CieCamJCh<V, I, C> {
             *j = x; *c = y; *h = z; // overwrite data
         }
         // move data into CieLab container after calculating lab values
-        CieLab::<I2, C>::new(xyz_to_lab(xyz_n.data.column(0), self.data))
+        CieLab::<I2, C> { data: xyz_to_lab(xyz_n.data.column(0), self.data), illuminant: PhantomData, cmf: PhantomData }
     }
 }
+
+/*
 
 impl<V,I,C> From<Vec<f64>> for CieCamJCh<V,I,C> 
 where
@@ -69,6 +71,7 @@ where
         CieCamJCh::new(Matrix3xX::from_vec(v))
     }
 }
+*/
 
 
 impl<V, I, C, L> From<L> for CieCamJCh<V, I, C>
@@ -89,7 +92,7 @@ where
             let [j,c,h, ..] = cam.xyz_into_jchab(*x, *y, *z);
             *x = j; *y=c; *z=h;
         }
-        Self::new(m_xyz.data)
+        Self{ data: m_xyz.data, v: PhantomData, i: PhantomData, c: PhantomData }
     }
 }
 
@@ -106,8 +109,7 @@ fn test_from_lab_for_ciecam_jch() {
     use crate::illuminants::D50;
     use crate::observers::CieObs1931;
     use approx::assert_relative_eq;
-    use nalgebra::Matrix3xX;
-    let lab: CieLab<D50> = CieLab::new(Matrix3xX::from_vec(vec![
+    let lab: CieLab<D50> = CieLab::new(vec![
          0.0,   0.0,    0.0,
          1.0,   10.0,   0.0,
          1.0,   10.0,  10.0,
@@ -119,7 +121,7 @@ fn test_from_lab_for_ciecam_jch() {
        100.0,   0.0,  100.0, 
        100.0,   0.0, -100.0, 
        100.0, 100.0, -100.0,
-    ]));
+    ]);
     let cam: CieCamJCh<ViewConditions<32, 20, SR_AVG, D_AUTO>, D50, CieObs1931> = lab.into();
     // From ciecam02.xls by Eric Walowit and Grit O'Brien <https://web.archive.org/web/20070109143710/http://www.cis.rit.edu/fairchild/files/CIECAM02.XLS>
     // see also cielab.xyz, calculated using XYZ<sub>W</sub>=[96.42150, 100.0, 82.52099]
@@ -156,13 +158,12 @@ fn test_reverse() {
     use crate::observers::CieObs1931;
     use crate::models::VcDark;
     use approx::assert_abs_diff_eq;
-    use nalgebra::Matrix3xX;
-    let m_jch = Matrix3xX::<f64>::from_vec(vec![
+    let m_jch = vec![
         39.890206, 0.065758, 110.250459, 39.126848, 28.068355, 136.265379, 40.675788, 29.327191,
         314.544438, 38.972361, 37.709782, 220.145277, 0.000000, 0.000000, 180.000000, 106.171077,
         99.637157, 1.382338, 99.681887, 78.569894, 94.800651, 98.456360, 98.160627, 248.371519,
         105.577618, 105.394956, 312.434013,
-    ]);
+    ];
     let want = OMatrix::<f64, _, _>::from([
         [50.0, 0.0, 0.0],
         [50.0, -20.0, 20.0],
@@ -200,6 +201,6 @@ impl<V, I, C> From<&CieCam> for CieCamJCh<V, I, C> {
             vdata.append(&mut vec![lightness, chroma, hue_angle]);
         }
         let data = OMatrix::<f64, Const<3>, Dynamic>::from_vec(vdata);
-        Self::new(data)
+        Self{ data, v: PhantomData, i: PhantomData, c: PhantomData}
     }
 }
