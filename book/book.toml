@@ -3,7 +3,7 @@ authors = ["Gerard Harbers"]
 language = "en"
 multilingual = false
 src = "src"
-title = "Rust Color Science Library"
+title = "Spectral Color Tools"
 
 [output.html]
 site-url = "/scot"

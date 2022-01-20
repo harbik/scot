@@ -21,12 +21,12 @@ in turn are based on a standard observer's spectral sensitivities, represented b
 Over time, other color difference formulas have been defined, better representing color matching experiments,
 either based on the same color spaces, or new color spaces, such as the CIECAM color space.
 
-scot currently implements the following color difference metrics:
+**SCoT** currently implements:
 
-- CIE \\( \Delta E_{1976}\\)
-- CIE \\( \Delta E_{1994}\\)
-- CIE \\( \Delta E_{2000}\\)
-- \\( \Delta E_{\text{cam02}}\\)
+- CIE \\( \Delta E_{ab}\\), based on the CIELAB color space, 
+- CIE \\( \Delta E_{1994}\\),
+- CIE \\( \Delta E_{2000}\\), and,
+- \\( \Delta E_{\text{cam02}}\\), based on the CIECAM02-UCS color space.
 
 # Examples
 
