@@ -1,4 +1,4 @@
-#![doc = include_str!("mod.md")]
+// #![doc = include_str!("mod.md")] moved to book
 
 pub mod cam; // 8 correlates
 pub use cam::*;

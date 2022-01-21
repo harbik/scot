@@ -8,3 +8,11 @@ title = "Spectral Color Tools"
 [output.html]
 site-url = "/scot"
 mathjax-support = true
+additional-css = ["theme/css/custom-index.css"]
+
+[output.html.fold]
+enable = true
+level = 0
+
+[output.html.print]
+enable = false

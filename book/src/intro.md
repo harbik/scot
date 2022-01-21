@@ -1,21 +1,23 @@
 # Introduction
-**SCoT** is an open-source Color Science library, for the Rust programming language;
+
+This is a user guide for an open-source Color Science library, called **SCOT**, written in the Rust programming language;
  it implements recommended methods and standards such as defined by the *CIE* (International Commission on Illumination),
  the *ICC* (International Color Consortium), 
  and the *IES* (Illumination Engineering Society);
  and is intended for color engineers and semi-professionals,
  interested in using advanced color models in lighting design, digital imaging, graphic arts, lighting, and product design.
 
-Besides the Rust library, a `scot` command line tool is provided too, and a (simplified) web-assembly library, which can
-be used from scripting languages such as [Deno](https://deno.land), and in a web browser, using a JavasScript
-Application Programming Interface; 
+It also contains a more general background of Color Science, important to understand SCoT's concepts and types.
+
+A description of the `scot` command line tool is provided too, as well of a (simplified) web-assembly library *scot-wasm* which can
+be used from scripting languages such as [Deno](https://deno.land), and in a web browser.
 these have limited functionality though, providing only limited high level functions.
 
 Why another color library? And why Rust?
 There are already many other excellent color libraries written in Python, such as <http:://colour-science.org>.
 And, if you like to use MatLab, there is [ColorLab](https://www.uv.es/vista/vistavalencia/software/colorlab.html).
 
-**SCoT**, written in Rust, has the following benefits:
+**SCOT**, written in Rust, has the following benefits:
 
 - Compared to Python it is fast, with a performance comparable to C++ applications:
  it is a system programming language designed for memory safety and speed.
@@ -46,7 +48,7 @@ And, if you like to use MatLab, there is [ColorLab](https://www.uv.es/vista/vist
    but quickly started to enjoy the experience that if a program compiles,
    if often runs as expected.
 
-**SCoT** is a **spectral color** library,
+**SCOT** is a **spectral color** library,
  which means that –whenever possible– 
  color stimuli are represented by spectral power distributions.
 Which –and that is another big benefit– 
@@ -67,44 +69,3 @@ If you only want to use the library at high level,
  it allows you to crunch-the-numbers with a few lines of code, in the Matlab-style.
 
 
-## Releases
-
-
-
-## About
-
-**SCoT** is free and open-source, and is released under dual MIT and Apache 2.0 licenses.
-It is being developed by Gerard Harbers for *Harbers Bik LLC*.
-
-
-## Disclaimer
-The data, methods, and algorithms in the **SCoT** library, and this book, 
-referencing Standard Organizations such as the International Commission on Illumination (CIE), or any other Standards Organizations, 
-have not been endorsed, qualified, or approved by these Standard Organizations. 
-Please consult their documentation and standards for authoritative methods, recommendations, and data. 
-If you find any deviations or errors between the official standards and the implementations in this library, please report them as [issues](https://github.com/harbik/**SCoT**/issues) on its GitHub page.
-Please be also aware that light and color measurements are difficult and depend on a lot of factors, 
-with many of them outside the scope of this library and its applications. 
-If you have a professional lighting, display lighting, or color issue, please consult a specialist.
-
-
-## License
-
-The **SCoT** Code Licensed under either of
-
- * Apache License, Version 2.0
-   ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
- * MIT license
-   ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>?)
-
-at your option.
-
-The contents of this book is Copyright 2002, Harbers Bik LLC.
-
-## Contribution
-
-Unless you explicitly state otherwise, any contribution intentionally submitted
-for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
-dual licensed as above, without any additional terms or conditions.
-
-## Credits
